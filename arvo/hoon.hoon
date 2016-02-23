@@ -4609,7 +4609,7 @@
     ?.  ?=($0 -.ref)  ref
     ?.  ?=($0 -.ben)  ben
     =+  val=(gul p.ref p.ben)
-    ?~(val [%1 p.ben ~] ?~(u.val !! [%0 u.u.val]))
+    ?~(val [%1 p.ben ~] ?~(u.val [%2 [[%hunk (mush p.ben)] tax]] [%0 u.u.val]))
   ==
 ::
 ++  mock
@@ -4671,6 +4671,13 @@
                  =>  [ud=|=(a/@u (scow %ud a)) q.sot]
                  leaf+"<[{(ud p.p)} {(ud q.p)}].[{(ud p.q)} {(ud q.q)}]>"
   ==         ==
+::
+++  mush                                                ::  sane name to leaf
+  |=  val/*
+  ^-  tank
+  :+  %rose
+    [['/' ~] ['/' ~] ~]
+  (turn ((list @ta) val) |=(a/@ta [%leaf (trip a)]))
 ::
 ++  mong
   |=  {{gat/* sam/*} gul/$-({* *} (unit (unit)))}
@@ -7385,7 +7392,7 @@
           $noun      :_(gid [%leaf '*' ~])
           $path      :_(gid [%leaf '/' ~])
           $span      :_(gid [%leaf '#' 't' ~]) 
-          $void      :_(gid [%leaf '#' ~])
+          $void      :_(gid [%leaf '#' '!' ~])
           $wool      :_(gid [%leaf '*' '"' '"' ~])
           $wall      :_(gid [%leaf '*' '\'' '\'' ~])
           $yarn      :_(gid [%leaf '"' '"' ~])
@@ -7401,7 +7408,7 @@
       ::
           {$face *}
         =^  cox  gid  $(q.ham q.q.ham)
-        :_(gid [%palm [['=' ~] ~ ~ ~] [%leaf (trip p.q.ham)] cox ~])
+        :_(gid [%palm [['/' ~] ~ ~ ~] [%leaf (trip p.q.ham)] cox ~])
       ::
           {$list *}
         =^  cox  gid  $(q.ham q.q.ham)
@@ -7413,21 +7420,21 @@
       ::
           {$plot *}
         =^  coz  gid  (many p.q.ham)
-        :_(gid [%rose [[' ' ~] ['[' ~] [']' ~]] coz])
+        :_(gid [%rose [[' ' ~] ['{' ~] ['}' ~]] coz])
       ::
           {$pear *}
-        :_(gid [%leaf '%' ~(rend co [%$ p.q.ham q.q.ham])])
+        :_(gid [%leaf '$' ~(rend co [%$ p.q.ham q.q.ham])])
       ::
           {$stop *}
         =+  num=~(rend co [%$ %ud p.q.ham])
         ?:  (~(has in gid) p.q.ham)
-          :_(gid [%leaf '$' num])
+          :_(gid [%leaf '#' num])
         =^  cox  gid
             %=  $
               gid    (~(put in gid) p.q.ham)
               q.ham  (~(got by p.ham) p.q.ham)
             ==
-        :_(gid [%palm [['.' ~] ['^' '$' num] ~ ~] cox ~])
+        :_(gid [%palm [['.' ~] ~ ~ ~] [%leaf ['^' '#' num]] cox ~])
       ::
           {$tree *}
         =^  cox  gid  $(q.ham q.q.ham)
@@ -9104,7 +9111,7 @@
   ::
   ++  tack
     |=  {hyp/wing mur/span}
-    ~|  [%tack hyp]
+    ~_  (show [%c %tack] %l hyp)
     =+  fid=(find %rite hyp)
     ?>  ?=($& -.fid)
     (take p.p.fid |=(span mur))
@@ -10367,6 +10374,7 @@
 ++  pi-tell                                             ::  produce dump
   |=  day/doss
   ^-  (list tape)
+  ?:  =(day *doss)  ~
   =+  tot=(pi-moth mon.day)
   ;:  welp
     [(welp "events: " (pi-mumm mon.day)) ~]
@@ -10393,7 +10401,8 @@
       ?:  =(~ out.hup)  ~
       :-  "into:"
       %+  turn
-        (~(tap by out.hup) ~)
+        %+  sort  (~(tap by out.hup) ~)
+        |=({{* a/@ud} {* b/@ud}} (gth a b))
       |=  {pax/path num/@ud}
       ^-  tape
       :(welp "  " (spud pax) ": " (scow %ud num))
@@ -10401,7 +10410,8 @@
       ?:  =(~ inn.hup)  ~
       :-  "from:"
       %+  turn
-        (~(tap by inn.hup) ~)
+        %+  sort  (~(tap by inn.hup) ~)
+        |=({{* a/@ud} {* b/@ud}} (gth a b))
       |=  {pax/path num/@ud}
       ^-  tape
       :(welp "  " (spud pax) ": " (scow %ud num))
