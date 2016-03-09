@@ -43,26 +43,26 @@ img.logo.first {
 .loading.state-3:before {
   content: "\25D0"; }
 
-#head {
-  position: fixed;
-  z-index: 10; }
-  @media (min-width: 544px) {
-    #head {
-      width: 576px; } }
-  @media (min-width: 768px) {
-    #head {
-      width: 720px; } }
-  @media (min-width: 992px) {
-    #head {
-      width: 940px; } }
-  @media (min-width: 1200px) {
-    #head {
-      width: 1140px; } }
+@media (min-width: 544px) {
+  #head {
+    width: 576px; } }
+
+@media (min-width: 768px) {
+  #head {
+    width: 720px; } }
+
+@media (min-width: 992px) {
+  #head {
+    width: 940px; } }
+
+@media (min-width: 1200px) {
+  #head {
+    width: 1140px; } }
 
 #head .loading {
   display: none; }
 
-@media (max-width: 767px) {
+@media (max-width: 543px) {
   #head {
     top: 0;
     z-index: 10;
@@ -85,6 +85,7 @@ img.logo.first {
   padding-right: 0;
   background-color: #fff;
   transition: max-width .2s ease-in-out;
+  position: fixed;
   z-index: 100; }
   .ctrl ul.nav {
     margin-top: 2rem;

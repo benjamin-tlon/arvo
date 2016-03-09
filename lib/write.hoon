@@ -42,10 +42,19 @@
   (poke--data [`typ /web/paste/(scot %da now)] %mime / (taco txt))
 ::
 ++  poke-comment
-  |=  {pax/path txt/@t}  ^+  abet
+  |=  {pax/path him/ship txt/@t}  ^+  abet
   =.  pax  [%web (welp pax /comments/(scot %da now))]
-  =.  txt  (rap 3 (scot %p src) ': ' txt ~)
+  =.  txt  
+    %+  rap  3  :~
+      '## `'  (scot %p him)  '`'
+      '\0a'  txt
+    ==
   (poke--data [`%md pax] %mime / (taco txt))
+::
+++  poke-sec-atom
+  |=  {hot/host dat/@}
+  ?>  ?=($& -.hot)
+  (poke--data [`%atom [%sec p.hot]] %mime / (taco dat))
 ::
 ++  poke--data
   |=  {{ext/(unit @t) pax/path} dat/data}  ^+  abet

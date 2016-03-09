@@ -53,7 +53,7 @@ module.exports = {
     if (path[0] !== "/") {
       path = "/" + path;
     }
-    return TreePersistence.put("write-comment", path, text);
+    return TreePersistence.put("talk-comment", path, text);
   },
   setCurr: function(path) {
     return TreeDispatcher.handleViewAction({
@@ -399,11 +399,18 @@ module.exports = function(queries, Child, load) {
       }
     },
     stateFromStore: function() {
-      var fresh, ref1;
-      fresh = TreeStore.fulfill(this.getPath(), queries);
+      var fresh, got, path;
+      path = this.getPath();
+      fresh = TreeStore.fulfill(path, queries);
+      if (!((this.state != null) && path === this.state.path)) {
+        got = fresh;
+      } else {
+        got = this.mergeWith(this.state.got, fresh);
+      }
       return {
+        path: path,
         fresh: fresh,
-        got: this.mergeWith((ref1 = this.state) != null ? ref1.got : void 0, fresh)
+        got: got
       };
     },
     mergeWith: function(have, fresh, _queries) {
@@ -1349,11 +1356,24 @@ module.exports = _.extend(reactify, {
 
 
 },{"../stores/TreeStore.coffee":22,"./LoadComponent.coffee":12}],15:[function(require,module,exports){
-var recl, rele;
+var appendNext, recl, rele, waitingScripts;
 
 recl = React.createClass;
 
 rele = React.createElement;
+
+waitingScripts = null;
+
+appendNext = function() {
+  if (waitingScripts == null) {
+    return;
+  }
+  if (waitingScripts.length === 0) {
+    return waitingScripts = null;
+  } else {
+    return document.body.appendChild(waitingScripts.shift());
+  }
+};
 
 module.exports = recl({
   displayName: "Script",
@@ -1362,8 +1382,14 @@ module.exports = recl({
     s = document.createElement('script');
     _.assign(s, this.props);
     urb.waspElem(s);
-    document.body.appendChild(s);
-    return this.js = s;
+    s.onload = appendNext;
+    this.js = s;
+    if (waitingScripts != null) {
+      return waitingScripts.push(s);
+    } else {
+      waitingScripts = [s];
+      return appendNext();
+    }
   },
   componentWillUnmount: function() {
     return document.body.removeChild(this.js);
@@ -1797,12 +1823,14 @@ module.exports = {
     });
   },
   put: function(mark, pax, txt) {
+    var appl;
+    appl = /[a-z]*/.exec(mark)[0];
     return urb.send({
       pax: pax,
       txt: txt
     }, {
       mark: mark,
-      appl: 'hood'
+      appl: appl
     });
   },
   encode: function(obj) {
@@ -2137,10 +2165,10 @@ scroll = {
   scroll: function() {
     var ct, dy, top;
     this.cs = $(window).scrollTop();
-    if (this.w > 1170) {
+    if (this.w > 767) {
       this.clearNav();
     }
-    if (this.w < 1170) {
+    if (this.w < 767) {
       dy = this.ls - this.cs;
       this.$d.removeClass('focus');
       if (this.cs <= 0) {
