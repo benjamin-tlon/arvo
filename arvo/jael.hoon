@@ -37,9 +37,9 @@
       pri/land                                          ::  local crypto state
       pub/(map @p will)                                 ::  will system
       api/(map @tas wapi)                               ::  web services
-      tix/(map @pG @p)                                  ::  old style tickets
+      tix/(map @pG @p)                                  ::  tickets
       tls/tlsy                                          ::  tls keys
-      val/(map @tas bitx)                               ::  bitcoin etc
+      bit/(map @tas bitx)                               ::  bitcoin etc
       sub/(map path (set duct))                         ::  subscribers
   ==                                                    ::
 ++  gift                                                ::  out result <-$

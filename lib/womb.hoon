@@ -10,10 +10,10 @@
 ++  foil                                                ::  allocation map
   |*  mold                                              ::  entry mold
   $:  min/@ud                                           ::  minimum entry
+      max/@ud                                           ::  maximum entry
       ctr/@ud                                           ::  next allocated
       und/(set @ud)                                     ::  free under counter
-      ove/(set @ud)                                     ::  free over counter
-      max/@ud                                           ::  maximum entry
+      ove/(set @ud)                                     ::  allocated over counter
       box/(map @ud +<)                                  ::  entries
   ==                                                    ::
 --                                                      ::
@@ -22,7 +22,7 @@
   |*  mold                                              ::  
   %-  unit                                              ::  virgin
   %+  each  +<                                          ::  subdivided
-  mail                                                  ::  delivered
+  email-address                                                  ::  delivered
 ::                                                      ::
 ++  planet                                              ::  subdivided planet
   (managed (lone (foil moon)))                          ::
@@ -34,14 +34,14 @@
   (managed (trel (foil moon) (foil planet) (foil star)))::
 ::                                                      ::
 ++  passcode  @pG                                       ::  64-bit passcode
-++  mail  @ta                                           ::  email address
+++  email-address  @ta                                           ::  eemail-address address
 ++  balance                                             ::  invitation balance
   $:  planets/@ud                                       ::  planet count
       stars/@ud                                         ::  star count
-      owner/mail                                        ::  owner's email
-      history/(list mail)                               ::  transfer history
+      owner/email-address                                        ::  owner's eemail-address
+      history/(list email-address)                               ::  transfer history
   ==                                                    ::
-++  client                                              ::  per email
+++  client                                              ::  per eemail-address
   $:  sta/@ud                                           ::  unused star refs
       has/(set @p)                                      ::  planets owned
   ==                                                    ::
@@ -51,17 +51,17 @@
       {$planet planet}                                  ::  planet
   ==                                                    ::
 ++  invite                                              ::
-  $:  who/mail                                          ::  who to send to
+  $:  who/email-address                                          ::  who to send to
       pla/@ud                                           ::  planets to send
       sta/@ud                                           ::  stars to send
       wel/welcome                                       ::  welcome message
   ==                                                    ::
 ++  welcome                                             ::  welcome message
-  $:  intro/tape                                        ::  in invite email
+  $:  intro/tape                                        ::  in invite eemail-address
       hello/tape                                        ::  as talk message
   ==                                                    ::
 ++  reference                                           ::  affiliate credit
-  (unit (each @p mail))                                 ::  ship or email
+  (unit (each @p email-address))                                 ::  ship or eemail-address
 --                                                      ::
 ::                                                      ::  ::
 ::::                                                    ::  ::
@@ -72,7 +72,7 @@
   $:  boss/(unit @p)                                    ::  outside master
       bureau/(map passcode balance)                     ::  active invitations
       office/(map @p property)                          ::  properties managed
-      hotel/(map mail client)                           ::  everyone we know
+      hotel/(map email-address client)                           ::  everyone we know
   ==                                                    ::
 --                                                      ::
 ::                                                      ::  ::
@@ -136,12 +136,23 @@
   .
 ::
 ++  poke-claim                                        ::  claim plot, send ticket
-  |=  {aut/@uvH her/@p}                               ::
+  |=  {pas/@pG her/@p}                                ::
   =<  abet
-  ?>  |=(src src)
-  .
+  ?>  =(src src)                                      ::  self-authenticated
+  ?.  =(our (sein her))
+    =+  bal=(~(got in bureau) pas)
+    =.  bal  (dec bal)
+    [[%wait ~] [%poke /decremented/[pas] (sein her) %hood %issue who.bal her]]
+  . 
 ::
-++  poke-
+++  poke-issue                                        ::  issue ticket
+  |=  {who/email-address her/@p}                      ::
+  =<  abet
+  ?>  |(=(our src) =([~ src] boss))                   ::  privileged
+  =+  key=(shax eny)
+  [%poke %jael %save /ticket key]
+  [%poke %gmail "Run begin with {<key>} to start {<her>}"
+  .
 ::
 ++  poke-release                                      ::  release to subdivide
   |=  {gal/@ud sta/@ud}                               ::
