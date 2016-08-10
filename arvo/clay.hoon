@@ -76,7 +76,7 @@
           ==  ==  ==                                    ::
 ++  sign                                                ::  in result $<-
           $?  $:  $a                                    ::  by %ames
-          $%  {$woot p/ship q/path r/coop}              ::
+          $%  {$woot p/ship q/coop}                     ::
           ==  ==                                        ::
               $:  $c                                    ::  by %clay
           $%  {$note p/@tD q/tank}                      ::
@@ -2779,13 +2779,9 @@
       (eave:den u.q.q.q.hic)
     [mos ..^$]
   ::
-      $went
-    ::  this won't happen until we send responses.
-    !!
-  ::
       $west
     ?:  ?=({$question *} q.q.hic)
-      =+  ryf=((hard riff) s.q.hic)
+      =+  ryf=((hard riff) r.q.hic)
       :_  ..^$
       :~  [hen %give %mack ~]
           :-  hen
@@ -2798,7 +2794,7 @@
     =+  inx=(slav %ud i.t.t.q.q.hic)
     =^  mos  ruf
       =+  den=((de now hen ruf) p.q.hic syd)
-      abet:(take-foreign-update:den inx ((hard (unit rand)) s.q.hic))
+      abet:(take-foreign-update:den inx ((hard (unit rand)) r.q.hic))
     [[[hen %give %mack ~] mos] ..^$]
   ::
       $wegh
@@ -3036,8 +3032,8 @@
     ==
   ::
       $woot
-    ?~  r.q.hin  [~ ..^$]
-    ~&  [%clay-lost p.q.hin r.q.hin tea]
+    ?~  q.q.hin  [~ ..^$]
+    ~&  [%clay-lost p.q.hin q.q.hin tea]
     [~ ..^$]
   ==
 ::
