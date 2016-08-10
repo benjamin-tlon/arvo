@@ -379,6 +379,7 @@
 ::
 ++  ga                                                  ::  GF (bex p.a)
   |=  a/{p/@ q/@ r/@}                                   ::  dim poly gen
+  ~+
   =+  si=(bex p.a)
   =+  ma=(dec si)
   =>  |%
@@ -541,7 +542,7 @@
         =+  d=(dif.fq 0 (fra.fq 121.665 121.666))
         =+  ii=(exp.fq (div (dec q) 4) 2)
         [b=b q=q fq=fq l=l d=d ii=ii]
-    ~%  %coed  +>  ~
+    ~%  %coed  ..is  ~
     |%
     ++  norm  |=(x/@ ?:(=(0 (mod x 2)) x (sub q x)))
     ::
@@ -687,7 +688,7 @@
   --
 ::
 ++  scr                                                 ::  scrypt
-  ~%  %scr  +  ~
+  ~%  %scr  ..is  ~
   |%
   ++  sal
     |=  {x/@ r/@}                                       ::  salsa20 hash
@@ -1486,6 +1487,7 @@
       :-
         iv
       (~(en ctra k2 7 (dis iv 0xffff.ffff.ffff.ffff.7fff.ffff.7fff.ffff)) txt)
+    ::
     ++  de
       ~/  %de
       |=  {iv/@H txt/@}
@@ -1546,7 +1548,6 @@
       `pln
     --
   --
-::
 ++  pram                                                ::  rabin-miller
   |=  a/@  ^-  ?
   ?:  ?|  =(0 (end 0 1 a))

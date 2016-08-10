@@ -1749,7 +1749,7 @@
           ?~  key  ''
           %-  (bond |.(~&(bad-key+[dom key] '')))
           =+  (slaw %uw key)
-          ?~(- ~ (de:crua load-secret u))  :: XX clay permissions
+          ?~(- ~ (de:crub load-secret u))  :: XX clay permissions
         `(bale)`[[our now (shas %bale eny) root-beak] [usr dom] key]
       ==
     ::
