@@ -824,6 +824,15 @@
     (dor a b)
   (lth c d)
 ::
+++  gyr                                                 ::  g-order
+  ~/  %gyr
+  |=  {a/* b/*}
+  ^-  ?
+  =+  [c=(mum a) d=(mum b)]
+  ?:  =(c d)
+    (dor a b)
+  (lth c d)
+::
 ++  hor                                                 ::  h-order
   ~/  %hor
   |=  {a/* b/*}
@@ -835,6 +844,18 @@
   ?:  =(-.a -.b)
     (gor +.a +.b)
   (gor -.a -.b)
+::
+++  hyr                                                 ::  h-order
+  ~/  %hyr
+  |=  {a/* b/*}
+  ^-  ?
+  ?:  ?=(@ a)
+    ?.  ?=(@ b)  &
+    (gyr a b)
+  ?:  ?=(@ b)  |
+  ?:  =(-.a -.b)
+    (gyr +.a +.b)
+  (gyr -.a -.b)
 ::
 ++  lor                                                 ::  l-order
   ~/  %lor
@@ -853,6 +874,15 @@
   |=  {a/* b/*}
   ^-  ?
   =+  [c=(mug (mug a)) d=(mug (mug b))]
+  ?:  =(c d)
+    (dor a b)
+  (lth c d)
+::
+++  vyr                                                 ::  v-order
+  ~/  %vyr
+  |=  {a/* b/*}
+  ^-  ?
+  =+  [c=(mum (mum a)) d=(mum (mum b))]
   ?:  =(c d)
     (dor a b)
   (lth c d)
