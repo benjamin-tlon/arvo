@@ -1113,6 +1113,199 @@
     |-  ^-  @
     ?~(a 0 +((add $(a l.a) $(a r.a))))
   --
+++  yn                                                  ::  set engine
+  ~/  %yn
+  |_  a/(tree)
+  +-  all                                               ::  logical AND
+    ~/  %all
+    |*  b/$-(* ?)
+    |-  ^-  ?
+    ?~  a
+      &
+    ?&((b n.a) $(a l.a) $(a r.a))
+  ::
+  +-  any                                               ::  logical OR
+    ~/  %any
+    |*  b/$-(* ?)
+    |-  ^-  ?
+    ?~  a
+      |
+    ?|((b n.a) $(a l.a) $(a r.a))
+  ::
+  +-  apt                                               ::  check correctness
+    |-  ^-  ?
+    ?~  a
+      &
+    ?&  ?~(l.a & ?&((vyr n.a n.l.a) (hyr n.l.a n.a) $(a l.a)))
+        ?~(r.a & ?&((vyr n.a n.r.a) (hyr n.a n.r.a) $(a r.a)))
+    ==
+  ::
+  +-  bif                                               ::  splits a by b
+    ~/  %bif
+    |*  b/*
+    ^+  [l=a r=a]
+    =<  [+< +>]
+    |-  ^+  a
+    ?~  a
+      [b ~ ~]
+    ?:  =(b n.a)
+      a
+    ?:  (hyr b n.a)
+      =+  c=$(a l.a)
+      ?>  ?=(^ c)
+      [n.c l.c [n.a r.c r.a]]
+    =+  c=$(a r.a)
+    ?>  ?=(^ c)
+    [n.c [n.a l.a l.c] r.c]
+  ::
+  +-  del                                               ::  b without any a
+    ~/  %del
+    |*  b/*
+    |-  ^+  a
+    ?~  a
+      ~
+    ?.  =(b n.a)
+      ?:  (hyr b n.a)
+        [n.a $(a l.a) r.a]
+      [n.a l.a $(a r.a)]
+    |-  ^-  {$?($~ _a)}
+    ?~  l.a  r.a
+    ?~  r.a  l.a
+    ?:  (vyr n.l.a n.r.a)
+      [n.l.a l.l.a $(l.a r.l.a)]
+    [n.r.a $(r.a l.r.a) r.r.a]
+  ::
+  +-  dif                                               ::  difference
+    ~/  %dif
+    |*  b/_a
+    |-  ^+  a
+    ?~  b
+      a
+    =+  c=(bif n.b)
+    ?>  ?=(^ c)
+    =+  d=$(a l.c, b l.b)
+    =+  e=$(a r.c, b r.b)
+    |-  ^-  {$?($~ _a)}
+    ?~  d  e
+    ?~  e  d
+    ?:  (vyr n.d n.e)
+      [n.d l.d $(d r.d)]
+    [n.e $(e l.e) r.e]
+  ::
+  +-  dig                                               ::  axis of a in b
+    |=  b/*
+    =+  c=1
+    |-  ^-  (unit @)
+    ?~  a  ~
+    ?:  =(b n.a)  [~ u=(peg c 2)]
+    ?:  (hyr b n.a)
+      $(a l.a, c (peg c 6))
+    $(a r.a, c (peg c 7))
+  ::
+  +-  gas                                               ::  concatenate
+    ~/  %gas
+    |=  b/(list _?>(?=(^ a) n.a))
+    |-  ^+  a
+    ?~  b
+      a
+    $(b t.b, a (put i.b))
+  ::
+  +-  has                                               ::  b exists in a check
+    ~/  %has
+    |*  b/*
+    |-  ^-  ?
+    ?~  a
+      |
+    ?:  =(b n.a)
+      &
+    ?:  (hyr b n.a)
+      $(a l.a)
+    $(a r.a)
+  ::
+  +-  int                                               ::  intersection
+    ~/  %int
+    |*  b/_a
+    |-  ^+  a
+    ?~  b
+      ~
+    ?~  a
+      ~
+    ?.  (vyr n.a n.b)
+      $(a b, b a)
+    ?:  =(n.b n.a)
+      [n.a $(a l.a, b l.b) $(a r.a, b r.b)]
+    ?:  (hyr n.b n.a)
+      %-  uni(a $(a l.a, b [n.b l.b ~]))  $(b r.b)
+    %-  uni(a $(a r.a, b [n.b ~ r.b]))  $(b l.b)
+  ::
+  +-  put                                               ::  puts b in a, sorted
+    ~/  %put
+    |*  b/*
+    |-  ^+  a
+    ?~  a
+      [b ~ ~]
+    ?:  =(b n.a)
+      a
+    ?:  (hyr b n.a)
+      =+  c=$(a l.a)
+      ?>  ?=(^ c)
+      ?:  (vyr n.a n.c)
+        [n.a c r.a]
+      [n.c l.c [n.a r.c r.a]]
+    =+  c=$(a r.a)
+    ?>  ?=(^ c)
+    ?:  (vyr n.a n.c)
+      [n.a l.a c]
+    [n.c [n.a l.a l.c] r.c]
+  ::
+  +-  rep                                               ::  replace by product
+    |*  b/_|=({* *} +<+)
+    |-
+    ?~  a  +<+.b
+    $(a r.a, +<+.b $(a l.a, +<+.b (b n.a +<+.b)))
+  ::
+  +-  run                                               ::  apply gate to values
+    ~/  %run
+    |*  b/gate
+    =|  c/(set _?>(?=(^ a) (b n.a)))
+    |-  ?~  a  c
+    =.  c  (~(put in c) (b n.a))
+    =.  c  $(a l.a, c c)
+    $(a r.a, c c)
+  ::
+  +-  tap                                               ::  convert to list
+    ~/  %tap
+    |=  b/(list _?>(?=(^ a) n.a))
+    ^+  b
+    ?~  a
+      b
+    $(a r.a, b [n.a $(a l.a)])
+  ::
+  +-  uni                                               ::  union
+    ~/  %uni
+    |*  b/_a
+    ?:  =(a b)  a
+    |-  ^+  a
+    ?~  b
+      a
+    ?~  a
+      b
+    ?:  (vyr n.a n.b)
+      ?:  =(n.b n.a)
+        [n.b $(a l.a, b l.b) $(a r.a, b r.b)]
+      ?:  (hyr n.b n.a)
+        $(a [n.a $(a l.a, b [n.b l.b ~]) r.a], b r.b)
+      $(a [n.a l.a $(a r.a, b [n.b ~ r.b])], b l.b)
+    ?:  =(n.a n.b)
+      [n.b $(b l.b, a l.a) $(b r.b, a r.a)]
+    ?:  (hyr n.a n.b)
+      $(b [n.b $(b l.b, a [n.a l.a ~]) r.b], a r.a)
+    $(b [n.b l.b $(b r.b, a [n.a ~ r.a])], a l.a)
+  ::
+  +-  wyt                                               ::  size of set
+    |-  ^-  @
+    ?~(a 0 +((add $(a l.a) $(a r.a))))
+  --
 ::                                                      ::
 ::::  2i: map logic                                     ::
   ::                                                    ::
@@ -1351,6 +1544,241 @@
     |-  ^-  @
     ?~(a 0 +((add $(a l.a) $(a r.a))))
   --
+::
+++  bz                                                  ::  map engine
+  ~/  %bz
+  |_  a/(tree (pair))
+  +-  all                                               ::  logical AND
+    ~/  %all
+    |*  b/$-(* ?)
+    |-  ^-  ?
+    ?~  a
+      &
+    ?&((b q.n.a) $(a l.a) $(a r.a))
+  ::
+  +-  any                                               ::  logical OR
+    ~/  %any
+    |*  b/$-(* ?)
+    |-  ^-  ?
+    ?~  a
+      |
+    ?|((b q.n.a) $(a l.a) $(a r.a))
+  ::
+  +-  apt                                               ::  map invariant
+    |-  ^-  ?
+    ?~  a
+      &
+    ?&  ?~(l.a & ?&((vyr p.n.a p.n.l.a) (gyr p.n.l.a p.n.a) $(a l.a)))
+        ?~(r.a & ?&((vyr p.n.a p.n.r.a) (gyr p.n.a p.n.r.a) $(a l.a)))
+    ==
+  +-  bif                                               ::  splits a by b
+    ~/  %bif
+    |*  {b/* c/*}
+    ^+  [l=a r=a]
+    =<  [+< +>]
+    |-  ^+  a
+    ?~  a
+      [[b c] ~ ~]
+    ?:  =(b p.n.a)
+      ?:  =(c q.n.a)
+        a
+      [[b c] l.a r.a]
+    ?:  (gyr b p.n.a)
+      =+  d=$(a l.a)
+      ?>  ?=(^ d)
+      [n.d l.d [n.a r.d r.a]]
+    =+  d=$(a r.a)
+    ?>  ?=(^ d)
+    [n.d [n.a l.a l.d] r.d]
+  ::
+  +-  del                                               ::  delete at key b
+    ~/  %del
+    |*  b/*
+    |-  ^+  a
+    ?~  a
+      ~
+    ?.  =(b p.n.a)
+      ?:  (gyr b p.n.a)
+        [n.a $(a l.a) r.a]
+      [n.a l.a $(a r.a)]
+    |-  ^-  {$?($~ _a)}
+    ?~  l.a  r.a
+    ?~  r.a  l.a
+    ?:  (vyr p.n.l.a p.n.r.a)
+      [n.l.a l.l.a $(l.a r.l.a)]
+    [n.r.a $(r.a l.r.a) r.r.a]
+  ::
+  +-  dif                                               ::  difference
+    ~/  %dif
+    |*  b/_a
+    |-  ^+  a
+    ?~  b
+      a
+    =+  c=(bif n.b)
+    ?>  ?=(^ c)
+    =+  d=$(a l.c, b l.b)
+    =+  e=$(a r.c, b r.b)
+    |-  ^-  {$?($~ _a)}
+    ?~  d  e
+    ?~  e  d
+    ?:  (vyr p.n.d p.n.e)
+      [n.d l.d $(d r.d)]
+    [n.e $(e l.e) r.e]
+  ::
+  +-  dig                                               ::  axis of b key
+    |=  b/*
+    =+  c=1
+    |-  ^-  (unit @)
+    ?~  a  ~
+    ?:  =(b p.n.a)  [~ u=(peg c 2)]
+    ?:  (gyr b p.n.a)
+      $(a l.a, c (peg c 6))
+    $(a r.a, c (peg c 7))
+  ::
+  +-  gas                                               ::  concatenate
+    ~/  %gas
+    |*  b/(list {p/* q/*})
+    =>  .(b `(list _?>(?=(^ a) n.a))`b)
+    |-  ^+  a
+    ?~  b
+      a
+    $(b t.b, a (put p.i.b q.i.b))
+  ::
+  +-  get                                               ::  grab value by key
+    ~/  %get
+    |=  b/*
+    ^-  {$@($~ {$~ u/_?>(?=(^ a) q.n.a)})}
+    ?~  a
+      ~
+    ?:  =(b p.n.a)
+      [~ u=q.n.a]
+    ?:  (gyr b p.n.a)
+      $(a l.a)
+    $(a r.a)
+  ::
+  +-  got
+    |*  b/*
+    (need (get b))
+  ::
+  +-  has                                               ::  key existence check
+    ~/  %has
+    |*  b/*
+    !=(~ (get b))
+  ::
+  +-  int                                               ::  intersection
+    ~/  %int
+    |*  b/_a
+    |-  ^+  a
+    ?~  b
+      ~
+    ?~  a
+      ~
+    ?:  (vyr p.n.a p.n.b)
+      ?:  =(p.n.b p.n.a)
+        [n.b $(a l.a, b l.b) $(a r.a, b r.b)]
+      ?:  (gyr p.n.b p.n.a)
+        %-  uni(a $(a l.a, b [n.b l.b ~]))  $(b r.b)
+      %-  uni(a $(a r.a, b [n.b ~ r.b]))  $(b l.b)
+    ?:  =(p.n.a p.n.b)
+      [n.b $(b l.b, a l.a) $(b r.b, a r.a)]
+    ?:  (gyr p.n.a p.n.b)
+      %-  uni(a $(b l.b, a [n.a l.a ~]))  $(a r.a)
+    %-  uni(a $(b r.b, a [n.a ~ r.a]))  $(a l.a)
+  ::
+  +-  mar                                               ::  add with validation
+    |*  {b/_?>(?=(^ a) p.n.a) c/(unit _?>(?=(^ a) q.n.a))}
+    ?~  c
+      (del b)
+    (put b u.c)
+  ::
+  +-  put                                               ::  adds key-value pair
+    ~/  %put
+    |*  {b/* c/*}
+    |-  ^+  a
+    ?~  a
+      [[b c] ~ ~]
+    ?:  =(b p.n.a)
+      ?:  =(c q.n.a)
+        a
+      [[b c] l.a r.a]
+    ?:  (gyr b p.n.a)
+      =+  d=$(a l.a)
+      ?>  ?=(^ d)
+      ?:  (vyr p.n.a p.n.d)
+        [n.a d r.a]
+      [n.d l.d [n.a r.d r.a]]
+    =+  d=$(a r.a)
+    ?>  ?=(^ d)
+    ?:  (vyr p.n.a p.n.d)
+      [n.a l.a d]
+    [n.d [n.a l.a l.d] r.d]
+  ::
+  +-  rep                                               ::  replace by product
+    |*  b/_|=({* *} +<+)
+    |-
+    ?~  a  +<+.b
+    $(a r.a, +<+.b $(a l.a, +<+.b (b n.a +<+.b)))
+  ::
+  +-  rib                                               ::  transform + product
+    |*  {b/* c/$-(* *)}
+    |-  ^+  [b a]
+    ?~  a  [b ~]
+    =+  d=(c n.a b)
+    =.  n.a  +.d
+    =+  e=$(a l.a, b -.d)
+    =+  f=$(a r.a, b -.e)
+    [-.f [n.a +.e +.f]]
+  ::
+  +-  run                                               ::  apply gate to values
+    |*  b/$-(* *)
+    |-
+    ?~  a  a
+    [n=[p=p.n.a q=(b q.n.a)] l=$(a l.a) r=$(a r.a)]
+  ::
+  +-  rut                                               ::  apply gate to nodes
+    |*  b/gate
+    |-
+    ?~  a  a
+    [n=[p=p.n.a q=(b p.n.a q.n.a)] l=$(a l.a) r=$(a r.a)]
+  ::
+  +-  tap                                               ::  listify pairs
+    ~/  %tap
+    |=  b/(list _?>(?=(^ a) n.a))
+    ^+  b
+    ?~  a
+      b
+    $(a r.a, b [n.a $(a l.a)])
+  ::
+  +-  uni                                               ::  union, merge
+    ~/  %uni
+    |*  b/_a
+    |-  ^+  a
+    ?~  b
+      a
+    ?~  a
+      b
+    ?:  (vyr p.n.a p.n.b)
+      ?:  =(p.n.b p.n.a)
+        [n.b $(a l.a, b l.b) $(a r.a, b r.b)]
+      ?:  (gyr p.n.b p.n.a)
+        $(a [n.a $(a l.a, b [n.b l.b ~]) r.a], b r.b)
+      $(a [n.a l.a $(a r.a, b [n.b ~ r.b])], b l.b)
+    ?:  =(p.n.a p.n.b)
+      [n.b $(b l.b, a l.a) $(b r.b, a r.a)]
+    ?:  (gyr p.n.a p.n.b)
+      $(b [n.b $(b l.b, a [n.a l.a ~]) r.b], a r.a)
+    $(b [n.b l.b $(b r.b, a [n.a ~ r.a])], a l.a)
+  ::
+  +-  urn                                               ::  apply gate to nodes
+    |*  b/$-({* *} *)
+    |-
+    ?~  a  ~
+    [n=[p=p.n.a q=(b p.n.a q.n.a)] l=$(a l.a) r=$(a r.a)]
+  ::
+  +-  wyt                                               ::  depth of map
+    |-  ^-  @
+    ?~(a 0 +((add $(a l.a) $(a r.a))))
+  --
 ::                                                      ::
 ::::  2j: jar and jug logic                             ::
   ::                                                    ::
@@ -1445,6 +1873,75 @@
     ?~  l.a  r.a
     ?~  r.a  l.a
     ?:  (vor n.l.a n.r.a)
+      [n.l.a l.l.a $(l.a r.l.a)]
+    [n.r.a $(r.a l.r.a) r.r.a]
+  ::
+  +-  nap                                               ::  removes head
+    ?>  ?=(^ a)
+    ?:  =(~ l.a)  r.a
+    =+  b=get(a l.a)
+    bal(a ^+(a [p.b q.b r.a]))
+  ::
+  +-  put                                               ::  insert new tail
+    |*  b/*
+    |-  ^+  a
+    ?~  a
+      [b ~ ~]
+    bal(a a(l $(a l.a)))
+  ::
+  +-  tap                                               ::  adds list to end
+    |=  b/(list _?>(?=(^ a) n.a))
+    =+  0                                               ::  hack for jet match
+    ^+  b
+    ?~  a
+      b
+    $(a r.a, b [n.a $(a l.a)])
+  ::
+  +-  top                                               ::  produces head
+    |-  ^-  (unit _?>(?=(^ a) n.a))
+    ?~  a  ~
+    ?~(r.a [~ n.a] $(a r.a))
+  --
+::
+++  tu                                                  ::  queue engine
+  |_  a/(tree)
+  +-  bal
+    |-  ^+  a
+    ?~  a  ~
+    ?.  |(?=($~ l.a) (vyr n.a n.l.a))
+      $(a [n.l.a l.l.a $(a [n.a r.l.a r.a])])
+    ?.  |(?=($~ r.a) (vyr n.a n.r.a))
+      $(a [n.r.a $(a [n.a l.a l.r.a]) r.r.a])
+    a
+  ::
+  +-  dep                                               ::  max depth of queue
+    |-  ^-  @
+    ?~  a  0
+    +((max $(a l.a) $(a r.a)))
+  ::
+  +-  gas                                               ::  insert list to que
+    |=  b/(list _?>(?=(^ a) n.a))
+    |-  ^+  a
+    ?~(b a $(b t.b, a (put i.b)))
+  ::
+  +-  get                                               ::  head-rest pair
+    |-  ^+  ?>(?=(^ a) [p=n.a q=*(tree _n.a)])
+    ?~  a
+      !!
+    ?~  r.a
+      [n.a l.a]
+    =+  b=$(a r.a)
+    :-  p.b
+    ?:  |(?=($~ q.b) (vyr n.a n.q.b))
+      [n.a l.a q.b]
+    [n.q.b [n.a l.a l.q.b] r.q.b]
+  ::
+  +-  nip                                               ::  remove root
+    |-  ^+  a
+    ?~  a  ~
+    ?~  l.a  r.a
+    ?~  r.a  l.a
+    ?:  (vyr n.l.a n.r.a)
       [n.l.a l.l.a $(l.a r.l.a)]
     [n.r.a $(r.a l.r.a) r.r.a]
   ::
