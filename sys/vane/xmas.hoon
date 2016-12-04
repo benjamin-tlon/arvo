@@ -944,14 +944,15 @@
       :-  %open
       %^    jam
           [~ lyf]
-        gyr.det
+        `gree`!!
       (sign:as:cry *code hom)
     =+  key=(shaz :(mix (mug ham) now eny))
     :-  [%line ~2018.1.1 key]~
     :-  %full
     %^    jam
         [u.cur.det lyf]
-      gyr.det
+      `gree`!!
+    =*  cet  (~(got by pub.det) u.cur.det)
     (seal:as:cry (~(got by pub.det) u.cur.det) key hom)
   --
 ::                                                      ::
