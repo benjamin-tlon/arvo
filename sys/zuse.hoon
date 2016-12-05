@@ -2344,7 +2344,7 @@
       cph
     ::                                                  ::  ++dy:crub:crypto
     ++  dy                                              ::  need decrypt
-      |=  {key/@I cph/@}
+      |=  {key/@J cph/@}
       (need (de key cph))
     ::                                                  ::  ++en:crub:crypto
     ++  en                                              ::  encrypt
