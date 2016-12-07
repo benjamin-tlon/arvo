@@ -14,7 +14,6 @@
 ++  bait  {p/skin q/@ud r/dove}                         ::  fmt nrecvd spec
 ++  bath                                                ::  per friend
           $:  det/pipe                                  ::  secure channel
-              waz/(list ship)                           ::  path to
               lun/(unit lane)                           ::  latest route
               zam/scar                                  ::  outbound boles
               fon/(map bole lock)                       ::  inbound locks
@@ -83,8 +82,8 @@
 ++  silo                                                ::  global state
           $:  lyf/life                                  ::  current version
               wyr/(map life ring)                       ::  private keys
-              ech/(map ship mute)                       ::  unknown partners 
-              pol/(map ship bath)                       ::  known partners
+              ech/(map ship mute)                       ::  waiting partners
+              pol/(map ship bath)                       ::  open partners
           ==                                            ::
 ++  skin  ?($none $open $fast $full)                    ::  encoding stem
 ++  stat                                                ::  pump statistics
@@ -150,17 +149,27 @@
         $done  abet:(done:(etre p.job) q.job r.job)
         $hear
       =+  kec=(bite q.job)
-      ?>  =(our q.p.kec)
-      ?.  (~(has in pol) p.p.kec)
-        =+  rob=(fall (~(get by ech) p.p.kec) *mute)
-        +>(ech (~(put by ech) p.p.kec rob(inn [[p.job q.job] inn])))
-      =^  etc  +>.$  (etch p.p.kec)
-      abet:(hear:etc p.job (shaf %flap q.job) q.kec r.kec)
+      =+  bom=(fall (~(get by pol) who) |+*mute)
+      ?-    -.bom
+          $|
+        +>.$(pol (~(put by pol) who bom(inn.p [[p.job q.job] inn.p.job])))
+      ::
+          $&
+        ?>  =(our q.p.kec)
+        abet:(hear:(etre p.p.kec) p.job (shaf %flap q.job) q.kec r.kec)
+      ==
     ::
         $mess
-      =^  etc  +>.$  (etch p.job)
-      =^  kos  etc  (blow:etc q.job)
-      abet:(mess:etc kos r.job s.job)
+      =+  bom=(fall (~(get by pol) who) |+*mute)
+      ?-    -.bom
+          $|
+        +>.$(pol (~(put by pol) who bom(out.p [+>.job out.p.job])))
+      ::
+          $&
+        =^  etc  +>.$  (etre p.job)
+        ?>  =(our q.p.kec)
+        abet:(hear:(etre p.p.kec) p.job (shaf %flap q.job) q.kec r.kec)
+      ==
     ::
         $rend
       abet:(mess:(etre p.job) q.job r.job s.job)
@@ -173,10 +182,32 @@
       =+  top=~(to-wake et(fex fex.ryt) n.pol)
       +>.^$(fex fex.top, pol [+<.top pol.lef pol.ryt])
     ==
-  ::
-  ++  dear
+  ::                                                    ::
+  ++  dear                                              ::  neighbor update
     |=  {who/@p det/pipe}
-    !! 
+    ^+  +>
+    ?:  (~(has in ech) 
+    =+  bom=(fall (~(get by pol) who) |+*mute)
+    ?-    -.bon
+    ::
+    ::  existing neighbor; update channel
+    ::
+        %&
+      +>.$(pol (~(put by pol) who bom(det.p det)))
+    ::
+    ::  new neighbor; run all waiting i/o
+    ::
+        %|
+      =.  pol  (~(put by pol) who &+[det ~ [2 ~ ~] ~ ~])
+      =+  [inn out]=[(flop inn.p.bom) (flop out.p.bom)]
+      =.  +>.$
+        |-  ^+  +>.^$
+        ?~  inn  +>.^$
+        $(inn t.inn, +>.$ (apex `task`[$hear i.inn]))
+      |-  ^+  +>.^$
+      ?~  out  +>.^$
+      $(out t.out, +>.$ (apex `task`[$mess i.inn]))
+    == 
   ::
   ++  doze                                              ::  sleep until
     |-  ^-  (unit @da)
@@ -188,18 +219,18 @@
     ==
   ::                                                    ::
   ++  etch                                              ::  new neighbor
-      |=  who/@p 
-      =+  buh=(~(get by pol) who)
-      ?^  buh  
-        ::  old neighbor; channel already registered
-        [~(. et who u.buh) +>.$]
-      ::  new neighbor; register secure channel view
-      :_  +>.$(fex [[%veil who] fex])
-      ~(. et who `bath`[(see who) (seek our who) ~ [2 ~ ~] ~ ~])
+    |=  who/@p 
+    =+  buh=(~(get by pol) who)
+    ?^  buh  
+      ::  old neighbor; channel already registered
+      [~(. et who u.buh) +>.$]
+    ::  new neighbor; register secure channel view
+    :_  +>.$(fex [[%veil who] fex])
+    ~(. et who `bath`[(see who) (seek our who) ~ [2 ~ ~] ~ ~])
   ::                                                    ::
   ++  etre                                              ::  old neighbor
-      |=  who/@p 
-      ~(. et who (~(got by pol) who))
+    |=  who/@p 
+    ~(. et who (~(got by pol) who))
   ::                                                    ::
   ++  et                                                ::  per neighbor
     |_  $:  who/ship  
@@ -264,7 +295,7 @@
       |=  {urg/(unit lane) pac/rock}
       ^+  +>
       ?:  =(our who)  (acme [%send *lane pac])
-      =+  zaw=waz.bah
+      =+  zaw=sax.det.bah
       |-  ^+  +>.^$
       ?~  zaw  +>.^$
       =+  ^=  lun  ^-  (unit lane)
@@ -281,7 +312,7 @@
         $(zaw t.zaw)
       =.  pac  ?:  &(=(i.zaw who) =(~ urg))
                  pac
-                ::
+               ::
                ::  forwarded packets are not signed/encrypted,
                ::  because (a) we don't need to; (b) we don't
                ::  want to turn one packet into two.  the wrapped
@@ -389,28 +420,6 @@
 ::
 ++  kins  |=(tay/@ (snag tay `(list skin)`[%none %open %fast %full ~]))
 ++  ksin  |=(sin/skin `@`?-(sin $none 0, $open 1, $fast 2, $full 3))
-++  seek                                                ::  path to
-  |=  {our/ship her/ship}
-  ^-  (list ship)
-  ::
-  ::  in order of routing desirability, from `our`
-  ::  to `who`, up their hierarchy to the least
-  ::  common ancestor, then up ours to the root.
-  ::
-  =+  [fro=t.+:(saxo:title our) too=(saxo:title her)]
-  |-  ^-  (list ship)
-  ?~  too  fro
-  ?:  =(our i.too)  
-    ::  the target is one of our children.
-    ~
-  ?:  (lien fro |=(a/ship =(a i.too)))
-    ::  a parent of the target is in our own hierarchy.
-    ::  clip the target hierarchy here and add our own
-    ::  hierarchy, from bottom to top.
-    |-  ^-  (list ship)
-    ?~  fro  !!
-    ?:(=(i.fro i.too) [i.too ~] [i.fro $(fro t.fro)])
-  [i.too $(too t.too)]
 ::
 ++  spit                                                ::  cake to packet
   |=  kec/cake  ^-  @
