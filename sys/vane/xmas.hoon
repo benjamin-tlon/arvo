@@ -149,27 +149,29 @@
         $done  abet:(done:(etre p.job) q.job r.job)
         $hear
       =+  kec=(bite q.job)
-      =+  bom=(fall (~(get by pol) who) |+*mute)
-      ?-    -.bom
-          $|
-        +>.$(pol (~(put by pol) who bom(inn.p [[p.job q.job] inn.p.job])))
-      ::
-          $&
-        ?>  =(our q.p.kec)
-        abet:(hear:(etre p.p.kec) p.job (shaf %flap q.job) q.kec r.kec)
-      ==
+      ?>  =(our q.p.kec)
+      =+  buh=(~(get by pol) p.p.kec)
+      ?~  buh
+        ~&  [%ames-from p.p.kec]
+        =+  nut=(fall (~(get by ech) p.p.kec) *mute)
+        %_  +>.$
+          fex  [[%veil p.p.kec] fex]
+          ech  (~(put by ech) p.p.kec nut(inn [+.job inn.nut]))
+        ==
+      abet:(~(hear et p.p.kec u.buh) p.job (shaf %flap q.job) q.kec r.kec)
     ::
         $mess
-      =+  bom=(fall (~(get by pol) who) |+*mute)
-      ?-    -.bom
-          $|
-        +>.$(pol (~(put by pol) who bom(out.p [+>.job out.p.job])))
-      ::
-          $&
-        =^  etc  +>.$  (etre p.job)
-        ?>  =(our q.p.kec)
-        abet:(hear:(etre p.p.kec) p.job (shaf %flap q.job) q.kec r.kec)
-      ==
+      =+  buh=(~(get by pol) p.job)
+      ?~  buh
+        ~&  [%ames-unto p.job]
+        =+  nut=(fall (~(get by ech) p.job) *mute)
+        %_  +>.$
+          fex  [[%veil p.job] fex]
+          ech  (~(put by ech) p.job nut(out [+>.job out.nut]))
+        ==
+      =/  etc  ~(. et p.job u.buh)
+      =^  kos  etc  (blow:etc q.job)
+      abet:(mess:etc kos r.job s.job)
     ::
         $rend
       abet:(mess:(etre p.job) q.job r.job s.job)
@@ -186,28 +188,25 @@
   ++  dear                                              ::  neighbor update
     |=  {who/@p det/pipe}
     ^+  +>
-    ?:  (~(has in ech) 
-    =+  bom=(fall (~(get by pol) who) |+*mute)
-    ?-    -.bon
-    ::
-    ::  existing neighbor; update channel
-    ::
-        %&
-      +>.$(pol (~(put by pol) who bom(det.p det)))
+    =+  noz=(~(get by ech) who)
+    ?~  noz
+      ::
+      ::  we're not waiting for this ship; we must have it
+      ::
+      =+  bah=(~(got by pol) who)
+      +>.$(pol (~(put by pol) who bah(det det)))
     ::
     ::  new neighbor; run all waiting i/o
     ::
-        %|
-      =.  pol  (~(put by pol) who &+[det ~ [2 ~ ~] ~ ~])
-      =+  [inn out]=[(flop inn.p.bom) (flop out.p.bom)]
-      =.  +>.$
-        |-  ^+  +>.^$
-        ?~  inn  +>.^$
-        $(inn t.inn, +>.$ (apex `task`[$hear i.inn]))
+    =.  pol  (~(put by pol) who [det ~ [2 ~ ~] ~ ~])
+    =+  [inn out]=[(flop inn.u.noz) (flop out.u.noz)]
+    =.  +>.$
       |-  ^+  +>.^$
-      ?~  out  +>.^$
-      $(out t.out, +>.$ (apex `task`[$mess i.inn]))
-    == 
+      ?~  inn  +>.^$
+      $(inn t.inn, +>.^$ (apex `task`[%hear i.inn]))
+    |-  ^+  +>.^$
+    ?~  out  +>.^$
+    $(out t.out, +>.^$ (apex `task`[%mess who i.out]))
   ::
   ++  doze                                              ::  sleep until
     |-  ^-  (unit @da)
@@ -217,16 +216,6 @@
       $(pol r.pol)
       ~(to-wait et p.n.pol q.n.pol)
     ==
-  ::                                                    ::
-  ++  etch                                              ::  new neighbor
-    |=  who/@p 
-    =+  buh=(~(get by pol) who)
-    ?^  buh  
-      ::  old neighbor; channel already registered
-      [~(. et who u.buh) +>.$]
-    ::  new neighbor; register secure channel view
-    :_  +>.$(fex [[%veil who] fex])
-    ~(. et who `bath`[(see who) (seek our who) ~ [2 ~ ~] ~ ~])
   ::                                                    ::
   ++  etre                                              ::  old neighbor
     |=  who/@p 
@@ -1186,12 +1175,12 @@
       ?-    -.gax
           $east  [p.gax %give [%east s.gax]]
           $home  [~ %give gax]
-          $link  [~ %pass /sec/(scot %p p.gax) %j gax]
-          $line  [~ %pass /sec/(scot %p p.gax) %j gax]
-          $meet  [~ %pass /sec/(scot %p p.gax) %j gax]
+          $link  [~ %pass ~ %j gax]
+          $line  [~ %pass ~ %j gax]
+          $meet  [~ %pass ~ %j gax]
           $rest  [p.gax %give %rest q.gax]
           $send  [~ %give gax]
-          $veil  [~ %pass /sec %j gax]
+          $veil  [~ %pass /det/(scot %p p.gax) %j gax]
           $west
         =+  pax=/msg/(scot %p p.gax)/(scot %ud q.gax)
         =+  cad=[%west p.gax +.r.gax s.gax]
@@ -1238,19 +1227,22 @@
 ++  take                                            ::  accept response
   |=  {tea/wire hen/duct hin/(hypo sign-arvo)}
   ^-  {p/(list move) q/_..^$}
-  %-  work
   ?+    -.tea  !!
       $msg
     ?>  ?=({@ @ $~} +.tea)
     =+  [who kos]=[(slav %p i.t.tea) (slav %ud i.t.t.tea)]
     ?>  ?=(?($rend $mack) +<.q.hin)
+    %-  work
     ?-  +<.q.hin
       $rend  [%rend who kos p.+.q.hin q.+.q.hin]
       $mack  [%done who kos ?~(p.+.q.hin ~ `coop`[~ `[%fail u.p.+.q.hin]])]
     ==
   ::
-      $sec
-    ?>  ?=($clue +<.q.hin)
-    +
+      $det
+    ?>  ?=({@ $~} +.tea)
+    =+  who=(slav %p i.t.tea)
+    ?>  ?=($veil +<.q.hin)
+    =^  fex  syl  abet:(dear:love who p.+.q.hin)
+    [(turn fex lung) ..^$]
   ==
 --
