@@ -145,7 +145,7 @@
     |=  job/task
     ^+  +>
     ?-    -.job
-        $clue  abet:(clue:(etre p.job) q.job)
+        $clue  (dear p.job q.job)
         $done  abet:(done:(etre p.job) q.job r.job)
         $hear
       =+  kec=(bite q.job)
