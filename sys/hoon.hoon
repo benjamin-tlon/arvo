@@ -19,20 +19,27 @@
   ::      1b: tree addressing                           ::
   ::      1c: molds and mold builders                   ::
   ::
+''':layer one: basic arithmetic, tree addressing and molds''':
 ~%  %one  +  ~
 |%
 ::                                                      ::
 ::::    1a: unsigned arithmetic                         ::
   ::
 ++  foo  %bar
-++  add                                                 ::  unsigned addition
+++  add
+  ''':unsigned addition.
+
+  produces the sum of `a` and `b`.''':
   ~/  %add
   |=  {a/@ b/@}
   ^-  @
   ?:  =(0 a)  b
   $(a (dec a), b +(b))
 ::
-++  dec                                                 ::  unsigned decrement
+++  dec
+  ''':unsigned decrement.
+
+  decrements `a` by 1.''':
   ~/  %dec
   |=  a/@
   ~_  leaf+"decrement-underflow"
@@ -42,7 +49,10 @@
   ?:  =(a +(b))  b
   $(b +(b))
 ::
-++  div                                                 ::  unsigned divide
+++  div
+  ''':unsigned division.
+
+  computes `a` divided by `b`.''':
   ~/  %div
   =+  [a=`@`1 b=`@`1]
   |.
@@ -54,30 +64,45 @@
   ?:  (lth a b)  c
   $(a (sub a b), c +(c))
 ::
-++  dvr                                                 ::  divide w/remainder
+++  dvr
+  ''':unsigned division with remainder.
+
+  returns [divisor remainder].''':
   ~/  %dvr
   |=  {a/@ b/@}
   ^-  {p/@ q/@}
   [(div a b) (mod a b)]
 ::
-++  gte                                                 ::  unsigned greater/eq
+++  gte
+  ''':unsigned greater-than/equal.
+
+  tests whether `a` is greater than a number `b`.''':
   ~/  %gte
   |=  {a/@ b/@}
   ^-  ?
   !(lth a b)
 ::
-++  gth                                                 ::  unsigned greater
+++  gth
+  ''':unsigned greater-than.
+
+  tests whether `a` is greater than `b`.''':
   ~/  %gth
   |=  {a/@ b/@}
   ^-  ?
   !(lte a b)
 ::
-++  lte                                                 ::  unsigned less/eq
+++  lte
+  ''':unsigned less-than/equal.
+
+  tests whether `a` is less than or equal to `b`.''':
   ~/  %lte
   |=  {a/@ b/@}
   |(=(a b) (lth a b))
 ::
-++  lth                                                 ::  unsigned less
+++  lth
+  ''':unsigned less-than.
+
+  tests whether `a` is less than `b`.''':
   ~/  %lth
   |=  {a/@ b/@}
   ^-  ?
@@ -88,28 +113,40 @@
               $(a (dec a), b (dec b))
   ==  ==  ==
 ::
-++  max                                                 ::  unsigned maximum
+++  max
+  ''':unsigned maximum.
+
+  computes the greater of `a` and `b`.''':
   ~/  %max
   |=  {a/@ b/@}
   ^-  @
   ?:  (gth a b)  a
   b
 ::
-++  min                                                 ::  unsigned minimum
+++  min
+  ''':unsigned minimum.
+
+  computes the lesser of `a` and `b`.''':
   ~/  %min
   |=  {a/@ b/@}
   ^-  @
   ?:  (lth a b)  a
   b
 ::
-++  mod                                                 ::  unsigned modulus
+++  mod
+  ''':unsigned modulus.
+
+  computes the remainder of dividing `a` by `b`.''':
   ~/  %mod
   |:  [a=`@`1 b=`@`1]
   ^-  @
   ?<  =(0 b)
   (sub a (mul b (div a b)))
 ::
-++  mul                                                 ::  unsigned multiply
+++  mul
+  ''':unsigned multiply.
+
+  multiplies `a` by `b`.''':
   ~/  %mul
   |:  [a=`@`1 b=`@`1]
   ^-  @
@@ -118,7 +155,10 @@
   ?:  =(0 a)  c
   $(a (dec a), c (add b c))
 ::
-++  sub                                                 ::  subtract
+++  sub
+  ''':unsigned subtraction.
+
+  subtracts `b` from `a`.''':
   ~/  %sub
   |=  {a/@ b/@}
   ~_  leaf+"subtract-underflow"
@@ -130,7 +170,12 @@
   ::                                                    ::
   ::    cap, mas, peg                                   ::
   ::
-++  cap                                                 ::  fragment head
+++  cap
+  ''':tree head.
+
+  tests whether an `a` is in the head or tail of a noun. produces the
+  cube `%2` if it is within the head, or the cube `%3` if it is
+  within the tail.''':
   ~/  %cap
   |=  a/@
   ^-  ?($2 $3)
@@ -141,7 +186,11 @@
     *         $(a (div a 2))
   ==
 ::
-++  mas                                                 ::  fragment body
+++  mas
+  ''':axis within head/tail?
+
+  computes the axis of `a` within either the head or tail of a noun
+  (depends whether `a` lies within the the head or tail).''':
   ~/  %mas
   |=  a/@
   ^-  @
@@ -152,7 +201,10 @@
     *    (add (mod a 2) (mul $(a (div a 2)) 2))
   ==
 ::
-++  peg                                                 ::  fragment compose
+++  peg
+  ''':axis within axis.
+
+  computes the axis of `b` within axis `a`.''':
   ~/  %peg
   |=  {a/@ b/@}
   ?<  =(0 a)
@@ -167,23 +219,87 @@
 ::::  1c: ideal containers                              ::
   ::                                                    ::
   ::
-++  ache  |*({a/mold b/mold} $%({$| p/b} {$& p/a}))     ::  a or b, b default
-++  bloq  @                                             ::  bitblock, eg 3=byte
-++  each  |*({a/mold b/mold} $%({$& p/a} {$| p/b}))     ::  a or b, a default
-++  gate  $-(* *)                                       ::  generic mold
-++  list  |*(a/mold $@($~ {i/a t/(list a)}))            ::  nullterminated list
-++  lone  |*(a/mold p/a)                                ::  1-tuple
-++  mold  gate                                          ::  normalizing gate
-++  pair  |*({a/mold b/mold} {p/a q/b})                 ::  2-tuple
-++  pole  |*(a/mold $@($~ {a (pole a)}))                ::  faceless list
-++  qual  |*  {a/mold b/mold c/mold d/mold}             ::  4-tuple
-          {p/a q/b r/c s/d}                             ::
+++  ache
+  ''':either `a` or `b`, defaulting to `b`.''':
+  |*({a/mold b/mold} $%({$| p/b} {$& p/a}))
+::
+++  bloq
+  ''':blocksize.
+
+  atom representing a blocksize, by convention expressed as a power of 2.''':
+  @
+::
+++  each
+  ''':either `a` or `b`, defaulting to `a`.''':
+  |*({a/mold b/mold} $%({$& p/a} {$| p/b}))
+::
+++  gate
+  ''':generic mold matching any gate.''':
+  $-(* *)
+::
+++  list
+  ''':null terminated list.
+
+  `++list` generates a mold of a null-termanated list of a
+  homogeneous type.''':
+  |*(a/mold $@($~ {i/a t/(list a)}))
+::
+++  lone
+  ''':one-tuple mold generator.
+
+  `++mold` of the tuple of the one type passed in.''':
+  |*(a/mold p/a)
+::
+++  mold
+  ''':a gate which normalizes data.''':
+  gate
+::
+++  pair
+  ''':two-tuple mold generator.
+
+  `++mold` of the tuple of the two types passed in.''':
+  |*({a/mold b/mold} {p/a q/b})
+::
+++  pole
+  ''':faceless null terminated list.
+
+  a `++list` without the faces `i` and `t`.''':
+  |*(a/mold $@($~ {a (pole a)}))
+::
+++  qual
+  ''':four-tuple mold generator.
+
+  `++mold` of the tuple of the four types passed in.''':
+  |*  {a/mold b/mold c/mold d/mold}
+      {p/a q/b r/c s/d}
+::
 ++  quid  |*({a/mold b/*} {a _b})                       ::  mixed for sip
 ++  quip  |*({a/mold b/*} {(list a) _b})                ::  list-mixed for sip
-++  trap  |*(a/mold _|?(*a))                            ::  producer
-++  tree  |*(a/mold $@($~ {n/a l/(tree a) r/(tree a)})) ::  binary tree
-++  trel  |*({a/mold b/mold c/mold} {p/a q/b r/c})      ::  3-tuple
-++  unit  |*(a/mold $@($~ {$~ u/a}))                    ::  maybe
+++  trap
+  ''':producer generator.
+
+  creates a trap--a core with one arm `$`.''':
+  |*(a/mold _|?(*a))
+::
+++  tree
+  ''':tree mold generator.
+
+  a `++tree` can be empty, or contain a node of a type and
+  left/right sub `++tree` of the same type. pretty-printed with `{}`.''':
+  |*(a/mold $@($~ {n/a l/(tree a) r/(tree a)}))
+::
+++  trel
+  ''':three-tuple mold generator.
+
+  `++mold` of the tuple of the three types passed in.''':
+  |*({a/mold b/mold c/mold} {p/a q/b r/c})
+::
+++  unit
+  ''':maybe mold generator.
+
+  a `++unit` is either `~` or `[~ u=a]` where `a` is the type that was
+  passed in.''':
+  |*(a/mold $@($~ {$~ u/a}))
 --  =>
 ::                                                      ::
 ::::  2: layer two                                      ::
@@ -206,6 +322,7 @@
   ::    2p: serialization                               ::
   ::    2q: molds and mold builders                     ::
   ::
+''':layer two: standard containers, hashing, and serialization.''':
 ~%  %two  +  ~
 |%
 ++  foo  %bar
@@ -215,40 +332,69 @@
   ::    biff, bind, bond, both, clap, drop,             ::
   ::    fall, flit, lift, mate, need, some              ::
   ::
-++  biff                                                ::  apply
+++  biff
+  ''':unit as argument.
+
+  applies a function `b` that produces a unit to the unwrapped value of ++unit
+  `a` (`u.a`). if `a` is empty, `~` is produced.''':
   |*  {a/(unit) b/$-(* (unit))}
   ?~  a  ~
   (b u.a)
 ::
-++  bind                                                ::  argue
+++  bind
+  ''':non-unit function to unit, producing unit.
+
+  applies a function `b` to the value (`u.a`) of a ++unit `a`, producing
+  a unit. used when you want a function that does not accept or produce a
+  unit to both accept and produce a unit.''':
   |*  {a/(unit) b/$-(* *)}
   ?~  a  ~
   [~ u=(b u.a)]
 ::
-++  bond                                                ::  replace
+++  bond
+  ''':replace null.
+
+  replaces an empty ++unit `b` with the product of a called trap
+  `a`. if the unit is not empty, then the original unit is produced.''':
   |*  a/(trap)
   |*  b/(unit)
   ?~  b  $:a
   u.b
 ::
-++  both                                                ::  all the above
+++  both
+  ''':group unit values into pair.
+
+  produces `~` if either `a` or `b` are empty. otherwise, produces a
+  ++unit whose value is a cell of the values of two input units `a` and
+  `b`.''':
   |*  {a/(unit) b/(unit)}
   ?~  a  ~
   ?~  b  ~
   [~ u=[u.a u.b]]
 ::
-++  clap                                                ::  combine
+++  clap
+  ''':apply function to two units.
+
+  applies a binary function `c`--which does not usually accept or produce a
+  `++unit`--to the values of two units, `a` and `b`, producing a unit.''':
   |*  {a/(unit) b/(unit) c/_|=(^ +<-)}
   ?~  a  b
   ?~  b  a
   [~ u=(c u.a u.b)]
 ::
-++  drop                                                ::  enlist
+++  drop
+  ''':unit to list.
+
+  makes a ++list of the unwrapped value (`u.a`) of a `++unit` `a`.''':
   |*  a/(unit)
   ?~  a  ~
   [i=u.a t=~]
 ::
-++  fall                                                ::  default
+++  fall
+  ''':give unit a default value.
+
+  produces a default value `b` for a `++unit` `a` in cases where `a` is null.
+  ''':
   |*  {a/(unit) b/*}
   ?~(a b u.a)
 ::
@@ -264,23 +410,41 @@
   ?~  two  one
   ?:((ord ,.+.one ,.+.two) one two)
 ::
-++  lift                                                ::  lift mold (fmap)
+++  lift
+  ''':curried bind.
+
+  accepts a `++gate` `a` and produces a function that accepts `++unit`
+  `b` to which it applies `a`. used when you want a function that does not
+  accept or produce a unit to both accept and produce a unit.''':
   |*  a/mold                                            ::  flipped
   |*  b/(unit)                                          ::  curried
   (bind b a)                                            ::  bind
 ::
-++  mate                                                ::  choose
+++  mate
+  ''':choose between units.
+
+  accepts two units `a` and `b` whose values are expected to be
+  equivalent. if either is empty, then the value of the other is produced.
+  if neither are empty, it asserts that both values are the same and
+  produces that value. if the assertion fails, `++mate` crashes with
+  `'mate'` in the stack trace.''':
   |*  {a/(unit) b/(unit)}
   ?~  b  a
   ?~  a  b
   ?.(=(u.a u.b) ~>(%mean.[%leaf "mate"] !!) a)
 ::
-++  need                                                ::  demand
+++  need
+  ''':unwrap unit
+
+  retrieve the value from a `++unit` and crash if the unit is null.''':
   |*  a/(unit)
   ?~  a  ~>(%mean.[%leaf "need"] !!)
   u.a
 ::
-++  some                                                ::  lift (pure)
+++  some
+  ''':wrap value in a unit
+
+  takes any atom `a` and produces a `++unit` with the value set to `a`.''':
   |*  a/*
   [~ u=a]
 ::
@@ -288,7 +452,11 @@
   ::                                                    ::
   ::                                                    ::
 ::
-++  fand                                                ::  all indices
+++  fand
+  ''':all indices in list.
+
+  produces the indices of all occurrences of `++list` `nedl` in
+  `++list` `hstk` as a `++list` of atoms.''':
   ~/  %fand
   |=  {nedl/(list) hstk/(list)}
   =|  i/@ud
@@ -304,7 +472,11 @@
     $(n t.n, h t.h)
   ^$(i +(i), hstk +.hstk)
 ::
-++  find                                                ::  first index
+++  find
+  ''':first index in list
+
+  produces the index of the first occurrence of `++list` `nedl` in
+  `++list` `hstk` as the `++unit` of an atom.''':
   ~/  %find
   |=  {nedl/(list) hstk/(list)}
   =|  i/@ud
@@ -319,7 +491,8 @@
     $(n t.n, h t.h)
   ^$(i +(i), hstk +.hstk)
 ::
-++  flop                                                ::  reverse
+++  flop
+  ''':produces the list `a` in reverse order.''':
   ~/  %flop
   |*  a/(list)
   =>  .(a (homo a))
@@ -329,19 +502,28 @@
   ?~  a  b
   $(a t.a, b [i.a b])
 ::
-++  gulf                                                ::  range inclusive
+++  gulf
+  ''':returns a list of all integers between `a` and `b`, inclusive.''':
   |=  {a/@ b/@}
   ^-  (list @)
   ?:(=(a +(b)) ~ [a $(a +(a))])
 ::
-++  homo                                                ::  homogenize
+++  homo
+  ''':homogenize.
+
+  produces a `++list` whose type is a fork of all the contained types in the
+  list `a`. used when you want to make all the types of the elements of a list
+  the same.''':
   |*  a/(list)
   ^+  =<  $
     |%  +-  $  ?:(*? ~ [i=(snag 0 a) t=$])
     --
   a
 ::
-++  lent                                                ::  length
+++  lent
+  ''':list length.
+
+  produces the length of any `++list` `a` as an atom.''':
   ~/  %lent
   |=  a/(list)
   ^-  @
@@ -351,14 +533,22 @@
   $(a t.a, b +(b))
 ::
 ++  levy
-  ~/  %levy                                             ::  all of
+  ''':logical "and" on list.
+
+  computes the boolean logical "and" on the results of gate `b` applied to each
+  individual element in `++list` `a`.''':
+  ~/  %levy
   |*  {a/(list) b/$-(* ?)}
   |-  ^-  ?
   ?~  a  &
   ?.  (b i.a)  |
   $(a t.a)
 ::
-++  lien                                                ::  some of
+++  lien
+  ''':logical "or" on list.
+
+  computes the boolean logical "or" on the results of applying [gate]() `b` to
+  every element of `++list` `a`.''':
   ~/  %lien
   |*  {a/(list) b/$-(* ?)}
   |-  ^-  ?
@@ -366,14 +556,22 @@
   ?:  (b i.a)  &
   $(a t.a)
 ::
-++  limo                                                ::  listify
+++  limo
+  ''':list constructor.
+
+  turns a null-terminated tuple into a `++list`.''':
   |*  a/*
   ^+  =<  $
     |%  +-  $  ?~(a ~ ?:(*? [i=-.a t=$] $(a +.a)))
     --
   a
 ::
-++  murn                                                ::  maybe transform
+++  murn
+  ''':maybe transform
+
+  passes each member of `++list` `a` to gate `b`, which must produce a
+  `++unit`.  produces a new list with all the results that do not produce
+  `~`.''':
   ~/  %murn
   |*  {a/(list) b/$-(* (unit))}
   |-
@@ -383,19 +581,31 @@
     $(a t.a)
   [i=u.c t=$(a t.a)]
 ::
-++  oust                                                ::  remove
+++  oust
+  ''':remove.
+
+  removes elements from list `c` beginning at inclusive index `a`, removing `b`
+  number of elements.''':
   ~/  %oust
   |*  {{a/@ b/@} c/(list)}
   (weld (scag a c) (slag (add a b) c))
 ::
-++  reap                                                ::  replicate
+++  reap
+  ''':replicate
+
+  replicate: produces a `++list` containing `a` copies of `b`.''':
   ~/  %reap
   |*  {a/@ b/*}
   |-  ^-  (list _b)
   ?~  a  ~
   [b $(a (dec a))]
 ::
-++  reel                                                ::  right fold
+++  reel
+  ''':right fold.
+
+  moves right to left across a `++list` `a`, recursively slamming a binary gate
+  `b` with an element from `a` and an accumulator, producing the final value of
+  the accumulator.''':
   ~/  %reel
   |*  {a/(list) b/_|=({* *} +<+)}
   |-  ^+  ,.+<+.b
@@ -403,7 +613,12 @@
     +<+.b
   (b i.a $(a t.a))
 ::
-++  roll                                                ::  left fold
+++  roll
+  ''':left fold.
+
+  moves left to right across a list `a`, recursively slamming a binary gate `b`
+  with an element from the `++list` and an accumulator, producing the final
+  value of the accumulator.''':
   ~/  %roll
   |*  {a/(list) b/_|=({* *} +<+)}
   |-  ^+  ,.+<+.b
@@ -411,14 +626,22 @@
     +<+.b
   $(a t.a, b b(+<+ (b i.a +<+.b)))
 ::
-++  scag                                                ::  prefix
+++  scag
+  ''':prefix.
+
+  accepts an atom `a` and list `b`, producing the first `a` elements of
+  the front of the list.''':
   ~/  %scag
   |*  {a/@ b/(list)}
   |-  ^+  b
   ?:  |(?=($~ b) =(0 a))  ~
   [i.b $(b t.b, a (dec a))]
 ::
-++  skid                                                ::  separate
+++  skid
+  ''':separate list on boolean gate.
+
+  separates a `++list` `a` into two lists - those elements of `a` who produce
+  `%.y` when slammed to gate `b` and those who produce `%.n`.''':
   ~/  %skid
   |*  {a/(list) b/$-(* ?)}
   |-  ^+  [p=a q=a]
@@ -426,7 +649,12 @@
   =+  c=$(a t.a)
   ?:((b i.a) [[i.a p.c] q.c] [p.c [i.a q.c]])
 ::
-++  skim                                                ::  only
+++  skim
+  ''':filter list if yes.
+
+  cycles through the members of a list `a`, passing them to a gate `b` and
+  producing a list of all of the members that produce `%.y`. inverse of
+  `++skip`.''':
   ~/  %skim
   |*  {a/(list) b/$-(* ?)}
   |-
@@ -434,7 +662,12 @@
   ?~  a  ~
   ?:((b i.a) [i.a $(a t.a)] $(a t.a))
 ::
-++  skip                                                ::  except
+++  skip
+  ''':filter list if no.
+
+  cycles through the members of `++list` `a`, passing them to a gate `b`.
+  produces a list of all of the members that produce `%.n`. inverse of
+  `++skim`.''':
   ~/  %skip
   |*  {a/(list) b/$-(* ?)}
   |-
@@ -442,7 +675,11 @@
   ?~  a  ~
   ?:((b i.a) $(a t.a) [i.a $(a t.a)])
 ::
-++  slag                                                ::  suffix
+++  slag
+  ''':suffix.
+
+  accepts an atom `a` and list `b`, producing the remaining elements from
+  `b` starting at `a`.''':
   ~/  %slag
   |*  {a/@ b/(list)}
   |-  ^+  b
@@ -450,7 +687,11 @@
   ?~  b  ~
   $(b t.b, a (dec a))
 ::
-++  snag                                                ::  index
+++  snag
+  ''':index.
+
+  accepts an atom `a` and a `++list` `b`, producing the element at the index
+  of `a`and failing if the list is null. lists are 0-indexed.''':
   ~/  %snag
   |*  {a/@ b/(list)}
   |-  ^+  ?>(?=(^ b) i.b)
@@ -460,7 +701,12 @@
   ?:  =(0 a)  i.b
   $(b t.b, a (dec a))
 ::
-++  sort   !.                                           ::  quicksort
+++  sort   !.
+  ''':quicksort.
+
+  accepts a `++list` `a` and a gate `b` which accepts two nouns and produces
+  a loobean. `++sort` then produces a list of the elements of `a`, sorted
+  according to `b`.''':
   ~/  %sort
   |*  {a/(list) b/$-([* *] ?)}
   =>  .(a ^.(homo a))
@@ -472,6 +718,13 @@
   [i.a $(a (skim t.a |=(c/_i.a !(b c i.a))))]
 ::
 ++  spin
+  ''':gate to list, with state.
+
+  accepts a `++list` `a`, a gate `b`, and some state `c`. produces a list with
+  the gate applied to each element of the original list. `b` is called with
+  a tuple -- the head is an element of `a` and the tail is the state `c`, and
+  should produce a tuple of the transformed element and the (potentially
+  modified) state `c`.''':
   |*  {a/(list) b/_|=({* *} [** +<+]) c/*}
   ::  ?<  ?=($-([_?<(?=($~ a) i.a) _c] [* _c]) b)
   |-
@@ -481,6 +734,15 @@
   [i=-.v t=$(a t.a, c +.v)]
 ::
 ++  spun
+  ''':gate to list, with state.
+
+  accepts a `++list` `a` and a gate `b`. `c` is internal state, initially
+  derived by *bunting* the tail of the sample of gate `b`, instead of
+  being passed in explicitly as in `++spin`. produces a list with the
+  gate applied to each element of the original list. `b` is called with a tuple
+  -- the head is an element of `a` and the tail is the state `c`, and should
+  produce a tuple of the transformed element and the (potentially modified)
+  state `c`.''':
   |*  {a/(list) b/_|=({* *} [** +<+])}
   =|  c/_+<+.b
   |-
@@ -489,18 +751,29 @@
   =+  v=(b i.a c)
   [i=-.v t=$(a t.a, c +.v)]
 ::
-++  swag                                                ::  slice
+++  swag
+  ''':infix.
+
+  similar to `substr` in javascript: extracts a string infix, beginning at
+  inclusive index `a`, producing `b` number of characters.''':
   |*  {{a/@ b/@} c/(list)}
   (scag +<-> (slag +<-< c))
 ::
-++  turn                                                ::  transform
+++  turn
+  ''':transform list.
+
+  accepts a `++list` `a` and a gate `b`. produces a list with the gate applied
+  to each element of the original list.''':
   ~/  %turn
   |*  {a/(list) b/$-(* *)}
   |-
   ?~  a  ~
   [i=(b i.a) t=$(a t.a)]
 ::
-++  weld                                                ::  concatenate
+++  weld
+  ''':concatenate.
+
+  concatenate two `++list`s `a` and `b`.''':
   ~/  %weld
   |*  {a/(list) b/(list)}
   =>  .(a ^.(homo a), b ^.(homo b))
@@ -508,7 +781,11 @@
   ?~  a  b
   [i.a $(a t.a)]
 ::
-++  welp                                                ::  faceless weld
+++  welp
+  ''':perfect weld.
+
+  concatenate two `++list`s `a` and `b` without losing their type information
+  to homogenization.''':
   =|  {* *}
   |%
   +-  $
@@ -517,7 +794,11 @@
     +<-(+ $(+<- +<->))
   --
 ::
-++  zing                                                ::  promote
+++  zing
+  ''':cons.
+
+  turns a `++list` of lists into a single list by promoting the elements of
+  each sublist into the higher.''':
   =|  *
   |%
   +-  $
@@ -529,36 +810,57 @@
 ::::  2c: bit arithmetic                                ::
   ::                                                    ::
   ::
-++  bex                                                 ::  binary exponent
+++  bex
+  ''':binary exponent.
+
+  computes the result of `2^a`, producing an atom.''':
   ~/  %bex
   |=  a/@
   ^-  @
   ?:  =(0 a)  1
   (mul 2 $(a (dec a)))
 ::
-++  can                                                 ::  assemble
+++  can
+  ''':assemble atom.
+
+  produces an atom from a list `b` of length-value pairs `p` and `q`,
+  where `p` is the length in bloqs of size `a`, and `q` is an atomic
+  value.''':
   ~/  %can
   |=  {a/bloq b/(list {p/@u q/@})}
   ^-  @
   ?~  b  0
   (add (end a p.i.b q.i.b) (lsh a p.i.b $(b t.b)))
 ::
-++  cat                                                 ::  concatenate
+++  cat
+  ''':concatenate atoms.
+
+  concatenates two atoms, `b` and `c`, according to bloq size `a`, producing an
+  atom.''':
   ~/  %cat
   |=  {a/bloq b/@ c/@}
   (add (lsh a (met a b) c) b)
 ::
-++  cut                                                 ::  slice
+++  cut
+  ''':slice blocks off an atom.
+
+  slices `c` blocks of size `a` that are `b` blocks from the end of `d`.''':
   ~/  %cut
   |=  {a/bloq {b/@u c/@u} d/@}
   (end a c (rsh a b d))
 ::
-++  end                                                 ::  tail
+++  end
+  ''':tail of an atom.
+
+  produces an atom by taking the last `b` blocks of size `a` from `c`.''':
   ~/  %end
   |=  {a/bloq b/@u c/@}
   (mod c (bex (mul (bex a) b)))
 ::
-++  fil                                                 ::  fill bloqstream
+++  fil
+  ''':fill bloqstream.
+
+  produces an atom by repeating `c` for `b` blocks of size `a`.''':
   |=  {a/bloq b/@u c/@}
   =+  n=0
   =+  d=c
@@ -567,12 +869,22 @@
     (rsh a 1 d)
   $(d (add c (lsh a 1 d)), n +(n))
 ::
-++  lsh                                                 ::  left-shift
+++  lsh
+  ''':left-shift.
+
+  produces an atom by left-shifting `c` by `b` blocks of size `a`.''':
   ~/  %lsh
   |=  {a/bloq b/@u c/@}
   (mul (bex (mul (bex a) b)) c)
 ::
-++  met                                                 ::  measure
+++  met
+  ''':measure number of blocks.
+
+  computes the number of blocks of size `a` in `b`, producing an atom.
+
+  `a` is a block size (see `++bloq`).
+
+  `b` is an atom.''':
   ~/  %met
   |=  {a/bloq b/@}
   ^-  @
@@ -581,14 +893,20 @@
   ?:  =(0 b)  c
   $(b (rsh a 1 b), c +(c))
 ::
-++  rap                                                 ::  assemble nonzero
+++  rap
+  ''':assemble non-zero.
+
+  concatenates a list of atoms `b` using blocksize `a`, producing an atom.''':
   ~/  %rap
   |=  {a/bloq b/(list @)}
   ^-  @
   ?~  b  0
   (cat a i.b $(b t.b))
 ::
-++  rep                                                 ::  assemble single
+++  rep
+  ''':assemble atom from list.
+
+  produces an atom by assembling a list of atoms `b` using block size `a`.''':
   ~/  %rep
   |=  {a/bloq b/(list @)}
   ^-  @
@@ -597,57 +915,115 @@
   ?~  b  0
   (add (lsh a c (end a 1 i.b)) $(c +(c), b t.b))
 ::
-++  rip                                                 ::  disassemble
+++  rip
+  ''':disassemble atom to list.
+
+  produces a list of atoms from the bits of `b` using block size `a`.''':
   ~/  %rip
   |=  {a/bloq b/@}
   ^-  (list @)
   ?:  =(0 b)  ~
   [(end a 1 b) $(b (rsh a 1 b))]
 ::
-++  rsh                                                 ::  right-shift
+++  rsh
+  ''':right-shift.
+
+  right-shifts `c` by `b` blocks of size `a`, producing an atom.''':
   ~/  %rsh
   |=  {a/bloq b/@u c/@}
   (div c (bex (mul (bex a) b)))
 ::
-++  swp  |=({a/bloq b/@} (rep a (flop (rip a b))))      ::  reverse bloq order
-++  xeb                                                 ::  binary logarithm
+++  swp
+  ''':reverse block order.
+
+  switches little endian to big and vice versa: produces an atom by
+  reversing the block order of `b` using block size `a`.''':
+  |=({a/bloq b/@} (rep a (flop (rip a b))))
+++  xeb
+  ''':binary logarithm.
+
+  computes the base-2 logarithm of `a`, producing an atom.''':
   ~/  %xeb
   |=  a/@
   ^-  @
   (met 0 a)
 ::
-++  fe                                                  ::  modulo bloq
+++  fe
+  ''':modulo bloq.''':
   |_  a/bloq
-  ++  dif                                               ::  difference
+  ++  dif
+    ''':difference.
+    
+    produces the difference between two atoms in the modular basis
+    representation.''':
     |=({b/@ c/@} (sit (sub (add out (sit b)) (sit c))))
-  ++  inv  |=(b/@ (sub (dec out) (sit b)))              ::  inverse
-  ++  net  |=  b/@  ^-  @                               ::  flip byte endianness
-           =>  .(b (sit b))
-           ?:  (lte a 3)
-             b
-           =+  c=(dec a)
-           %+  con
-             (lsh c 1 $(a c, b (cut c [0 1] b)))
-           $(a c, b (cut c [1 1] b))
-  ++  out  (bex (bex a))                                ::  mod value
-  ++  rol  |=  {b/bloq c/@ d/@}  ^-  @                  ::  roll left
-           =+  e=(sit d)
-           =+  f=(bex (sub a b))
-           =+  g=(mod c f)
-           (sit (con (lsh b g e) (rsh b (sub f g) e)))
-  ++  ror  |=  {b/bloq c/@ d/@}  ^-  @                  ::  roll right
-           =+  e=(sit d)
-           =+  f=(bex (sub a b))
-           =+  g=(mod c f)
-           (sit (con (rsh b g e) (lsh b (sub f g) e)))
-  ++  sum  |=({b/@ c/@} (sit (add b c)))                ::  wrapping add
-  ++  sit  |=(b/@ (end a 1 b))                          ::  enforce modulo
+  ::
+  ++  inv
+    ''':invert mod field.
+    
+    inverts the order of the modular field.''':
+    |=(b/@ (sub (dec out) (sit b)))
+  ::
+  ++  net
+    ''':flip byte endianness.
+    
+    revereses bytes within block.''':
+    |=  b/@  ^-  @
+    =>  .(b (sit b))
+    ?:  (lte a 3)
+      b
+    =+  c=(dec a)
+    %+  con
+      (lsh c 1 $(a c, b (cut c [0 1] b)))
+    $(a c, b (cut c [1 1] b))
+  ::
+  ++  out
+    ''':max integer value.
+    
+    the maximum integer value that the current block can store.''':
+    (bex (bex a))
+  ::
+  ++  rol
+    ''':roll left.
+    
+    roll `d` to the left by `c` `b`-sized blocks.''':
+    |=  {b/bloq c/@ d/@}  ^-  @
+    =+  e=(sit d)
+    =+  f=(bex (sub a b))
+    =+  g=(mod c f)
+    (sit (con (lsh b g e) (rsh b (sub f g) e)))
+  ::
+  ++  ror
+    ''':roll right.
+    
+    roll `d` to the right by `c` `b`-sized blocks.''':
+    |=  {b/bloq c/@ d/@}  ^-  @
+    =+  e=(sit d)
+    =+  f=(bex (sub a b))
+    =+  g=(mod c f)
+    (sit (con (rsh b g e) (lsh b (sub f g) e)))
+  ::
+  ++  sum
+    ''':wrapping add.
+    
+    sum two numbers in this modular field.''':
+    |=({b/@ c/@} (sit (add b c)))
+  ::
+  ++  sit
+    ''':atom in mod block representation.
+    
+    produce an atom in the current modular block representation.''':
+    |=(b/@ (end a 1 b))
   --
 ::                                                      ::
 ::::  2d: bit logic                                     ::
   ::                                                    ::
   ::
-++  con                                                 ::  binary or
+++  con
+  ''':binary or.
+
+  computes the bit-wise logical or of two [atom]()s, `a` and `b`, producing an
+  atom.''':
   ~/  %con
   |=  {a/@ b/@}
   =+  [c=0 d=0]
@@ -664,7 +1040,11 @@
           ==
   ==
 ::
-++  dis                                                 ::  binary and
+++  dis
+  ''':binary and.
+
+  computes the bit-wise logical and of two atoms `a` and `b`, producing an
+  atom.''':
   ~/  %dis
   |=  {a/@ b/@}
   =|  {c/@ d/@}
@@ -681,7 +1061,10 @@
           ==
   ==
 ::
-++  mix                                                 ::  binary xor
+++  mix
+  ''':binary xor.
+
+  produces the bit-wise logical xor of `a` and `b`, producing an atom.''':
   ~/  %mix
   |=  {a/@ b/@}
   ^-  @
@@ -695,13 +1078,24 @@
     d   (add d (lsh 0 c =((end 0 1 a) (end 0 1 b))))
   ==
 ::
-++  not  |=  {a/bloq b/@ c/@}                           ::  binary not (sized)
+++  not
+  ''':binary not.
+
+  computes the bit-wise logical not of the bottom `b` blocks of size `a`
+  of `c`.''':
+  |=  {a/bloq b/@ c/@}
   (mix c (dec (bex (mul b (bex a)))))
 ::                                                      ::
 ::::  2e: insecure hashing                              ::
   ::                                                    ::
   ::
-++  fnv  |=(a/@ (end 5 1 (mul 16.777.619 a)))           ::  FNV scrambler
+++  fnv
+  ''':fnv non-cryptographic hash.
+
+  hashes an atom with the 32-bit fnv non-cryptographic hash algorithm.
+  multiplies `a` by the prime number 16,777,619 and then takes the block
+  of size 5 off the product's end, producing an atom.''':
+  |=(a/@ (end 5 1 (mul 16.777.619 a)))
 ::
 ++  muk                                                 ::  standard murmur3
   ~%  %muk  ..muk  ~
@@ -774,7 +1168,11 @@
     ?.(=(0 ham) ham $(syd +(syd)))
   --
 ::
-++  mug                                                 ::  31bit nonzero FNV1a
+++  mug
+  ''':31-bit nonzero fnv-1a non-cryptographic hash.
+
+  hashes `a` with the 31-bit nonzero fnv-1a non-cryptographic hash
+  algorithm, producing an atom.''':
   ~/  %mug
   |=  a/*
   ?^  a
@@ -799,7 +1197,11 @@
   ::                                                    ::
   ::    aor, dor, gor, hor, lor, vor                    ::
   ::
-++  aor                                                 ::  a-order
+++  aor
+  ''':alphabetic order.
+
+  computes whether `a` and `b` are in alphabetical order, producing a
+  boolean.''':
   ~/  %aor
   |=  {a/* b/*}
   ^-  ?
@@ -816,7 +1218,11 @@
     $(a (rsh 3 1 a), b (rsh 3 1 b))
   (lth c d)
 ::
-++  dor                                                 ::  d-order
+++  dor
+  ''':numeric order.
+
+  computes whether `a` and `b` are in ascending numeric order, producing a
+  boolean.''':
   ~/  %dor
   |=  {a/* b/*}
   ^-  ?
@@ -829,7 +1235,10 @@
   ?.  ?=(@ b)  &
   (lth a b)
 ::
-++  gor                                                 ::  g-order
+++  gor
+  ''':hash order.
+
+  xx revisit''':
   ~/  %gor
   |=  {a/* b/*}
   ^-  ?
@@ -838,7 +1247,12 @@
     (dor a b)
   (lth c d)
 ::
-++  hor                                                 ::  h-order
+++  hor
+  ''':hash order.
+
+  xx revisit
+
+  recursive hash comparator gate.''':
   ~/  %hor
   |=  {a/* b/*}
   ^-  ?
@@ -862,7 +1276,10 @@
     $(a +.a, b +.b)
   $(a -.a, b -.b)
 ::
-++  vor                                                 ::  v-order
+++  vor
+  ''':double hash comparator gate.
+
+  xx revisit''':
   ~/  %vor
   |=  {a/* b/*}
   ^-  ?
@@ -875,7 +1292,10 @@
   ::  2g: unsigned powers                               ::
   ::                                                    ::
   ::
-++  pow                                                 ::  unsigned exponent
+++  pow
+  ''':unsigned exponent.
+
+  raises `a` to the `b`th power, `a^b`.''':
   ~/  %pow
   |=  {a/@ b/@}
   ?:  =(b 0)  1
@@ -904,10 +1324,18 @@
   ::  2h: set logic                                     ::
   ::                                                    ::
   ::
-++  in                                                  ::  set engine
+++  in
+  ''':set operations.
+
+  core whose arms contain a variety of functions that operate on `++set`s. its
+  sample accepts the input `++set` to be manipulated.''':
   ~/  %in
   |_  a/(tree)
-  +-  all                                               ::  logical AND
+  +-  all
+    ''':logical and.
+    
+    computes the logical and on every element in `a` slammed with `b`,
+    producing a boolean.''':
     ~/  %all
     |*  b/$-(* ?)
     |-  ^-  ?
@@ -915,7 +1343,10 @@
       &
     ?&((b n.a) $(a l.a) $(a r.a))
   ::
-  +-  any                                               ::  logical OR
+  +-  any
+    ''':logical or.
+    
+    computes the logical or on every element of `a` slammed with `b`.''':
     ~/  %any
     |*  b/$-(* ?)
     |-  ^-  ?
@@ -985,7 +1416,10 @@
       [n.d l.d $(d r.d)]
     [n.e $(e l.e) r.e]
   ::
-  +-  dig                                               ::  axis of a in b
+  +-  dig
+    ''':axis a in b.
+    
+    produce the axis of `b` within set `a`.''':
     |=  b/*
     =+  c=1
     |-  ^-  (unit @)
@@ -995,7 +1429,10 @@
       $(a l.a, c (peg c 6))
     $(a r.a, c (peg c 7))
   ::
-  +-  gas                                               ::  concatenate
+  +-  gas
+    ''':concatenate.
+    
+    insert the elements of a `++list` `b` into a `++set` `a`.''':
     ~/  %gas
     |=  b/(list _?>(?=(^ a) n.a))
     |-  ^+  a
@@ -1003,7 +1440,10 @@
       a
     $(b t.b, a (put i.b))
   ::
-  +-  has                                               ::  b exists in a check
+  +-  has
+    ''':b exists in a check.
+    
+    checks if `b` is an element of `a`, producing a boolean.''':
     ~/  %has
     |*  b/*
     |-  ^-  ?
@@ -1015,7 +1455,11 @@
       $(a l.a)
     $(a r.a)
   ::
-  +-  int                                               ::  intersection
+  +-  int
+    ''':intersection.
+    
+    produces a set of the intersection between two `++set`s of the same type,
+    `a` and `b`.''':
     ~/  %int
     |*  b/_a
     |-  ^+  a
@@ -1031,7 +1475,10 @@
       %-  uni(a $(a l.a, b [n.b l.b ~]))  $(b r.b)
     %-  uni(a $(a r.a, b [n.b ~ r.b]))  $(b l.b)
   ::
-  +-  put                                               ::  puts b in a, sorted
+  +-  put
+    ''':puts b in a, sorted.
+    
+    add an element `b` to the `++set` `a`.''':
     ~/  %put
     |*  b/*
     |-  ^+  a
@@ -1051,13 +1498,20 @@
       [n.a l.a c]
     [n.c [n.a l.a l.c] r.c]
   ::
-  +-  rep                                               ::  replace by product
+  +-  rep
+    ''':replace by product.
+    
+    accumulate the elements of `a` using a gate `b`.''':
     |*  b/_|=({* *} +<+)
     |-
     ?~  a  +<+.b
     $(a r.a, +<+.b $(a l.a, +<+.b (b n.a +<+.b)))
   ::
-  +-  run                                               ::  apply gate to values
+  +-  run
+    ''':apply gate to values.
+    
+    produce a `++set` containing the products of gate `b` applied to each
+    element in `a`.''':
     ~/  %run
     |*  b/gate
     =|  c/(set _?>(?=(^ a) (b n.a)))
@@ -1066,7 +1520,10 @@
     =.  c  $(a l.a, c c)
     $(a r.a, c c)
   ::
-  +-  tap                                               ::  convert to list
+  +-  tap
+    ''':convert to list.
+    
+    flattens the `++set` `a` into a `++list`.''':
     ~/  %tap
     |=  b/(list _?>(?=(^ a) n.a))
     ^+  b
@@ -1074,7 +1531,11 @@
       b
     $(a r.a, b [n.a $(a l.a)])
   ::
-  +-  uni                                               ::  union
+  +-  uni
+    ''':union.
+    
+    produces a set of the union between two `++set`s of the same type, `a`
+    and `b`.''':
     ~/  %uni
     |*  b/_a
     ?:  =(a b)  a
@@ -1095,7 +1556,10 @@
       $(b [n.b $(b l.b, a [n.a l.a ~]) r.b], a r.a)
     $(b [n.b l.b $(b r.b, a [n.a ~ r.a])], a l.a)
   ::
-  +-  wyt                                               ::  size of set
+  +-  wyt
+    ''':size of set.
+    
+    produce the number of elements in `++set` `a` as an atom.''':
     =<  $
     ~%  %wyt  +  ~
     |.  ^-  @
@@ -1105,12 +1569,20 @@
 ::::  2i: map logic                                     ::
   ::                                                    ::
   ::
-++  by                                                  ::  map engine
+++  by
+  ''':map operations.
+
+  container arm for map operation arms. a map is a set of key, value
+  pairs. the contained arms inherit it's sample map, `a`.''':
   ~/  %by
   =|  a/(tree (pair))
   =*  node  ?>(?=(^ a) n.a)
   |%
-  +-  all                                               ::  logical AND
+  +-  all
+    ''':logical and.
+    
+    computes the logical and on the results of slamming every element in map
+    `a` with gate `b`. produces a loobean.''':
     ~/  %all
     |*  b/$-(* ?)
     |-  ^-  ?
@@ -1118,7 +1590,11 @@
       &
     ?&((b q.n.a) $(a l.a) $(a r.a))
   ::
-  +-  any                                               ::  logical OR
+  +-  any
+    ''':logical or.
+    
+    computes the logical or on the results of slamming every element with
+    gate `b`. produces a loobean.''':
     ~/  %any
     |*  b/$-(* ?)
     |-  ^-  ?
@@ -1164,7 +1640,10 @@
       e  ?~(p.q.i.c e (~(put by e) p.i.c u.p.q.i.c))
     ==
   ::
-  +-  del                                               ::  delete at key b
+  +-  del
+    ''':delete at key b.
+    
+    produces map `a` with the element located at key `b` removed.''':
     ~/  %del
     |*  b/*
     |-  ^+  a
@@ -1198,7 +1677,10 @@
       [n.d l.d $(d r.d)]
     [n.e $(e l.e) r.e]
   ::
-  +-  dig                                               ::  axis of b key
+  +-  dig
+    ''':axis of b key.
+    
+    produce the axis of key `b` within map `a`.''':
     |=  b/*
     =+  c=1
     |-  ^-  (unit @)
@@ -1218,7 +1700,10 @@
         ?~(r.a & ?&((vor p.n.a p.n.r.a) $(a r.a, r `p.n.a)))
     ==
   ::
-  +-  gas                                               ::  concatenate
+  +-  gas
+    ''':concatenate.
+    
+    insert a list of key-value pairs `b` into map `a`.''':
     ~/  %gas
     |*  b/(list {p/* q/*})
     =>  .(b `(list _?>(?=(^ a) n.a))`b)
@@ -1227,7 +1712,10 @@
       a
     $(b t.b, a (put p.i.b q.i.b))
   ::
-  +-  get                                               ::  grab value by key
+  +-  get
+    ''':grab value by key.
+    
+    produce the unit value of the value located at key `b` within map `a`.''':
     ~/  %get
     |=  b/*
     ^-  {$@($~ {$~ u/_?>(?=(^ a) q.n.a)})}
@@ -1240,15 +1728,28 @@
     $(a r.a)
   ::
   +-  got
+    ''':assert and return value by key.
+    
+    produce the value located at key `b` within map `a`. crash if key `b`
+    does not exist.''':
     |*  b/*
     (need (get b))
   ::
-  +-  has                                               ::  key existence check
+  +-  has
+    ''':key existence check.
+    
+    checks whether map `a` contains an element with key `b`, producing a
+    loobean.''':
     ~/  %has
     |*  b/*
     !=(~ (get b))
   ::
-  +-  int                                               ::  intersection
+  +-  int
+    ''':intersection.
+    
+    produces a map of the (key) intersection between two maps of the same
+    type, `a` and `b`. if both maps have an identical key that point to
+    different values, the element from map `b` is used.''':
     ~/  %int
     |*  b/_a
     |-  ^+  a
@@ -1268,13 +1769,26 @@
       %-  uni(a $(b l.b, a [n.a l.a ~]))  $(a r.a)
     %-  uni(a $(b r.b, a [n.a ~ r.a]))  $(a l.a)
   ::
-  +-  mar                                               ::  add with validation
+  +-  mar
+    ''':add with validation.
+    
+    produces map `a` with the addition of a key-value pair, where the value
+    is a nonempty unit.
+    
+    accept a noun and a unit of a noun of the type of the map's keys and
+    values, respectively. validate that the value is not null and put the
+    pair in the map. if the value is null, delete the key.
+    
+    xx this arm is broken, asana task 15186618346453''':
     |*  {b/_?>(?=(^ a) p.n.a) c/(unit _?>(?=(^ a) q.n.a))}
     ?~  c
       (del b)
     (put b u.c)
   ::
-  +-  put                                               ::  adds key-value pair
+  +-  put
+    ''':adds key-value pair.
+    
+    produces `a` with the addition of the key-value pair of `b` and `c`.''':
     ~/  %put
     |*  {b/* c/*}
     |-  ^+  a
@@ -1296,13 +1810,21 @@
       [n.a l.a d]
     [n.d [n.a l.a l.d] r.d]
   ::
-  +-  rep                                               ::  replace by product
+  +-  rep
+    ''':replace by product.
+    
+    accumulate using gate from values in map.''':
     |*  b/_|=({* *} +<+)
     |-
     ?~  a  +<+.b
     $(a r.a, +<+.b $(a l.a, +<+.b (b n.a +<+.b)))
   ::
-  +-  rib                                               ::  transform + product
+  +-  rib
+    ''':transform + product.
+    
+    replace values with accumulator.
+    
+    xx interface changing, possibly disappearing.''':
     |*  {b/* c/$-(* *)}
     |-  ^+  [b a]
     ?~  a  [b ~]
@@ -1312,19 +1834,32 @@
     =+  f=$(a r.a, b -.e)
     [-.f [n.a +.e +.f]]
   ::
-  +-  run                                               ::  apply gate to values
+  +-  run
+    ''':apply gate to values.
+    
+    iterates over every value in set `a` using gate `b`. produces a map.''':
     |*  b/$-(* *)
     |-
     ?~  a  a
     [n=[p=p.n.a q=(b q.n.a)] l=$(a l.a) r=$(a r.a)]
   ::
-  +-  rut                                               ::  apply gate to nodes
+  +-  rut
+    ''':apply gate to nodes.
+    
+    iterates over every key/value pair in set `a` using gate `b`, which returns
+    a new value. produces a map.
+    
+    xxx: this is a duplicate of urn?''':
     |*  b/gate
     |-
     ?~  a  a
     [n=[p=p.n.a q=(b p.n.a q.n.a)] l=$(a l.a) r=$(a r.a)]
   ::
-  +-  tap                                               ::  listify pairs
+  +-  tap
+    ''':listify pairs.
+    
+    produces the list of all elements in map `a` that is prepended to list
+    `b`, which is empty by default.''':
     ~/  %tap
     |=  b/(list _?>(?=(^ a) n.a))
     ^+  b
@@ -1332,7 +1867,11 @@
       b
     $(a r.a, b [n.a $(a l.a)])
   ::
-  +-  uni                                               ::  union, merge
+  +-  uni
+    ''':union of two maps.
+    
+    produces a map of the union between the keys of `a` and `b`. if `b`
+    shares a key with `a`, the tuple from `a` is preserved.''':
     ~/  %uni
     |*  b/_a
     |-  ^+  a
@@ -1375,13 +1914,20 @@
     $(b [n.b l.b $(b r.b, a [n.a ~ r.a])], a l.a)
   ::
   ::
-  +-  urn                                               ::  apply gate to nodes
+  +-  urn
+    ''':apply gate to nodes.
+    
+    iterates over every value in map `a` using gate `b`, which accepts both
+    the key and the value of each element as its sample.''':
     |*  b/$-({* *} *)
     |-
     ?~  a  ~
     [n=[p=p.n.a q=(b p.n.a q.n.a)] l=$(a l.a) r=$(a r.a)]
   ::
-  +-  wyt                                               ::  depth of map
+  +-  wyt
+    ''':depth of map.
+    
+    produce the depth of the tree map `a`.''':
     |-  ^-  @
     ?~(a 0 +((add $(a l.a) $(a r.a))))
   ::
@@ -1401,21 +1947,39 @@
 ::::  2j: jar and jug logic                             ::
   ::                                                    ::
   ::
-++  ja                                                  ::  jar engine
+++  ja
+  ''':jar engine.
+
+  a container arm for `++jar` operation arms. a `++jar` is a `++map` of
+  `++list`s. the contained arms inherit the sample jar.''':
   |_  a/(tree (pair * (list)))
-  +-  get                                               ::  gets list by key
+  +-  get
+    ''':gets list by key.
+    
+    produces a list retrieved from jar `a` using the key `b`.''':
     |*  b/*
     =+  c=(~(get by a) b)
     ?~(c ~ u.c)
   ::
-  +-  add                                               ::  adds key-list pair
+  +-  add
+    ''':prepend to key-list pair.
+    
+    produces jar `a` with value `c` prepended to the list located at key
+    `b`.''':
     |*  {b/* c/*}
     =+  d=(get b)
     (~(put by a) b [c d])
   --
-++  ju                                                  ::  jug engine
+++  ju
+  ''':jug engine.
+
+  container arm for jug operation arms. a `++jug` is a `++map` of
+  `++sets`. the contained arms inherit its sample jug, `a`.''':
   |_  a/(tree (pair * (tree)))
-  +-  del                                               ::  del key-set pair
+  +-  del
+    ''':remove value from set.
+    
+    produces jug `a` with value `c` removed from set located at key `b`.''':
     |*  {b/* c/*}
     ^+  a
     =+  d=(get b)
@@ -1432,17 +1996,27 @@
       a
     $(b t.b, a (put p.i.b q.i.b))
   ::
-  +-  get                                               ::  gets set by key
+  +-  get
+    ''':gets set by key.
+    
+    produces a set retrieved from jar `a` using key `b`.''':
     |*  b/*
     =+  c=(~(get by a) b)
     ?~(c ~ u.c)
   ::
-  +-  has                                               ::  existence check
+  +-  has
+    ''':existence check.
+    
+    computes whether a value `c` exists within the set located at key `b`
+    with jar `a`. produces a loobean.''':
     |*  {b/* c/*}
     ^-  ?
     (~(has in (get b)) c)
   ::
-  +-  put                                               ::  add key-set pair
+  +-  put
+    ''':add value to a set.
+    
+    produces jar `a` with `c` added to the set value located at key `b`.''':
     |*  {b/* c/*}
     ^+  a
     =+  d=(get b)
@@ -1452,7 +2026,11 @@
 ::::  2k: queue logic                                   ::
   ::                                                    ::
   ::
-++  to                                                  ::  queue engine
+++  to
+  ''':queue engine.
+
+  container arm for queue operation arms. the contained arms inherit its
+  sample `++qeu` `a`.''':
   |_  a/(tree)
   +-  bal
     |-  ^+  a
@@ -1463,17 +2041,26 @@
       $(a [n.r.a $(a [n.a l.a l.r.a]) r.r.a])
     a
   ::
-  +-  dep                                               ::  max depth of queue
+  +-  dep
+    ''':max depth of queue.
+    
+    produces the maximum depth of leaves (`r.a` and `l.a`) in queue `a`.''':
     |-  ^-  @
     ?~  a  0
     +((max $(a l.a) $(a r.a)))
   ::
-  +-  gas                                               ::  insert list to que
+  +-  gas
+    ''':insert list to queue.
+    
+    push all elements of `++list` `b` into the `++queue`.''':
     |=  b/(list _?>(?=(^ a) n.a))
     |-  ^+  a
     ?~(b a $(b t.b, a (put i.b)))
   ::
-  +-  get                                               ::  head-rest pair
+  +-  get
+    ''':pop.
+    
+    produces the head and tail `++queue` of `a`.''':
     |-  ^+  ?>(?=(^ a) [p=n.a q=*(tree _n.a)])
     ?~  a
       !!
@@ -1494,20 +2081,30 @@
       [n.l.a l.l.a $(l.a r.l.a)]
     [n.r.a $(r.a l.r.a) r.r.a]
   ::
-  +-  nap                                               ::  removes head
+  +-  nap
+    ''':removes head.
+    
+    removes the head of `++queue` `a`, producing the resulting queue.''':
     ?>  ?=(^ a)
     ?:  =(~ l.a)  r.a
     =+  b=get(a l.a)
     bal(a ^+(a [p.b q.b r.a]))
   ::
-  +-  put                                               ::  insert new tail
+  +-  put
+    ''':insert.
+    
+    accept any noun `b` and adds to `++queue` `a` as the head, producing the
+    resulting queue.''':
     |*  b/*
     |-  ^+  a
     ?~  a
       [b ~ ~]
     bal(a a(l $(a l.a)))
   ::
-  +-  tap                                               ::  adds list to end
+  +-  tap
+    ''':adds list to end.
+    
+    produces `++queue` `a` as a `++list` from front to back.''':
     |=  b/(list _?>(?=(^ a) n.a))
     =+  0                                               ::  hack for jet match
     ^+  b
@@ -1515,7 +2112,11 @@
       b
     $(a r.a, b [n.a $(a l.a)])
   ::
-  +-  top                                               ::  produces head
+  +-  top
+    ''':produces head.
+    
+    produces the head of `++queue` `a` as a `++unit` (an empty queue has no
+    head).''':
     |-  ^-  (unit _?>(?=(^ a) n.a))
     ?~  a  ~
     ?~(r.a [~ n.a] $(a r.a))
@@ -1556,25 +2157,42 @@
   ::                                                    ::
   ::
 ++  aftr  |*(a/$-(* *) |*(b/$-(* *) (pair b a)))        ::  pair after
-++  cork  |*({a/_|=(* **) b/gate} (corl b a))           ::  compose forward
-++  corl                                                ::  compose backwards
+++  cork
+  ''':compose forward.
+
+  build `f` such that `(f x) .= (b (a x))`.''':
+  |*({a/_|=(* **) b/gate} (corl b a))
+++  corl
+  ''':compose backwards.
+
+  build `f` such that `(f x) .= (a (b x))`.''':
   |*  {a/gate b/_|=(* **)}
   =<  +:|.((a (b)))      ::  span check
   |*  c/_+<.b
   (a (b c))
 ::
-++  cury                                                ::  curry left
+++  cury
+  ''':curry left.
+
+  curry a gate, binding the head of its sample.''':
   |*  {a/_|=(^ **) b/*}
   |*  c/_+<+.a
   (a b c)
 ::
-++  curr                                                ::  curry right
+++  curr
+  ''':curry right.
+
+  right curry a gate, binding the tail of its sample.''':
   |*  {a/_|=(^ **) c/*}
   |*  b/_+<+.a
   (a b c)
 ::
 ++  fore  |*(a/$-(* *) |*(b/$-(* *) (pair a b)))        ::  pair before
-++  hard                                                ::  force remold
+++  hard
+  ''':force remold.
+
+  demands that a specific type be produced, crashing the program is it is
+  not.''':
   |*  han/$-(* *)
   |=  fud/*  ^-  han
   ~_  leaf+"hard"
@@ -1584,7 +2202,11 @@
 ::
 ++  head  |*(^ ,:+<-)                                   ::  get head
 ++  same  |*(* +<)                                      ::  identity
-++  soft                                                ::  maybe remold
+++  soft
+  ''':maybe remold.
+
+  politely requests a specific type to be produced, producing null if it
+  is not.''':
   |*  han/$-(* *)
   |=  fud/*  ^-  (unit han)
   =+  gol=(han fud)
@@ -1597,22 +2219,49 @@
 ::::  2o: normalizing containers                        ::
   ::                                                    ::
   ::
-++  jar  |*({a/mold b/mold} (map a (list b)))           ::  map of lists
-++  jug  |*({a/mold b/mold} (map a (set b)))            ::  map of sets
-++  map  |*  {a/mold b/mold}                            ::  table
-         %+  cork  (tree (pair a b))                    ::
-         |=  c/(tree (pair a b))  ^+  c                 ::
-         ?.(~(apt by c) ~ c)                            ::
-++  qeu  |*(a/mold (tree a))                            ::  queue
-++  set  |*  a/mold                                     ::  set
-         %+  cork  (tree a)                             ::
-         |=  b/(tree a)  ^+  b                          ::
-         ?.(~(apt in b) ~ b)                            ::
+++  jar
+  ''':jar mold generator.
+
+  a `++jar` is a `++map` of `++list`.''':
+  |*({a/mold b/mold} (map a (list b)))
+::
+++  jug
+  ''':jug mold generator.
+
+  a `++jug` is a `++map` of `++set`s.''':
+  |*({a/mold b/mold} (map a (set b)))
+::
+++  map
+  ''':map mold generator.
+
+  a `++map` is a treap of key-value pairs.''':
+  |*  {a/mold b/mold}
+  %+  cork  (tree (pair a b))
+  |=  c/(tree (pair a b))  ^+  c
+  ?.(~(apt by c) ~ c)
+::
+++  qeu
+  ''':queue mold generator.
+
+  a `++que` is an ordered treap of items.''':
+  |*(a/mold (tree a))
+::
+++  set
+  ''':set mold generator.
+
+  a `++set` is a treap with unique values.''':
+  |*  a/mold
+  %+  cork  (tree a)
+  |=  b/(tree a)  ^+  b
+  ?.(~(apt in b) ~ b)
 ::
 ::::  2p: serialization                                 ::
   ::                                                    ::
   ::
-++  cue                                                 ::  unpack
+++  cue
+  ''':unpack atom to noun.
+
+  produces a noun unpacked from atom `a`. the inverse of jam.''':
   ~/  %cue
   |=  a/@
   ^-  *
@@ -1632,7 +2281,10 @@
   =+  d=(rub c a)
   [(add 2 p.d) (need (~(get by m) q.d)) m]
 ::
-++  jam                                                 ::  pack
+++  jam
+  ''':pack noun to atom.
+
+  produces an atom packed from noun `a`. the inverse of cue.''':
   ~/  %jam
   |=  a/*
   ^-  @
@@ -1656,7 +2308,12 @@
   =+  d=(mat u.c)
   [(add 2 p.d) (mix 3 (lsh 0 2 q.d)) m]
 ::
-++  mat                                                 ::  length-encode
+++  mat
+  ''':length-encode.
+
+  produces a cell whose tail `q` is atom `a` with a bit representation of
+  its length prepended to it (as the least significant bits). the head `p`
+  is the length of `q` in bits.''':
   ~/  %mat
   |=  a/@
   ^-  {p/@ q/@}
@@ -1667,7 +2324,13 @@
   :-  (add (add c c) b)
   (cat 0 (bex c) (mix (end 0 (dec c) b) (lsh 0 (dec c) a)))
 ::
-++  rub                                                 ::  length-decode
+++  rub
+  ''':length-decode.
+
+  the inverse of `++mat`. accepts a cell of index `a` and a bitstring `b`
+  and produces the cell whose tail `q` is the decoded atom at index `a`
+  and whose head is the length of the encoded atom `q`, by which the
+  offset `a` is advanced. only used internally as a helper cue.''':
   ~/  %rub
   |=  {a/@ b/@}
   ^-  {p/@ q/@}
@@ -1687,30 +2350,81 @@
   ::                                                    ::
   ::
 ++  char  @t                                            ::  UTF8 byte
-++  cord  @t                                            ::  UTF8, LSB first
-++  date  {{a/? y/@ud} m/@ud t/tarp}                    ::  parsed date
+++  cord
+  ''':utf-8 text, lsb first.
+
+  one of hoon's two string types (the other being `++tape`). a cord is an
+  atom of utf-8 text. `++trip` and `++crip` convert between cord and
+  `++tape`.''':
+  @t
+::
+++  date
+  ''':point in time.
+
+  a boolean designating ad or bc, a year atom, a month
+  atom, and a `++tarp`, which is a day atom and a time.''':
+  {{a/? y/@ud} m/@ud t/tarp}
+::
 ++  knot  @ta                                           ::  ASCII text
 ++  tang  (list tank)                                   ::  bottom-first error
-++  tank  $%  {$leaf p/tape}                            ::  printing formats
-              $:  $palm                                 ::  backstep list
-                  p/{p/tape q/tape r/tape s/tape}       ::
-                  q/(list tank)                         ::
-              ==                                        ::
-              $:  $rose                                 ::  flat list
-                  p/{p/tape q/tape r/tape}              ::  mid open close
-                  q/(list tank)                         ::
-              ==                                        ::
-          ==                                            ::
+++  tank
+  ''':pretty-printing structure.
+
+  a `++tank` is one of three cases: a `%leaf` is simply a string; a `%palm`
+  is xx need more information; and a `%rose` is a list of `++tank` delimted
+  by the strings in `p`.''':
+  $%  {$leaf p/tape}                                    ::  printing formats
+      $:  $palm                                         ::  backstep list
+          p/{p/tape q/tape r/tape s/tape}               ::
+          q/(list tank)                                 ::
+      ==                                                ::
+      $:  $rose                                         ::  flat list
+          p/{p/tape q/tape r/tape}                      ::  mid open close
+          q/(list tank)                                 ::
+      ==                                                ::
+  ==                                                    ::
+::
 ++  tanq                                                ::  tomorrow's tank
           $?  {$~ p/(list tanq)}                        ::  list of printables
               {$~ $~ p/tape}                            ::  simple string
               (pair @tas tanq)                          ::  captioned
           ==                                            ::
-++  tape  (list @tD)                                    ::  UTF8 string as list
-++  tarp  {d/@ud h/@ud m/@ud s/@ud f/(list @ux)}        ::  parsed time
-++  term  @tas                                          ::  ascii symbol
-++  wain  (list cord)                                   ::  text lines
-++  wall  (list tape)                                   ::  text lines
+::
+++  tape
+  ''':string as list of utf-8 characters.
+
+  one of hoon's two string types, the other being `++cord`. a tape is a
+  list of chars.''':
+  (list @tD)
+::
+++  tarp
+  ''':parsed time.
+
+  The remaining part of a `++date`: day, hour, minute, second and a list
+  of `@ux` for precision.''':
+  {d/@ud h/@ud m/@ud s/@ud f/(list @ux)}
+::
+++  term
+  ''':ascii symbol.
+
+  a restricted text atom for hoon constants. the only characters permitted are
+  lowercase ascii, `-`, and `0-9`, the latter two of which can neither be the
+  first or last character. the syntax for `@tas` is the text itself, always
+  preceded by `%`. this means a term is always cubical. the empty `@tas` has
+  a special syntax, `$`.''':
+  @tas
+::
+++  wain
+  ''':list of lines (cord).
+
+  a `++wain` is used instead of a single `++cord` with `\n`.''':
+  (list cord)
+::
+++  wall
+  ''':list of lines (tape).
+
+  a `++wall` is used instead of a single `++tape` with `\n`.''':
+  (list tape)
 --  =>
 ::                                                      ::
 ::::  3: layer three                                    ::
@@ -1723,6 +2437,7 @@
   ::    3f: scrambling                                  ::
   ::    3g: molds and mold builders                     ::
   ::                                                    ::
+''':layer three: number systems, hashing, and molds.''':
 ~%  %tri  +  ~
 |%
 ++  foo  %bar
@@ -2732,7 +3447,11 @@
 ::::                                                    ::
   ::  year, yore, yell, yule, yall, yawn, yelp, yo      ::
   ::
-++  year                                                ::  date to @d
+++  year
+  ''':date to @d.
+
+  accept a parsed date of form `[[a=? y=@ud] m=@ud t=tarp]` and produce
+  its `@d`representation.''':
   |=  det/date
   ^-  @da
   =+  ^=  yer
@@ -2742,7 +3461,10 @@
   =+  day=(yawn yer m.det d.t.det)
   (yule day h.t.det m.t.det s.t.det f.t.det)
 ::
-++  yore                                                ::  @d to date
+++  yore
+  ''':@d to date.
+
+  produces a `++date` from a `@d`.''':
   |=  now/@da
   ^-  date
   =+  rip=(yell now)
@@ -2752,7 +3474,10 @@
       [a=| y=+((sub 292.277.024.400 y.ger))]
   [m.ger d.ger h.rip m.rip s.rip f.rip]
 ::
-++  yell                                                ::  tarp from @d
+++  yell
+  ''':tarp from @d.
+
+  produce a parsed daily time format from an atomic date.''':
   |=  now/@d
   ^-  tarp
   =+  sec=(rsh 6 1 now)
@@ -2771,7 +3496,10 @@
   =>  .(sec (mod sec mit:yo))
   [day hor mit sec fan]
 ::
-++  yule                                                ::  time atom
+++  yule
+  ''':daily time to time atom.
+
+  accept a `++tarp`, a parsed daily time, and produces a time atom, `@d`.''':
   |=  rip/tarp
   ^-  @d
   =+  ^=  sec  ;:  add
@@ -2788,7 +3516,11 @@
                (add (lsh 4 muc i.f.rip) $(f.rip t.f.rip))
   (con (lsh 6 1 sec) fac)
 ::
-++  yall                                                ::  day / to day of year
+++  yall
+  ''':time since beginning of time.
+
+  produce the date tuple of `[y=@ud m=@ud d=@ud]` of the year, month, and
+  day from a number of days from the beginning of time.''':
   |=  day/@ud
   ^-  {y/@ud m/@ud d/@ud}
   =+  [era=0 cet=0 lep=*?]
@@ -2812,7 +3544,11 @@
     [yer +(mot) +(day)]
   $(mot +(mot), day (sub day zis))
 ::
-++  yawn                                                ::  days since Jesus
+++  yawn
+  ''':days since beginning of time.
+
+  inverse of `yall`, computes number of days a.d. from y/m/d date as the
+  tuple `[yer=@ud mot=@ud day=@ud]`.''':
   |=  {yer/@ud mot/@ud day/@ud}
   ^-  @ud
   =>  .(mot (dec mot), day (dec day))
@@ -2837,21 +3573,72 @@
     $(yer nec, day (add day ?:((yelp nec) 36.525 36.524)))
   (add day (mul (div yer 400) (add 1 (mul 4 36.524))))
 ::
-++  yelp                                                ::  leap year
+++  yelp
+  ''':leap year.
+
+  determines whether a year contains an iso 8601 leap week. produces a
+  loobean.''':
   |=  yer/@ud  ^-  ?
   &(=(0 (mod yer 4)) |(!=(0 (mod yer 100)) =(0 (mod yer 400))))
 ::
-++  yo                                                  ::  time constants
-  |%  ++  cet  36.524                 ::  (add 24 (mul 100 365))
-      ++  day  86.400                 ::  (mul 24 hor)
-      ++  era  146.097                ::  (add 1 (mul 4 cet))
-      ++  hor  3.600                  ::  (mul 60 mit)
-      ++  jes  106.751.991.084.417    ::  (mul 730.692.561 era)
-      ++  mit  60
-      ++  moh  `(list @ud)`[31 28 31 30 31 30 31 31 30 31 30 31 ~]
-      ++  moy  `(list @ud)`[31 29 31 30 31 30 31 31 30 31 30 31 ~]
-      ++  qad  126.144.001            ::  (add 1 (mul 4 yer))
-      ++  yer  31.536.000             ::  (mul 365 day)
+++  yo
+  ''':time constants.
+
+  useful constants for interacting with earth time.''':
+  |%
+  ++  cet
+    ''':days in a century.
+    
+    derived by multiplying the number of days in a year (365) by the number
+    of years in a century (100), then adding the number days from leap years
+    in a century (24).''':
+    36.524
+  ::
+  ++  day
+    ''':seconds in a day.''':
+    86.400
+  ::
+  ++  era  146.097                ::  (add 1 (mul 4 cet))
+  ++  hor
+    ''':seconds in an hour.
+    
+    the number of seconds in an hour. derived by multiplying the number of
+    seconds in a minute by the minutes in an hour.''':
+    3.600
+  ::
+  ++  jes  106.751.991.084.417    ::  (mul 730.692.561 era)
+  ++  mit
+    ''':seconds in a minute.''':
+    60
+  ::
+  ++  moh
+    ''':days in a month.
+    
+    the days in each month of the gregorian common year. a list of unsigned
+    decimal atoms (either 28, 30, or 31) denoting the number of days in the
+    month at the year at that index.''':
+    `(list @ud)`[31 28 31 30 31 30 31 31 30 31 30 31 ~]
+  ::
+  ++  moy
+    ''':moh with leapyear
+    
+    the days in each month of the gregorian leap-year. a list of unsigned
+    decimal atoms (either 29,30, or 31) denoting the number of days in the
+    month at the leap-year at that index.''':
+    `(list @ud)`[31 29 31 30 31 30 31 31 30 31 30 31 ~]
+  ++  qad
+    ''':seconds in 4 years.
+    
+    the number of seconds in four years. derived by adding one second to the
+    number of seconds in four years.''':
+    126.144.001
+  ::
+  ++  yer
+    ''':seconds in a year.
+    
+    the number of seconds in a year. derived by multiplying the number of
+    seconds in a day by 365.''':
+    31.536.000
   --
 ::                                                      ::
 ::::  3d: SHA hash family                               ::
@@ -3192,6 +3979,7 @@
   ::    ob                                              ::
   ::
 ++  un                                                  ::  =(x (wred (wren x)))
+  ''':this appears to be the old scrambling code. todo: remove?''':
   |%
   ++  wren                                              ::  conceal structure
     |=  pyn/@  ^-  @
@@ -3298,8 +4086,17 @@
   --
 ::
 ++  ob
+  ''':reversible scrambling core, v2.
+
+  a core for performing reversible scrambling operations for the `@p` phonetic
+  base.''':
   |%
-  ++  feen                                              ::  conceal structure v2
+  ++  feen
+    ''':conceal structure, v2.
+    
+    randomly permutes atoms that fit into 17 to 32 bits into one another. if the
+    atom fits into 33 to 64 bits, does the same permutation on the low 32 bits
+    only. otherwise, passes the atom through unchanged.''':
     |=  pyn/@  ^-  @
     ?:  &((gte pyn 0x1.0000) (lte pyn 0xffff.ffff))
       (add 0x1.0000 (fice (sub pyn 0x1.0000)))
@@ -3310,7 +4107,13 @@
       $(pyn lo)
     pyn
   ::
-  ++  fend                                              ::  restore structure v2
+  ++  fend
+    ''':restore structure, v2.
+    
+    randomly permutes atoms that fit into 17 to 32 bits into one another, and
+    randomly permutes the low 32 bits of atoms that fit into 33 to 64 bits;
+    otherwise, passes the atom through unchanged. the permutation is the
+    inverse of the one applied by `++feen`.''':
     |=  cry/@  ^-  @
     ?:  &((gte cry 0x1.0000) (lte cry 0xffff.ffff))
       (add 0x1.0000 (teil (sub cry 0x1.0000)))
@@ -3332,7 +4135,13 @@
     [(mod nor 65.535) (div nor 65.535)]
     (add (mul 65.535 -.sel) +.sel)
   ::
-  ++  teil                                              ::  reverse ++fice
+  ++  teil
+    ''':reverse ++fice.
+    
+    applies the reverse of the feistel-like cipher applied by `++fice`. unlike
+    a conventional feistel cipher that is its own inverse if keys are used in
+    reverse order, this feistel-like cipher uses two moduli that must be swapped
+    when applying the reverse transformation.''':
     |=  vip/@
     ^-  @
     =+  ^=  sel
@@ -3370,34 +4179,103 @@
 ::
 ::::  3g: molds and mold builders
   ::
-++  coin  $%  {$$ p/dime}                               ::  print format
-              {$blob p/*}                               ::
-              {$many p/(list coin)}                     ::
-          ==                                            ::
-++  dime  {p/@ta q/@}                                   ::
-++  edge  {p/hair q/(unit {p/* q/nail})}                ::  parsing output
-++  hair  {p/@ud q/@ud}                                 ::  parsing trace
-++  like  |*  a/$-(* *)                                 ::  generic edge
-          |=  b/_`*`[(hair) ~]                          ::
-          :-  p=(hair -.b)                              ::
-          ^=  q                                         ::
-          ?@  +.b  ~                                    ::
-          :-  ~                                         ::
-          u=[p=(a +>-.b) q=[p=(hair -.b) q=(tape +.b)]] ::
-++  nail  {p/hair q/tape}                               ::  parsing input
-++  path  (list knot)                                   ::  like unix path
-++  pint  {p/{p/@ q/@} q/{p/@ q/@}}                     ::  line+column range
-++  rule  _|=(nail *edge)                               ::  parsing rule
-++  spot  {p/path q/pint}                               ::  range in file
+++  coin
+  ''':noun literal syntax cases
+
+  noun literal syntax cases: atoms, jammed nouns, and nestable tuples.
+  parsed and printed using `++so` and `++co` cores.''':
+  $%  {$$ p/dime}
+      {$blob p/*}
+      {$many p/(list coin)}
+  ==
+::
+++  dime
+  ''':aura-atom pair.
+
+  used in `++coin`. convenience methods `++scot` and `++scow` print dimes
+  as `++cord` and `++tape`, respectively. `++slat`, `++slav`, and `++slaw`
+  are used to parse atoms of specific auras.''':
+  {p/@ta q/@}
+::
+++  edge
+  ''':parsing location metadata.
+
+  optional result `p` and parsing continuation `q`.''':
+  {p/hair q/(unit {p/* q/nail})}
+::
+++  hair
+  ''':parsing line and column.
+
+  a pair of two `@ud` used in parsing indicating line and column number.''':
+  {p/@ud q/@ud}
+::
+++  like
+  ''':edge mold generator.
+
+  `++like` generates an `++edge` with a parsed result set to a specific type.
+  ''':
+  |*  a/$-(* *)
+  |=  b/_`*`[(hair) ~]
+  :-  p=(hair -.b)
+  ^=  q
+  ?@  +.b  ~
+  :-  ~
+  u=[p=(a +>-.b) q=[p=(hair -.b) q=(tape +.b)]]
+::
+++  nail
+  ''':parsing input.
+
+  location, remainder of parsed text. indicates parsing position `p`, and
+  remaining text to be parsed `q`.''':
+  {p/hair q/tape}
+::
+++  path
+  ''':filesystem path.
+
+  a `++path` is a list of `++span`s aka `@ta`. used in `%clay` and `%eyre`
+  extensively.''':
+  (list knot)
+::
+++  pint
+  ''':line+column range.
+
+  mostly used for stacktraces. a `++pint` is a pair of `++hair`, indicating
+  from `p` to `q`.''':
+  {p/{p/@ q/@} q/{p/@ q/@}}
+::
+++  rule
+  ''':parsing rule.
+
+  `++rule` is an empty parsing rule, but it is used to check
+  that parsing rules match this with `_`.''':
+  _|=(nail *edge)
+::
+++  spot
+  ''':stack trace line.
+
+  a `++spot` is what we print after crashing.''':
+  {p/path q/pint}
+::
 ++  tone  $%  {$0 p/*}                                  ::  success
               {$1 p/(list)}                             ::  blocks
               {$2 p/(list {@ta *})}                     ::  error report
-          ==                                            ::
-++  toon  $%  {$0 p/*}                                  ::  success
-              {$1 p/(list)}                             ::  blocks
-              {$2 p/(list tank)}                        ::  stack trace
-          ==                                            ::
-++  wonk  |*(veq/edge ?~(q.veq !! p.u.q.veq))           ::  product from edge
+          ==
+::
+++  toon
+  ''':nock computation result.
+
+  either success (`%0`), a block with list of requests blocked on (`%1`), or
+  failure with stack trace (`%2`).''':
+  $%  {$0 p/*}                                          ::  success
+      {$1 p/(list)}                                     ::  blocks
+      {$2 p/(list tank)}                                ::  stack trace
+  ==
+::
+++  wonk
+  ''':product from edge.
+
+  pull result out of a `++edge`, or crash if there's no result.''':
+  |*(veq/edge ?~(q.veq !! p.u.q.veq))
 --  =>
 ::                                                      ::
 ::::  4: layer four                                     ::
@@ -3418,6 +4296,7 @@
   ::    4n: virtualization                              ::
   ::    4o: molds and mold builders                     ::
   ::
+''':layer four: parsing''':
 ~%    %qua
     +
   ==
@@ -3429,7 +4308,12 @@
 ::
 ::::  4a: exotic bases
   ::
-++  po                                                  ::  phonetic base
+++  po
+  ''':phonetic base.
+
+  provides the phonetic syllables and name generators for the urbit naming
+  system. the two faces, `sis` and `dex` are available to the arms
+  contained in this section.''':
   ~/  %po
   =+  :-  ^=  sis                                       ::  prefix syllables
       'dozmarbinwansamlitsighidfidlissogdirwacsabwissib\
@@ -3466,20 +4350,41 @@
       /remlysfynwerrycsugnysnyllyndyndemluxfedsedbecmun\
       /lyrtesmudnytbyrsenwegfyrmurtelreptegpecnelnevfes'
   |%
-  ++  ins  ~/  %ins                                     ::  parse prefix
-           |=  a/@tas
-           =+  b=0
-           |-  ^-  (unit @)
-           ?:(=(256 b) ~ ?:(=(a (tos b)) [~ b] $(b +(b))))
-  ++  ind  ~/  %ind                                     ::  parse suffix
-           |=  a/@tas
-           =+  b=0
-           |-  ^-  (unit @)
-           ?:(=(256 b) ~ ?:(=(a (tod b)) [~ b] $(b +(b))))
-  ++  tos  ~/  %tos                                     ::  fetch prefix
-           |=(a/@ ?>((lth a 256) (cut 3 [(mul 3 a) 3] sis)))
-  ++  tod  ~/  %tod                                     ::  fetch suffix
-           |=(a/@ ?>((lth a 256) (cut 3 [(mul 3 a) 3] dex)))
+  ++  ins
+    ''':parse prefix.
+    
+    produces the byte of the left-hand syllable `a`.''':
+    ~/  %ins
+    |=  a/@tas
+    =+  b=0
+    |-  ^-  (unit @)
+    ?:(=(256 b) ~ ?:(=(a (tos b)) [~ b] $(b +(b))))
+  ::
+  ++  ind
+    ''':parse suffix.
+    
+    produces the byte of the right-hand syllable `a`.''':
+    ~/  %ind
+    |=  a/@tas
+    =+  b=0
+    |-  ^-  (unit @)
+    ?:(=(256 b) ~ ?:(=(a (tod b)) [~ b] $(b +(b))))
+  ::
+  ++  tos
+    ''':fetch prefix.
+    
+    produces the phonetic prefix syllable from index `a` within `sis` as an
+    atom.''':
+    ~/  %tos
+    |=(a/@ ?>((lth a 256) (cut 3 [(mul 3 a) 3] sis)))
+  ::
+  ++  tod
+    ''':fetch suffix.
+    
+    produces the phonetic prefix syllable from index `a` within `dex` as an
+    atom.''':
+    ~/  %tod
+    |=(a/@ ?>((lth a 256) (cut 3 [(mul 3 a) 3] dex)))
   --
 ::
 ++  fa                                                  ::  base58check
@@ -3587,19 +4492,33 @@
   ::
   ++  rux  `tape`['0' 'x' (rum 16 ~ |=(b/@ (add b ?:((lth b 10) 48 87))))]
   --
-++  cass                                                ::  lowercase
+++  cass
+  ''':to lowercase
+
+  produce the case insensitive (all lowercase) `++cord` of a `++tape`.''':
   |=  vib/tape
   ^-  tape
   (turn vib |=(a/@ ?.(&((gte a 'A') (lte a 'Z')) a (add 32 a))))
 ::
-++  cuss                                                ::  uppercase
+++  cuss
+  ''':to uppercase.
+
+  turn all occurrences of lowercase letters in any `++tape` into uppercase
+  letters, as a `++cord`.''':
   |=  vib/tape
   ^-  tape
   (turn vib |=(a/@ ?.(&((gte a 'a') (lte a 'z')) a (sub a 32))))
 ::
-++  crip  |=(a/tape `@t`(rap 3 a))                      ::  tape to cord
+++  crip
+  ''':tape to cord.
+
+  produce a `++cord` from a `++tape`.''':
+  |=(a/tape `@t`(rap 3 a))
 ::
-++  mesc                                                ::  ctrl code escape
+++  mesc
+  ''':ctrl code escape.
+
+  escape special characters, used in `++show`.''':
   |=  vib/tape
   ^-  tape
   ?~  vib
@@ -3610,18 +4529,27 @@
     ['\\' (welp ~(rux at i.vib) '/' $(vib t.vib))]
   [i.vib $(vib t.vib)]
 ::
-++  runt                                                ::  prepend repeatedly
+++  runt
+  ''':prepend repeatedly.
+
+  add `a` repetitions of character `b` to the head of `++tape` `c`.''':
   |=  {{a/@ b/@} c/tape}
   ^-  tape
   ?:  =(0 a)
     c
   [b $(a (dec a))]
 ::
-++  sand                                                ::  atom sanity
+++  sand
+  ''':soft-cast by aura.
+
+  soft-cast validity by aura.''':
   |=  a/@ta
   (flit (sane a))
 ::
-++  sane                                                ::  atom sanity
+++  sane
+  ''':check aura validity.
+
+  check validity by aura. produces a gate.''':
   |=  a/@ta
   |=  b/@  ^-  ?
   ?>  =(%t (end 3 1 a))
@@ -3655,7 +4583,10 @@
       $(b (rsh 3 len b))
   ==
 ::
-++  trim                                                ::  tape split
+++  trim
+  ''':tape split.
+
+  split first `a` characters off `++tape` `b`.''':
   |=  {a/@ b/tape}
   ^-  {p/tape q/tape}
   ?~  b
@@ -3665,14 +4596,20 @@
   =+  c=$(a (dec a), b t.b)
   [[i.b p.c] q.c]
 ::
-++  trip                                                ::  cord to tape
+++  trip
+  ''':cord to tape.
+
+  produce a `++tape` from `++cord`.''':
   ~/  %trip
   |=  a/@  ^-  tape
   ?:  =(0 (met 3 a))
     ~
   [^-(@ta (end 3 1 a)) $(a (rsh 3 1 a))]
 ::
-++  teff                                                ::  length utf8
+++  teff
+  ''':utf8 length.
+
+  produces the number of utf8 bytes.''':
   |=  a/@t  ^-  @
   =+  b=(end 3 1 a)
   ?:  =(0 b)
@@ -3680,7 +4617,10 @@
   ?>  |((gte b 32) =(10 b))
   ?:((lte b 127) 1 ?:((lte b 223) 2 ?:((lte b 239) 3 4)))
 ::
-++  turf                                                ::  utf8 to utf32
+++  turf
+  ''':utf8 to utf32 cord.
+
+  convert utf8 (`++cord`) to utf32 codepoints.''':
   |=  a/@t
   ^-  @c
   %+  rap  5
@@ -3701,18 +4641,27 @@
   ?>  =((tuft c) (end 3 b a))
   [c $(a (rsh 3 b a))]
 ::
-++  tuba                                                ::  utf8 to utf32 tape
+++  tuba
+  ''':utf8 to utf32 tape.
+
+  convert `++tape` to a `++list` of unicode codepoints (`@c`).''':
   |=  a/tape
   ^-  (list @c)
   (rip 5 (turf (rap 3 a)))                              ::  XX horrible
 ::
-++  tufa                                                ::  utf32 to utf8 tape
+++  tufa
+  ''':utf32 to utf8 tape.
+
+  wrap a `++list` of utf32 codepoints into a utf8 `++tape`.''':
   |=  a/(list @c)
   ^-  tape
   ?~  a  ""
   (weld (rip 3 (tuft i.a)) $(a t.a))
 ::
-++  tuft                                                ::  utf32 to utf8 text
+++  tuft
+  ''':utf32 to utf8 cord.
+
+  convert utf32 glyph to lsb utf8 `++cord`.''':
   |=  a/@c
   ^-  @t
   %+  rap  3
@@ -3741,7 +4690,10 @@
       c
   ==
 ::
-++  wack                                                ::  knot escape
+++  wack
+  ''':knot escape.
+
+  escape `++span` `~` as `~~` and `_` as `~-`. used for printing.''':
   |=  a/@ta
   ^-  @ta
   =+  b=(rip 3 a)
@@ -3753,7 +4705,10 @@
   ?:  =('_' i.b)  ['~' '-' $(b t.b)]
   [i.b $(b t.b)]
 ::
-++  wick                                                ::  knot unescape
+++  wick
+  ''':knot unescape.
+
+  unescape `++span` `~~` as `~` and `~-` as `_`.''':
   |=  a/@
   ^-  (unit @ta)
   =+  b=(rip 3 a)
@@ -3770,7 +4725,10 @@
     @     [b ~]
   ==
 ::
-++  woad                                                ::  cord unescape
+++  woad
+  ''':unescape cord.
+
+  unescape `++cord` codepoints.''':
   |=  a/@ta
   ^-  @t
   %+  rap  3
@@ -3803,7 +4761,10 @@
     $'~'  ['~' $(a c)]
   ==
 ::
-++  wood                                                ::  cord escape
+++  wood
+  ''':escape cord.
+
+  escape `++cord` codepoints.''':
   |=  a/@t
   ^-  @ta
   %+  rap  3
@@ -3840,8 +4801,15 @@
   (~(win re tac) tab edg)
 ::
 ++  re
+  ''':pretty-printing engine.
+
+  pretty-printing engine that accepts a `++tank` sample and contains arms that
+  perform computation on it.''':
   |_  tac/tank
   ++  ram
+    ''':flatten to tape.
+    
+    flatten `++tank` out into a `++tape`.''':
     ^-  tape
     ?-    -.tac
         $leaf  p.tac
@@ -3857,6 +4825,9 @@
     ==
   ::
   ++  win
+    ''':render at indent.
+    
+    render at indent level `tab` and width `edg`.''':
     |=  {tab/@ edg/@}
     =+  lug=`wall`~
     |^  |-  ^-  wall
@@ -3896,8 +4867,11 @@
         ==
     ::
     ++  din  (mod (add 2 tab) (mul 2 (div edg 3)))
-    ++  fit  (lte (lent ram) (sub edg tab))
+    ++  fit
+      ''':fit on one line test.''':
+      (lte (lent ram) (sub edg tab))
     ++  rig
+      ''':wrap `++tape` in `\/` if it doesn't fit at current indentation.''':
       |=  hom/tape
       ^-  wall
       ?:  (lte (lent hom) (sub edg tab))
@@ -3916,6 +4890,7 @@
       [(runt [tab ' '] p.mut) $(hom q.mut)]
     ::
     ++  wig
+      ''':render `++tape`.''':
       |=  hom/tape
       ^-  wall
       ?~  lug
@@ -4038,19 +5013,36 @@
 ::
 ::::  4d: parsing (tracing)
   ::
-++  last  |=  {zyc/hair naz/hair}                       ::  farther trace
-          ^-  hair
-          ?:  =(p.zyc p.naz)
-            ?:((gth q.zyc q.naz) zyc naz)
-          ?:((gth p.zyc p.naz) zyc naz)
+++  last
+  ''':farther trace.
+
+  compares two line-column pairs, called `++hair`s, `zyc` and `naz`, producing
+  whichever is further along.''':
+  |=  {zyc/hair naz/hair}
+  ^-  hair
+  ?:  =(p.zyc p.naz)
+    ?:((gth q.zyc q.naz) zyc naz)
+  ?:((gth p.zyc p.naz) zyc naz)
 ::
-++  lust  |=  {weq/char naz/hair}                       ::  detect newline
-          ^-  hair
-          ?:(=(`@`10 weq) [+(p.naz) 1] [p.naz +(q.naz)])
+++  lust
+  ''':detect newline.
+
+  advances the `++hair` `naz` by a row if the `++char` `weq` is a newline, or
+  by a column if `weq` is any other character.''':
+  |=  {weq/char naz/hair}
+  ^-  hair
+  ?:(=(`@`10 weq) [+(p.naz) 1] [p.naz +(q.naz)])
 ::
 ::::  4e: parsing (combinators)
   ::
-++  bend                                                ::  conditional comp
+++  bend
+  ''':conditional composer.
+
+  parsing composer: connects the `++edge` `vex` with the subsequent `++rule`
+  `sab` as an optional suffix, using gate `raq` to compose or reject its
+  result. if there is no suffix, or if the suffix fails to be composed
+  with the current result, the current result is produced. used to map a
+  group of rules to a specified output.''':
   ~/  %bend
   |*  raq/_|*({a/* b/*} [~ u=[a b]])
   ~/  %fun
@@ -4067,8 +5059,13 @@
   [p=yur q=[~ u=[p=u.vux q=q.u.q.yit]]]
 ::
 ++  comp
+  ''':arbitrary compose.
+
+  parsing composer: connects the `++edge` `vex` with a following `++rule` `sab`,
+  combining the contents of `vex` with the result of `sab` using a binary
+  gate `raq`. used to fold over the results of several `++rules`.''':
   ~/  %comp
-  |*  raq/_|*({a/* b/*} [a b])                          ::  arbitrary compose
+  |*  raq/_|*({a/* b/*} [a b])
   ~/  %fun
   |*  {vex/edge sab/rule}
   ~!  +<
@@ -4080,26 +5077,50 @@
     [p=yur q=q.yit]
   [p=yur q=[~ u=[p=(raq p.u.q.vex p.u.q.yit) q=q.u.q.yit]]]
 ::
-++  fail  |=(tub/nail [p=p.tub q=~])                    ::  never parse
-++  glue                                                ::  add rule
+++  fail
+  ''':never parse.
+
+  produces an `++edge` at the same text position (`++hair`) with a failing
+  result (`q=~`).''':
+  |=(tub/nail [p=p.tub q=~])
+::
+++  glue
+  ''':skip delimiter.
+
+  parsing composer: connects an `++edge` `vex` with a following `++rule` `sab`
+  by parsing the `++rule` `bus` (the delimiting symbol) and throwing out the
+  result.''':
   ~/  %glue
   |*  bus/rule
   ~/  %fun
   |*  {vex/edge sab/rule}
   (plug vex ;~(pfix bus sab))
 ::
-++  less                                                ::  no first and second
+++  less
+  ''':parse unless.
+
+  parsing composer: if an `++edge` `vex` reflects a success, fail. otherwise,
+  connect `vex` with the following `++rule`.''':
   |*  {vex/edge sab/rule}
   ?~  q.vex
     =+  roq=(sab)
     [p=(last p.vex p.roq) q=q.roq]
   (fail +<.sab)
 ::
-++  pfix                                                ::  discard first rule
+++  pfix
+  ''':discard first rule
+
+  parsing composer: connects an `++edge` `vex` with two subsequent `++rule`s,
+  ignoring the result of the first and producing the result of the second.''':
   ~/  %pfix
   (comp |*({a/* b/*} b))
 ::
-++  plug                                                ::  first then second
+++  plug
+  ''':parse to tuple.
+
+  parsing composer: connects an `++edge` `vex` with a following `++rule` `sab`,
+  producing a cell of both the results. see also: the monad applicator ;\~ for
+  a more detailed explanation.''':
   ~/  %plug
   |*  {vex/edge sab/rule}
   ?~  q.vex
@@ -4110,7 +5131,11 @@
     [p=yur q=q.yit]
   [p=yur q=[~ u=[p=[p.u.q.vex p.u.q.yit] q=q.u.q.yit]]]
 ::
-++  pose                                                ::  first or second
+++  pose
+  ''':parse options.
+
+  parsing composer: if `vex` reflects a failure, connect it with the
+  following rule `sab`. see also: the monad applicator ;\~''':
   ~/  %pose
   |*  {vex/edge sab/rule}
   ?~  q.vex
@@ -4118,20 +5143,31 @@
     [p=(last p.vex p.roq) q=q.roq]
   vex
 ::
-++  simu                                                ::  first and second
+++  simu
+  ''':first and second.
+
+  parsing composer: if an `++edge` `vex` reflects a failure, fail. otherwise,
+  connect `vex` with the following `++rule`.''':
   |*  {vex/edge sab/rule}
   ?~  q.vex
     vex
   =+  roq=(sab)
   roq
 ::
-++  sfix                                                ::  discard second rule
+++  sfix
+  ''':discard second rule.
+
+  parsing composer: connects `++edge`s `vex` with two subsequent `++rule`s
+  returning the result of the first and discarding the result of the second.''':
   ~/  %sfix
   (comp |*({a/* b/*} a))
 ::
 ::::  4f: parsing (rule builders)
   ::
-++  bass                                                ::  leftmost base
+++  bass
+  ''':leftmost base.
+
+  parser modifier: lsb ordered `++list` as atom of a `++base`.''':
   |*  {wuc/@ tyd/rule}
   %+  cook
     |=  waq/(list @)
@@ -4140,7 +5176,10 @@
     =|({p/@ q/@} |.((add p (mul wuc q))))
   tyd
 ::
-++  boss                                                ::  rightmost base
+++  boss
+  ''':rightmost base.
+
+  parser modifier: lsb ordered `++list` as atom of a `++base`.''':
   |*  {wuc/@ tyd/rule}
   %+  cook
     |=  waq/(list @)
@@ -4149,7 +5188,11 @@
     =|({p/@ q/@} |.((add p (mul wuc q))))
   tyd
 ::
-++  cold                                                ::  replace w+ constant
+++  cold
+  ''':replace with constant.
+
+  parser modifier: accepts a `++rule` `sef` and produces a parser that
+  produces a constant `cus`, assuming `sef` is successful.''':
   ~/  %cold
   |*  {cus/* sef/rule}
   ~/  %fun
@@ -4159,7 +5202,11 @@
     vex
   [p=p.vex q=[~ u=[p=cus q=q.u.q.vex]]]
 ::
-++  cook                                                ::  apply gate
+++  cook
+  ''':apply gate.
+
+  parser modifier: produces a parser that takes a (successful) result of a
+  `++rule` `sef` and slams it through `poq`.''':
   ~/  %cook
   |*  {poq/$-(* *) sef/rule}
   ~/  %fun
@@ -4169,7 +5216,11 @@
     vex
   [p=p.vex q=[~ u=[p=(poq p.u.q.vex) q=q.u.q.vex]]]
 ::
-++  easy                                                ::  always parse
+++  easy
+  ''':always parse.
+
+  parser generator: produces a parser that succeeds with given noun `huf`
+  without consuming any text.''':
   ~/  %easy
   |*  huf/*
   ~/  %fun
@@ -4181,18 +5232,30 @@
   |=  {sic/@t non/@t}
   ;~(pose (cold %& (jest sic)) (cold %| (jest non)))
 ::
-++  full                                                ::  has to fully parse
+++  full
+  ''':parse to end.
+
+  parser modifier: accepts a `++rule` `sef`, and produces a parser that
+  succeeds only when the of `tub` is fully consumed using `sef`.''':
   |*  sef/rule
   |=  tub/nail
   =+  vex=(sef tub)
   ?~(q.vex vex ?:(=(~ q.q.u.q.vex) vex [p=p.vex q=~]))
 ::
-++  funk                                                ::  add to tape first
+++  funk
+  ''':add to tape.
+
+  parser modifier: prepend text to `++tape` before applying parser.''':
   |*  {pre/tape sef/rule}
   |=  tub/nail
   (sef p.tub (weld pre q.tub))
 ::
-++  here                                                ::  place-based apply
+++  here
+  ''':place-based apply.
+
+  parser modifier: similar to `++cook` in that it produces a parser that takes a
+  (successful) result of `sef` and slams it through `hez`. `hez` accepts a
+  `++pint` `a` and a noun `b`, which is what the parser parsed.''':
   ~/  %here
   |*  {hez/_|=({a/pint b/*} [a b]) sef/rule}
   ~/  %fun
@@ -4203,13 +5266,20 @@
   [p=p.vex q=[~ u=[p=(hez [p.tub p.q.u.q.vex] p.u.q.vex) q=q.u.q.vex]]]
 ::
 ++  ifix
+  ''':infix.
+
+  parser modifier: surround with pair of `++rule`s, the output of which is
+  discarded.''':
   |*  {fel/{rule rule} hof/rule}
   ~!  +<
   ~!  +<:-.fel
   ~!  +<:+.fel
   ;~(pfix -.fel ;~(sfix hof +.fel))
 ::
-++  jest                                                ::  match a cord
+++  jest
+  ''':match a cord.
+
+  match and consume a cord.''':
   |=  daf/@t
   |=  tub/nail
   =+  fad=daf
@@ -4220,9 +5290,12 @@
     (fail tub)
   $(p.tub (lust i.q.tub p.tub), q.tub t.q.tub, daf (rsh 3 1 daf))
 ::
-++  just                                                ::  XX redundant, jest
-  ~/  %just                                             ::  match a char
-  |=  daf/char
+++  just
+  ''':match a char.
+
+  match and consume a single character.''':
+  ~/  %just                                             ::  XX redundant, jest
+  |=  daf/char                                          ::  match a char
   ~/  %fun
   |=  tub/nail
   ^-  (like char)
@@ -4232,13 +5305,21 @@
     (fail tub)
   (next tub)
 ::
-++  knee                                                ::  callbacks
+++  knee
+  ''':recursive parsers.
+
+  used for recursive parsers, which would otherwise be infinite when
+  compiled.''':
   |*  {gar/* sef/_|.(*rule)}
   |=  tub/nail
   ^-  (like _gar)
   ((sef) tub)
 ::
-++  mask                                                ::  match char in set
+++  mask
+  ''':match char in set.
+
+  parser generator: matches the next character if it is in a list of
+  characters.''':
   ~/  %mask
   |=  bud/(list char)
   ~/  %fun
@@ -4250,15 +5331,25 @@
     (fail tub)
   (next tub)
 ::
-++  more                                                ::  separated, *
+++  more
+  ''':parse zero or more items with delimiter. (+)
+
+  parser modifier: parse a list of matches using a delimiter `++rule`.''':
   |*  {bus/rule fel/rule}
   ;~(pose (most bus fel) (easy ~))
 ::
-++  most                                                ::  separated, +
+++  most
+  ''':parse one or more items with delimiter. (*)
+
+  parser modifier: parse a list of at least one match using a delimiter
+  `++rule`.''':
   |*  {bus/rule fel/rule}
   ;~(plug fel (star ;~(pfix bus fel)))
 ::
-++  next                                                ::  consume a char
+++  next
+  ''':consume a char.
+
+  consume any character, producing it as a result.''':
   |=  tub/nail
   ^-  (like char)
   ?~  q.tub
@@ -4280,9 +5371,18 @@
     (stag %& a)
     (stag %| b)
   ==
-++  plus  |*(fel/rule ;~(plug fel (star fel)))          ::
+++  plus
+  ''':list of at least one match.
+
+  parser modifier: parse `++list` of at least one match.''':
+  |*(fel/rule ;~(plug fel (star fel)))
+::
 ++  punt  |*({a/rule} ;~(pose (stag ~ a) (easy ~)))     ::
-++  sear                                                ::  conditional cook
+++  sear
+  ''':conditional `++cook`.
+
+  conditional `++cook`. slams the result through a gate that produces
+  a unit; if that unit is empty, fail.''':
   |*  {pyq/$-(* (unit)) sef/rule}
   |=  tub/nail
   =+  vex=(sef tub)
@@ -4293,7 +5393,8 @@
     [p=p.vex q=~]
   [p=p.vex q=[~ u=[p=u.gey q=q.u.q.vex]]]
 ::
-++  shim                                                ::  match char in range
+++  shim
+  ''':match char within a range.''':
   ~/  %shim
   |=  {les/@ mos/@}
   ~/  %fun
@@ -4305,7 +5406,10 @@
     (fail tub)
   (next tub)
 ::
-++  stag                                                ::  add a label
+++  stag
+  ''':add a label.
+
+  add a label to an edge parsed by a rule.''':
   ~/  %stag
   |*  {gob/* sef/rule}
   ~/  %fun
@@ -4315,14 +5419,23 @@
     vex
   [p=p.vex q=[~ u=[p=[gob p.u.q.vex] q=q.u.q.vex]]]
 ::
-++  stet                                                ::
+++  stet
+  ''':add faces.
+
+  add faces `[p q]` to range-parser pairs in a list.''':
   |*  leh/(list {?(@ {@ @}) rule})
   |-
   ?~  leh
     ~
   [i=[p=-.i.leh q=+.i.leh] t=$(leh t.leh)]
 ::
-++  stew                                                ::  switch by first char
+++  stew
+  ''':switch by first char.
+
+  parser generator: from an associative `++list` of characters or character
+  ranges to `++rule`s, construct a `++map`, and parse `++tape`s only
+  with `++rules` associated with a range that the `++tape`'s first character
+  falls in.''':
   ~/  %stew
   |*  leh/(list {p/?(@ {@ @}) q/rule})                  ::  char+range keys
   =+  ^=  wor                                           ::  range complete lth
@@ -4366,16 +5479,27 @@
     $(hel l.hel)
   $(hel r.hel)
 ::
-++  slug                                                ::
+++  slug
+  ''':use gate to parse delimited list.
+
+  parser modifier: by composing with a gate, parse a delimited `++list` of
+  matches.''':
   |*  raq/_|*({a/* b/*} [a b])
   |*  {bus/rule fel/rule}
   ;~((comp raq) fel (stir +<+.raq raq ;~(pfix bus fel)))
 ::
-++  star                                                ::  0 or more times
+++  star
+  ''':match 0 or more times.
+
+  parser modifier: parse `++list` of matches.''':
   |*  fel/rule
   (stir `(list _(wonk *fel))`~ |*({a/* b/*} [a b]) fel)
 ::
 ++  stir
+  ''':parse repeatedly.
+
+  parse with `++rule` as many times as possible, and fold over results with a
+  binary gate.''':
   ~/  %stir
   |*  {rud/* raq/_|*({a/* b/*} [a b]) fel/rule}
   ~/  %fun
@@ -4388,7 +5512,10 @@
   ?>  ?=(^ q.wag)
   [(last p.vex p.wag) [~ (raq p.u.q.vex p.u.q.wag) q.u.q.wag]]
 ::
-++  stun                                                ::  parse several times
+++  stun
+  ''':parse several times.
+
+  parse bounded number of times.''':
   |*  {lig/{@ @} fel/rule}
   |=  tub/nail
   ^-  (like (list _(wonk (fel))))
@@ -4410,24 +5537,50 @@
 ::
 ::::  4g: parsing (outside caller)
   ::
-++  rash  |*({naf/@ sab/rule} (scan (trip naf) sab))   ::
-++  rose  |*  {los/tape sab/rule}
-          =+  vex=(sab [[1 1] los])
-          =+  len=(lent los)
-          ?.  =(+(len) q.p.vex)  [%| p=(dec q.p.vex)]
-          ?~  q.vex
-            [%& p=~]
-          [%& p=[~ u=p.u.q.vex]]
-++  rush  |*({naf/@ sab/rule} (rust (trip naf) sab))
-++  rust  |*  {los/tape sab/rule}
-          =+  vex=((full sab) [[1 1] los])
-          ?~(q.vex ~ [~ u=p.u.q.vex])
-++  scan  |*  {los/tape sab/rule}
-          =+  vex=((full sab) [[1 1] los])
-          ?~  q.vex
-            ~_  (show [%m '{%d %d}'] p.p.vex q.p.vex ~)
-            ~_(leaf+"syntax error" !!)
-          p.u.q.vex
+++  rash
+  ''':parse or crash.
+
+  parse a cord with a given `++rule` and crash if the `++cord` isn't entirely
+  parsed.''':
+  |*({naf/@ sab/rule} (scan (trip naf) sab))
+::
+++  rose
+  :: xx undocumented!
+  |*  {los/tape sab/rule}
+  =+  vex=(sab [[1 1] los])
+  =+  len=(lent los)
+  ?.  =(+(len) q.p.vex)  [%| p=(dec q.p.vex)]
+  ?~  q.vex
+    [%& p=~]
+  [%& p=[~ u=p.u.q.vex]]
+::
+++  rush
+  ''':parse or null.
+
+  parse a given with a given rule and produce null if the cord isn't
+  entirely parsed.''':
+  |*({naf/@ sab/rule} (rust (trip naf) sab))
+::
+++  rust
+  ''':parse tape or null.
+
+  parse a `++tape` with a given `++rule` and produce null if the `++tape` isn't
+  entirely parsed.''':
+  |*  {los/tape sab/rule}
+  =+  vex=((full sab) [[1 1] los])
+  ?~(q.vex ~ [~ u=p.u.q.vex])
+::
+++  scan
+  ''':parse tape or crash.
+
+  parse a `++tape` with a given `++rule` and crash if the `++tape` isn't
+  entirely parsed.''':
+  |*  {los/tape sab/rule}
+  =+  vex=((full sab) [[1 1] los])
+  ?~  q.vex
+    ~_  (show [%m '{%d %d}'] p.p.vex q.p.vex ~)
+    ~_(leaf+"syntax error" !!)
+  p.u.q.vex
 ::
 ::::  4h: parsing (ascii glyphs)
   ::
@@ -4580,55 +5733,165 @@
 ::::  4j: parsing (bases and base digits)
   ::
 ++  ab
+  ''':primitive parser engine.
+
+  a core containing numeric parser primitives.''':
   |%
-  ++  bix  (bass 16 (stun [2 2] six))
+  ++  bix
+    ''':parses a hex pair.
+    
+    parsing `++rule`. parses a pair of base-16 digits. used in escapes.''':
+    (bass 16 (stun [2 2] six))
+  ::
   ++  fem  (sear |=(a/@ (cha:fa a)) aln)
   ++  haf  (bass 256 ;~(plug tep tiq (easy ~)))
   ++  hef  %+  sear  |=(a/@ ?:(=(a 0) ~ (some a)))
            %+  bass  256
            ;~(plug tip tiq (easy ~))
-  ++  hif  (bass 256 ;~(plug tip tiq (easy ~)))
+  ++  hif
+    ''':parses a phonetic pair.
+    
+    parsing `++rule`. parses an atom of aura `@pe`, a phrase of two bytes
+    encoded phonetically.''':
+    (bass 256 ;~(plug tip tiq (easy ~)))
+  ::
   ++  hof  (bass 0x1.0000 ;~(plug hef (stun [1 3] ;~(pfix hep hif))))
-  ++  huf  (bass 0x1.0000 ;~(plug hef (stun [0 3] ;~(pfix hep hif))))
-  ++  hyf  (bass 0x1.0000 ;~(plug hif (stun [3 3] ;~(pfix hep hif))))
-  ++  pev  (bass 32 ;~(plug sev (stun [0 4] siv)))
-  ++  pew  (bass 64 ;~(plug sew (stun [0 4] siw)))
-  ++  piv  (bass 32 (stun [5 5] siv))
-  ++  piw  (bass 64 (stun [5 5] siw))
-  ++  qeb  (bass 2 ;~(plug seb (stun [0 3] sib)))
-  ++  qex  (bass 16 ;~(plug sex (stun [0 3] hit)))
-  ++  qib  (bass 2 (stun [4 4] sib))
-  ++  qix  (bass 16 (stun [4 4] six))
-  ++  seb  (cold 1 (just '1'))
-  ++  sed  (cook |=(a/@ (sub a '0')) (shim '1' '9'))
-  ++  sev  ;~(pose sed sov)
-  ++  sew  ;~(pose sed sow)
-  ++  sex  ;~(pose sed sox)
-  ++  sib  (cook |=(a/@ (sub a '0')) (shim '0' '1'))
-  ++  sid  (cook |=(a/@ (sub a '0')) (shim '0' '9'))
-  ++  siv  ;~(pose sid sov)
-  ++  siw  ;~(pose sid sow)
-  ++  six  ;~(pose sid sox)
-  ++  sov  (cook |=(a/@ (sub a 87)) (shim 'a' 'v'))
-  ++  sow  ;~  pose
-             (cook |=(a/@ (sub a 87)) (shim 'a' 'z'))
-             (cook |=(a/@ (sub a 29)) (shim 'A' 'Z'))
-             (cold 62 (just '-'))
-             (cold 63 (just '~'))
-           ==
-  ++  sox  (cook |=(a/@ (sub a 87)) (shim 'a' 'f'))
-  ++  ted  (bass 10 ;~(plug sed (stun [0 2] sid)))
+  ++  huf
+    ''':parses two phonetic pairs.
+    
+    parsing `++rule`. parses and unscrambles an atom of aura `@pf`, a phrase
+    of two two-byte pairs that are encoded (and scrambled) phonetically.''':
+    (bass 0x1.0000 ;~(plug hef (stun [0 3] ;~(pfix hep hif))))
+  ::
+  ++  hyf
+    ''':parses 8 phonetic bytes.
+    
+    parsing `++rule`. parses an atom of aura `@pg`, a phrase of eight of
+    phonetic bytes.''':
+    (bass 0x1.0000 ;~(plug hif (stun [3 3] ;~(pfix hep hif))))
+  ::
+  ++  pev
+    ''':parse up to five base-32 digits (without a leading zero).''':
+    (bass 32 ;~(plug sev (stun [0 4] siv)))
+  ::
+  ++  pew
+    ''':parses up to five base-64 digits (without a leading zero).''':
+    (bass 64 ;~(plug sew (stun [0 4] siw)))
+  ::
+  ++  piv
+    ''':parses exactly five base-32 digits.''':
+    (bass 32 (stun [5 5] siv))
+  ::
+  ++  piw
+    ''':parses exactly five base-64 digits.''':
+    (bass 64 (stun [5 5] siw))
+  ::
+  ++  qeb
+    ''':parse up to four binary digits (without a leading zero).''':
+    (bass 2 ;~(plug seb (stun [0 3] sib)))
+  ::
+  ++  qex
+    ''':parses up to 4 hex digits (without a leading zero).''':
+    (bass 16 ;~(plug sex (stun [0 3] hit)))
+  ::
+  ++  qib
+    ''':parses exactly four binary digits.''':
+    (bass 2 (stun [4 4] sib))
+  ::
+  ++  qix
+    ''':parses exactly four hexadecimal digits.''':
+    (bass 16 (stun [4 4] six))
+  ::
+  ++  seb
+    ''':parses the number 1.''':
+    (cold 1 (just '1'))
+  ::
+  ++  sed
+    ''':parses a nonzero decimal digit.''':
+    (cook |=(a/@ (sub a '0')) (shim '1' '9'))
+  ::
+  ++  sev
+    ''':parses a nonzero base-32 digit.''':
+    ;~(pose sed sov)
+  ::
+  ++  sew
+    ''':parses a nonzero base-64 digit.''':
+    ;~(pose sed sow)
+  ::
+  ++  sex
+    ''':parses a nonzero hex digit.''':
+    ;~(pose sed sox)
+  ::
+  ++  sib
+    ''':parses a binary digit.''':
+    (cook |=(a/@ (sub a '0')) (shim '0' '1'))
+  ::
+  ++  sid
+    ''':parses a decimal digit.''':
+    (cook |=(a/@ (sub a '0')) (shim '0' '9'))
+  ::
+  ++  siv
+    ''':parses a base-32 digit.''':
+    ;~(pose sid sov)
+  ::
+  ++  siw
+    ''':parses a base-64 digit.''':
+    ;~(pose sid sow)
+  ::
+  ++  six
+    ''':parses a hexadecimal digit.''':
+    ;~(pose sid sox)
+  ::
+  ++  sov
+    ''':parses a base-32 letter.''':
+    (cook |=(a/@ (sub a 87)) (shim 'a' 'v'))
+  ::
+  ++  sow
+    ''':parses a base-64 letter/symbol.''':
+    ;~  pose
+      (cook |=(a/@ (sub a 87)) (shim 'a' 'z'))
+      (cook |=(a/@ (sub a 29)) (shim 'A' 'Z'))
+      (cold 62 (just '-'))
+      (cold 63 (just '~'))
+    ==
+  ::
+  ++  sox
+    ''':parses a hexadecimal letter.''':
+    (cook |=(a/@ (sub a 87)) (shim 'a' 'f'))
+  ::
+  ++  ted
+    ''':parses up to three decimal digits (without a leading zero).''':
+    (bass 10 ;~(plug sed (stun [0 2] sid)))
+  ::
   ++  tep  (sear |=(a/@ ?:(=(a 'doz') ~ (ins:po a))) til)
-  ++  tip  (sear |=(a/@ (ins:po a)) til)
-  ++  tiq  (sear |=(a/@ (ind:po a)) til)
-  ++  tid  (bass 10 (stun [3 3] sid))
-  ++  til  (boss 256 (stun [3 3] low))
-  ++  urs  %+  cook
-             |=(a/tape (rap 3 ^-((list @) a)))
-           (star ;~(pose nud low hep dot sig cab))
-  ++  urt  %+  cook
-             |=(a/tape (rap 3 ^-((list @) a)))
-           (star ;~(pose nud low hep dot sig))
+  ++  tip
+    ''':parses the leading phonetic byte, which represents a syllable.''':
+    (sear |=(a/@ (ins:po a)) til)
+  ::
+  ++  tiq
+    ''':parses the trailing phonetic byte, which represents a syllable.''':
+    (sear |=(a/@ (ind:po a)) til)
+  ::
+  ++  tid
+    ''':parses exactly three decimal digits.''':
+    (bass 10 (stun [3 3] sid))
+  ::
+  ++  til
+    ''':parses exactly three lowercase letters.''':
+    (boss 256 (stun [3 3] low))
+  ::
+  ++  urs
+    ''':parses characters from an atom of the span aura `@ta`.''':
+    %+  cook
+      |=(a/tape (rap 3 ^-((list @) a)))
+    (star ;~(pose nud low hep dot sig cab))
+  ::
+  ++  urt
+    ''':parses all characters of the span aura `@ta` except for cab, `_`.''':
+    %+  cook
+      |=(a/tape (rap 3 ^-((list @) a)))
+    (star ;~(pose nud low hep dot sig))
+  ::
   ++  urx  %+  cook
              |=(a/tape (rap 3 ^-((list @) a)))
            %-  star
@@ -4641,33 +5904,63 @@
              (cook tuft (ifix [sig dot] hex))
              ;~(pfix sig ;~(pose sig dot))
            ==
-  ++  voy  ;~(pfix bas ;~(pose bas soq bix))
+  ++  voy
+    ''':parses an escaped backslash, single quote, or hex pair byte.''':
+    ;~(pfix bas ;~(pose bas soq bix))
   --
 ++  ag
+  ''':top-level atom parser engine.
+
+  a core containing top-level atom parsers.''':
   |%
-  ++  ape  |*(fel/rule ;~(pose (cold 0 (just '0')) fel))
-  ++  bay  (ape (bass 16 ;~(plug qeb:ab (star ;~(pfix dog qib:ab)))))
-  ++  bip  =+  tod=(ape qex:ab)
-           (bass 0x1.0000 ;~(plug tod (stun [7 7] ;~(pfix dog tod))))
-  ++  dem  (ape (bass 1.000 ;~(plug ted:ab (star ;~(pfix dog tid:ab)))))
-  ++  dim  (ape dip)
+  ++  ape
+    ''':parse 0 or rule.''':
+    |*(fel/rule ;~(pose (cold 0 (just '0')) fel))
+  ::
+  ++  bay
+    ''':parses a binary number without a leading zero.''':
+    (ape (bass 16 ;~(plug qeb:ab (star ;~(pfix dog qib:ab)))))
+  ::
+  ++  bip
+    ''':parses an ipv6 address (`@is`).''':
+    =+  tod=(ape qex:ab)
+    (bass 0x1.0000 ;~(plug tod (stun [7 7] ;~(pfix dog tod))))
+  ::
+  ++  dem
+    ''':parses a decimal number that includes dot separators.''':
+    (ape (bass 1.000 ;~(plug ted:ab (star ;~(pfix dog tid:ab)))))
+  ::
+  ++  dim
+    ''':parses a decimal number without a leading zero.''':
+    (ape dip)
+  ::
   ++  dip  (bass 10 ;~(plug sed:ab (star sid:ab)))
-  ++  dum  (bass 10 (plus sid:ab))
-  ++  fed  %+  cook  fend:ob
-           ;~  pose
-             %+  bass  0x1.0000.0000.0000.0000          ::  oversized
-               ;~  plug
-                 huf:ab
-                 (plus ;~(pfix doh hyf:ab))
-               ==
-             hof:ab                                     ::  planet or moon
-             haf:ab                                     ::  star
-             tiq:ab                                     ::  galaxy
-           ==
+  ++  dum
+    ''':parses a decmial number with leading zeroes.''':
+    (bass 10 (plus sid:ab))
+  ::
+  ++  fed
+    ''':parses a phonetic base atom (`@p`).''':
+    %+  cook  fend:ob
+    ;~  pose
+      %+  bass  0x1.0000.0000.0000.0000          ::  oversized
+        ;~  plug
+          huf:ab
+          (plus ;~(pfix doh hyf:ab))
+        ==
+      hof:ab                                     ::  planet or moon
+      haf:ab                                     ::  star
+      tiq:ab                                     ::  galaxy
+    ==
   ++  fim  (sear den:fa (bass 58 (plus fem:ab)))
-  ++  hex  (ape (bass 0x1.0000 ;~(plug qex:ab (star ;~(pfix dog qix:ab)))))
-  ++  lip  =+  tod=(ape ted:ab)
-           (bass 256 ;~(plug tod (stun [3 3] ;~(pfix dog tod))))
+  ++  hex
+    ''':parses a hexadecimal number.''':
+    (ape (bass 0x1.0000 ;~(plug qex:ab (star ;~(pfix dog qix:ab)))))
+  ::
+  ++  lip
+    ''':parses an ipv4 address.''':
+    =+  tod=(ape ted:ab)
+    (bass 256 ;~(plug tod (stun [3 3] ;~(pfix dog tod))))
   ++  mot  ;~  pose
              ;~  pfix
                (just '1')
@@ -4675,33 +5968,72 @@
              ==
              sed:ab
            ==
-  ++  viz  (ape (bass 0x200.0000 ;~(plug pev:ab (star ;~(pfix dog piv:ab)))))
-  ++  vum  (bass 32 (plus siv:ab))
-  ++  wiz  (ape (bass 0x4000.0000 ;~(plug pew:ab (star ;~(pfix dog piw:ab)))))
+  ++  viz
+    ''':parses a base-32 number with dot separators.''':
+    (ape (bass 0x200.0000 ;~(plug pev:ab (star ;~(pfix dog piv:ab)))))
+  ::
+  ++  vum
+    ''':parses a raw base-32 string.''':
+    (bass 32 (plus siv:ab))
+  ::
+  ++  wiz
+    ''':parses a base-64 number.''':
+    (ape (bass 0x4000.0000 ;~(plug pew:ab (star ;~(pfix dog piw:ab)))))
   --
 ++  mu
+  ''':this appears to be the old scrambling code. todo: remove?''':
   |_  {top/@ bot/@}
   ++  zag  [p=(end 4 1 (add top bot)) q=bot]
   ++  zig  [p=(end 4 1 (add top (sub 0x1.0000 bot))) q=bot]
   ++  zug  (mix (lsh 4 1 top) bot)
   --
 ++  ne
+  ''':digit rendering engine.
+
+  a door containing arms that render digits at bases 10, 16, 32, and 64.''':
   |_  tig/@
   ++  c  (cut 3 [tig 1] key:fa)
-  ++  d  (add tig '0')
-  ++  x  ?:((gte tig 10) (add tig 87) d)
-  ++  v  ?:((gte tig 10) (add tig 87) d)
-  ++  w  ?:(=(tig 63) '~' ?:(=(tig 62) '-' ?:((gte tig 36) (add tig 29) x)))
+  ++  d
+    ''':renders a decimal digit as an atom of an acii byte value.''':
+    (add tig '0')
+  ::
+  ++  x
+    ''':renders a hexadecimal digit as an atom of an ascii byte value.''':
+    ?:((gte tig 10) (add tig 87) d)
+  ::
+  ++  v
+    ''':renders a base-32 digit as an atom of an ascii byte value.''':
+    ?:((gte tig 10) (add tig 87) d)
+  ::
+  ++  w
+    ''':renders a base-64 digit as an atom of an ascii byte value.''':
+    ?:(=(tig 63) '~' ?:(=(tig 62) '-' ?:((gte tig 36) (add tig 29) x)))
   --
 ::
 ::::  4k: atom printing
   ::
 ++  co  !.
+  ''':literal rendering engine.
+
+  a door that contains arms that operate on the sample coin `lot`.''':
   ~%  %co  ..co  ~
   =<  |_  lot/coin
-      ++  rear  |=(rom/tape =>(.(rep rom) rend))
-      ++  rent  `@ta`(rap 3 rend)
+      ++  rear
+        ''':prepend & render as tape.
+        
+        renders a coin `lot` as a tape prepended to the sample tape `rom`.''':
+        |=(rom/tape =>(.(rep rom) rend))
+      ::
+      ++  rent
+        ''':render as span.
+        
+        renders a coin `lot` as a span.''':
+        `@ta`(rap 3 rend)
+      ::
       ++  rend
+        ''':render as tape.
+        
+        renders a coin `lot` as a tape.''':
         ^-  tape
         ?:  ?=($blob -.lot)
           ['~' '0' ((v-co 1) (jam p.lot))]
@@ -4909,9 +6241,16 @@
 ::::  4l: atom parsing
   ::
 ++  so
+  ''':coin parser engine.
+
+  core containing arms that parse `++coin`.''':
   ~%  %so  +  ~
   |%
   ++  bisk
+    ''':parses an aura-atom pair.
+    
+    parsing rule. parses an unsigned integer of any permitted base,
+    producing a `++dime`.''':
     ~+
     ;~  pose
       ;~  pfix  (just '0')
@@ -4927,6 +6266,11 @@
       (stag %ud dem:ag)
     ==
   ++  crub
+    ''':parses `@da`, `@dr`, `@p`, and `@t`.
+    
+    parsing rule. parses any atom of any of the following auras after a
+    leading sig, `~` into a `++dime`: `@da`, `@dr`, `@p`,
+    and `@t`, producing a `++dime`.''':
     ~+
     ;~  pose
       %+  cook
@@ -4981,6 +6325,10 @@
       ;~(pfix hep (stag %c (cook turf urx:ab)))
     ==
   ++  nuck
+    ''':top-level coin parser.
+    
+    parsing rule. switches on the first character and applies the
+    corresponding `++coin` parser.''':
     ~/  %nuck  |=  a/nail  %.  a
     %+  knee  *coin  |.  ~+
     %-  stew
@@ -4992,15 +6340,26 @@
         :-  '~'        ;~(pfix sig ;~(pose twid (easy [%$ %n 0])))
     ==
   ++  nusk
+    ''':parses coin literal with escapes.
+    
+    parsing rule. parses a coin literal with escapes. (see also: xx tuple
+    formatting).''':
     ~+
     :(sear |=(a/@ta (rush a nuck)) wick urt:ab)
   ++  perd
+    ''':parsing rule.
+    
+    parsing rule. parses a dime or tuple without their respective standard
+    prefixes.''':
     ~+
     ;~  pose
       (stag %$ zust)
       (stag %many (ifix [cab ;~(plug cab cab)] (more cab nusk)))
     ==
   ++  royl
+    ''':parses dime float.
+    
+    parsing rule. parses a number into a `++dime` float.''':
     ~+
     =+  ^=  moo
       |=  a/tape
@@ -5054,6 +6413,7 @@
     [%d a h (add (mul c.b (pow 10 d.b)) e.b)]
   ::
   ++  tash
+    ''':parses signed dime.''':
     ~+
     =+  ^=  neg
         |=  {syn/? mol/dime}  ^-  dime
@@ -5067,6 +6427,9 @@
     ==
   ::
   ++  twid
+    ''':parses coins without `~` prefix.
+    
+    parsing rule. parses coins after a leading sig, `~`.''':
     ~+
     ;~  pose
       (cook |=(a/@ [%blob (cue a)]) ;~(pfix (just '0') vum:ag))
@@ -5074,6 +6437,10 @@
     ==
   ::
   ++  zust
+    ''':parses prefixed dimes from `@if`, `@f`, or `@rd`.
+    
+    parsing rule. parses an atom of either `@if` (ip address), `@f`
+    (loobean), or `rf` (floating point) into a `++dime`.''':
     ~+
     ;~  pose
       (stag %is bip:ag)
@@ -5085,11 +6452,32 @@
 ::
 ::::  4m: formatting functions
   ::
-++  scot  |=(mol/dime ~(rent co %$ mol))
-++  scow  |=(mol/dime ~(rend co %$ mol))
-++  slat  |=(mod/@tas |=(txt/@ta (slaw mod txt)))
-++  slav  |=({mod/@tas txt/@ta} (need (slaw mod txt)))
+++  scot
+  ''':renders a dime as a cord.''':
+  |=(mol/dime ~(rent co %$ mol))
+::
+++  scow
+  ''':renders a dime as tape.''':
+  |=(mol/dime ~(rend co %$ mol))
+::
+++  slat
+  ''':curried slaw.
+
+  produces a `gate` that parses a `term` `txt` to an atom of the
+  aura specified by `mod`.''':
+  |=(mod/@tas |=(txt/@ta (slaw mod txt)))
+::
+++  slav
+  ''':demand: parse span with input aura.
+
+  parses a span `txt` to an atom of the aura specificed by `mod`. crashes
+  if it failes to parse.''':
+  |=({mod/@tas txt/@ta} (need (slaw mod txt)))
+::
 ++  slaw
+  ''':parse span to input aura.
+
+  parses a span `txt` to an atom of the aura specified by `mod`.''':
   ~/  %slaw
   |=  {mod/@tas txt/@ta}
   ^-  (unit @)
@@ -5097,6 +6485,9 @@
   ?.(&(?=({$~ $$ @ @} con) =(p.p.u.con mod)) ~ [~ q.p.u.con])
 ::
 ++  slay
+  ''':parse span to coin.
+
+  parses a span `txt` to the unit of a `++coin`.''':
   |=  txt/@ta  ^-  (unit coin)
   =+  ^=  vex
       ?:  (gth 0x7fff.ffff txt)                         ::  XX  petty cache
@@ -5106,26 +6497,50 @@
     ~
   [~ p.u.q.vex]
 ::
-++  smyt                                                ::  pretty print path
+++  smyt
+  ''':pretty print path.
+
+  renders the path `bon` as a `tank`, which is used for
+  pretty-printing.''':
   |=  bon/path  ^-  tank
   :+  %rose  [['/' ~] ['/' ~] ~]
   (turn bon |=(a/@ [%leaf (trip a)]))
 ::
-++  spat  |=(pax/path (crip (spud pax)))                ::  render path to cord
-++  spud  |=(pax/path ~(ram re (smyt pax)))             ::  render path to tape
-++  stab                                                ::  parse cord to path
+++  spat
+  ''':renders a path to a cord.''':
+  |=(pax/path (crip (spud pax)))
+::
+++  spud
+  ''':renders a path to a tape.''':
+  |=(pax/path ~(ram re (smyt pax)))
+::
+++  stab
+  ''':parse span to path.
+
+  parsing rule. parses a span `zep` to a static `++path`.''':
   =+  fel=;~(pfix fas (more fas urs:ab))
   |=(zep/@t `path`(rash zep fel))
 ::
 ::::  4n: virtualization
   ::
 ++  mack
+  ''':nock subject to unit.
+
+  accepts a nock subject-formula cell and wraps it into a `++unit`.
+  `fol` is pure nock, meaning that nock `11` operations result in a block,
+  producing a `~`.''':
   |=  {sub/* fol/*}
   ^-  (unit)
   =+  ton=(mink [sub fol] |=({* *} ~))
   ?.(?=({$0 *} ton) ~ [~ p.ton])
 ::
 ++  mink
+  ''':mock interpreter.
+
+  bottom-level mock (virtual nock) interpreter. produces a
+  `++tone`, a nock computation result. if nock 11 is invoked, `sky`
+  computes on the subject and produces a `++unit` result. an empty
+  result becomes a `%1` `++tone`, indicating a block.''':
   ~/  %mink
   |=  {{sub/* fol/*} gul/$-({* *} (unit (unit)))}
   =+  tax=*(list {@ta *})
@@ -5202,6 +6617,12 @@
   ==
 ::
 ++  mock
+  ''':compute formula on subject with hint.
+
+  produces a `++toon`, which is either a sucessful, blocked, or
+  crashed result. if nock 11 is invoked, `sky` computes on the subject and
+  produces a `++unit` result. an empty result becomes a `%1` `++tune`,
+  indicating a block.''':
   |=  {{sub/* fol/*} gul/$-({* *} (unit (unit)))}
   (mook (mink [sub fol] gul))
 ::
@@ -5227,6 +6648,10 @@
 ::    [[%spot sot] ^$(pon t.pon)]
 ::
 ++  mook
+  ''':intelligently render crash annotation.
+
+  converts a `%2` `++tone` nock stack trace to a list of `++tank`.
+  each may be a tank, cord, `++spot`, or trapped tank.''':
   |=  ton/tone
   ^-  toon
   ?.  ?=({$2 *} ton)  ton
@@ -5269,13 +6694,21 @@
   (turn ((list @ta) val) |=(a/@ta [%leaf (trip a)]))
 ::
 ++  mong
+  ''':slam gate with sample.
+
+  produces a `++toon` computation result from slamming `gat` with
+  `sam`, using `sky` to compute or block on nock 11 when applicable.''':
   |=  {{gat/* sam/*} gul/$-({* *} (unit (unit)))}
   ^-  toon
   ?.  &(?=(^ gat) ?=(^ +.gat))
     [%2 ~]
   (mock [[-.gat [sam +>.gat]] -.gat] gul)
 ::
-++  mule                                                ::  typed virtual
+++  mule
+  ''':typed virtual.
+
+  kicks a `++trap`, producing its results or any errors that occur along
+  the way. used to lazily compute stack traces.''':
   ~/  %mule
   |*  taq/_|.(**)
   =+  mud=(mute taq)
@@ -5284,7 +6717,12 @@
     $|  [%| p=p.mud]
   ==
 ::
-++  mute                                                ::  untyped virtual
+++  mute
+  ''':untyped virtual.
+
+  kicks a `++trap`, producing its result as a noun or the tanks of any
+  error that occurs. similar to `++mule`, but preserves no type
+  information.''':
   |=  taq/_^?(|.(**))
   ^-  (each * (list tank))
   =+  ton=(mock [taq 9 2 0 1] |=({* *} ~))
@@ -5298,9 +6736,26 @@
   ::
 ++  abel  typo                                          ::  original sin: span
 ++  atom  @                                             ::  just an atom
-++  aura  @ta                                           ::  atom format
-++  axis  @                                             ::  tree address
-++  base                                                ::  base mold
+++  aura
+  ''':atom format.
+
+  by convention, a short name for a category of atom. `++aura` is
+  circularly defined, with [`@ta`]() being the `++aura` of the ascii subset
+  commonly used in urbit.''':
+  @ta
+::
+++  axis
+  ''':tree address.
+
+  a nock axis inside a noun. after the leading 1, in binary, a `1` signifies
+  right and `0` left.''':
+  @
+::
+++  base
+  ''':base mold.
+
+  a base type that nouns are built from. a `++base` is either a noun, cell,
+  boolean or null labeled with an aura.''':
   $@  $?  $noun                                         ::  any noun
           $cell                                         ::  any cell
           $bean                                         ::  loobean
@@ -5309,27 +6764,54 @@
       ==                                                ::
   {$atom p/aura}                                        ::  atom
 ::
-++  bean  ?                                             ::  0=&=yes, 1=|=no
+++  bean
+  ''':boolean.
+
+  `0`, `&`, or `%.y` are true, and `1`, `|`, and `%.n` are false.''':
+  ?
+::
 ++  woof  $@(@ {$~ p/twig})                             ::  simple embed
-++  beet  $@  @                                         ::  advanced embed
-          $%  {$a p/twig}                               ::  take tape
-              {$b p/twig}                               ::  take manx
-              {$c p/twig}                               ::  take marl
-              {$d p/twig}                               ::  take $-(marl marl)
-              {$e p/twig q/(list tuna)}                 ::  element literal
-          ==                                            ::
-++  chum  $?  lef/term                                  ::  jet name
-              {std/term kel/@}                          ::  kelvin version
-              {ven/term pro/term kel/@}                 ::  vendor and product
-              {ven/term pro/term ver/@ kel/@}           ::  all of the above
-          ==                                            ::
-++  coil  $:  p/?($gold $iron $lead $zinc)              ::  core span
-              q/span                                    ::
-              r/{p/?($~ ^) q/(map term foot)}           ::
-          ==                                            ::
-++  foot  $%  {$ash p/twig}                             ::  dry arm, geometric
-              {$elm p/twig}                             ::  wet arm, generic
-          ==                                            ::
+++  beet
+  ''':xml interpolation cases.
+
+  used internally.''':
+  $@  @                                                 ::  advanced embed
+  $%  {$a p/twig}                                       ::  take tape
+      {$b p/twig}                                       ::  take manx
+      {$c p/twig}                                       ::  take marl
+      {$d p/twig}                                       ::  take $-(marl marl)
+      {$e p/twig q/(list tuna)}                         ::  element literal
+  ==
+::
+++  chum
+  ''':jet hint information.
+
+  jet hint information that must be present in the body of a `~/` or `~%`
+  rune. a `++chum` can optionally contain a kelvin version, jet vendor,
+  and "{major}.{minor}" version number.''':
+  $?  lef/term                                          ::  jet name
+      {std/term kel/@}                                  ::  kelvin version
+      {ven/term pro/term kel/@}                         ::  vendor and product
+      {ven/term pro/term ver/@ kel/@}                   ::  all of the above
+  ==
+::
+++  coil
+  ''':tuple of core information.
+
+  variance `p`, subject type `q`, and `q`: optional compiled nock, and arms.
+  used as an intermediate step within section 2fb. converted by `++core` to
+  `%core` type.''':
+  $:  p/?($gold $iron $lead $zinc)                      ::  core span
+      q/span
+      r/{p/?($~ ^) q/(map term foot)}
+  ==
+::
+++  foot
+  ''':cases of arms by variance model.''':
+  $%  {$ash p/twig}                                     ::  dry arm, geometric
+      {$elm p/twig}                                     ::  wet arm, generic
+  ==
+::
 ++  limb  $@  term                                      ::  wing element
           $%  {$& p/axis}                               ::  by geometry
               {$| p/@ud q/(unit term)}                  ::  by name
@@ -5369,15 +6851,18 @@
               {$1 p/$@(term tune) q/toga}               ::  deep toga
               {$2 p/toga q/toga}                        ::  cell toga
           ==                                            ::
-++  tuna                                                ::  tagflow
-          $%  {$a p/twig}                               ::  plain text
-              {$b p/twig}                               ::  single tag
-              {$c p/twig}                               ::  simple list
-              {$d p/twig}                               ::  dynamic list
-              {$e p/twig q/(list tuna)}                 ::  element
-              {$f p/(list tuna)}                        ::  subflow
-          ==                                            ::
-++  twig                                                ::
+++  tuna
+  ''':xml template tree.''':
+  $%  {$a p/twig}                                       ::  plain text
+      {$b p/twig}                                       ::  single tag
+      {$c p/twig}                                       ::  simple list
+      {$d p/twig}                                       ::  dynamic list
+      {$e p/twig q/(list tuna)}                         ::  element
+      {$f p/(list tuna)}                                ::  subflow
+  ==
+::
+++  twig
+  ''':expression.''':
   $^  {p/twig q/twig}                                   ::
   $%                                                    ::
     {$$ p/axis}                                         ::  simple leg
@@ -5507,23 +6992,37 @@
     {$fail $~}                                          ::  !!
   ==                                                    ::
 ++  taro  $@(term (pair term twig))                     ::
-++  tyre  (list {p/term q/twig})                        ::
-++  tyke  (list (unit twig))                            ::
+++  tyre
+  ''':list, term to twig.
+
+  associative list of `++term` `++twig`, used in jet hint processing.''':
+  (list {p/term q/twig})
+::
+++  tyke
+  ''':list of 'maybe' twigs.
+
+  list of `++unit` `++twig`, or gaps left to be inferred, in `++path`
+  parsing. when you use a path such as `/=main=/pub/src/doc` the path is in
+  fact a `++tyke`, where the `=` are inferred from your current path.''':
+  (list (unit twig))
 ::                                                      ::::::  virtual nock
-++  nock  $^  {p/nock q/nock}                           ::  autocons
-          $%  {$0 p/@}                                  ::  axis select
-              {$1 p/*}                                  ::  constant
-              {$2 p/nock q/nock}                        ::  compose
-              {$3 p/nock}                               ::  cell test
-              {$4 p/nock}                               ::  increment
-              {$5 p/nock q/nock}                        ::  equality test
-              {$6 p/nock q/nock r/nock}                 ::  if, then, else
-              {$7 p/nock q/nock}                        ::  serial compose
-              {$8 p/nock q/nock}                        ::  push onto subject
-              {$9 p/@ q/nock}                           ::  select arm and fire
-              {$10 p/$@(@ {p/@ q/nock}) q/nock}         ::  hint
-              {$11 p/nock q/nock}                       ::  grab data from sky
-          ==                                            ::
+++  nock
+  ''':virtual machine.''':
+  $^  {p/nock q/nock}                                  ::  autocons
+  $%  {$0 p/@}                                         ::  axis select
+      {$1 p/*}                                         ::  constant
+      {$2 p/nock q/nock}                               ::  compose
+      {$3 p/nock}                                      ::  cell test
+      {$4 p/nock}                                      ::  increment
+      {$5 p/nock q/nock}                               ::  equality test
+      {$6 p/nock q/nock r/nock}                        ::  if, then, else
+      {$7 p/nock q/nock}                               ::  serial compose
+      {$8 p/nock q/nock}                               ::  push onto subject
+      {$9 p/@ q/nock}                                  ::  select arm and fire
+      {$10 p/$@(@ {p/@ q/nock}) q/nock}                ::  hint
+      {$11 p/nock q/nock}                              ::  grab data from sky
+  ==
+::
 ++  span  $@  $?  $noun                                 ::  any nouns
                   $void                                 ::  no noun
               ==                                        ::
@@ -5535,10 +7034,16 @@
               {$help p/wain q/span}                     ::  documentation
               {$hold p/span q/twig}                     ::  lazy evaluation
           ==                                            ::
-++  tone  $%  {$0 p/*}                                  ::  success
-              {$1 p/(list)}                             ::  blocks
-              {$2 p/(list {@ta *})}                     ::  error ~_s
-          ==                                            ::
+::
+++  tone
+  ''':intermediate nock computation result.
+
+  similar to `++toon`, but stack trace is not yet rendered.''':
+  $%  {$0 p/*}                                          ::  success
+      {$1 p/(list)}                                     ::  blocks
+      {$2 p/(list {@ta *})}                             ::  error ~_s
+  ==
+::
 ++  tune                                                ::  complex
           $:  p/(map term (unit twig))                  ::  definitions
               q/(list twig)                             ::  bridges
@@ -5550,12 +7055,29 @@
               r/(list (pair term twig))                 ::  bridges
           ==                                            ::
 ++  typo  span                                          ::  old span
-++  vase  {p/span q/*}                                  ::  span-value pair
-++  vise  {p/typo q/*}                                  ::  old vase
+++  vase
+  ''':typed data.
+
+  a span-value pair. a `++vase` is used wherever typed data is explicitly
+  worked with.''':
+  {p/span q/*}
+::
+++  vise
+  ''':convert during reboot.
+
+  used to convert from previously-typed data during reboot.''':
+  {p/typo q/*}
+::
 ++  vial  ?($read $rite $both $free)                    ::  co/contra/in/bi
 ++  vair  ?($gold $iron $lead $zinc)                    ::  in/contra/bi/co
 ++  vein  (list (unit axis))                            ::  search trace
-++  wing  (list limb)                                   ::  search path
+++  wing
+  ''':search path in subject.
+
+  a `++wing` is a path to a value in the subject. a term alone is the trivial
+  case of a `++wing`.''':
+  (list limb)
+::
 ++  worm                                                ::  compiler cache
   $:  nes/(set ^)                                       ::  ++nest
       pay/(map (pair span twig) span)                   ::  ++play
@@ -5676,7 +7198,7 @@
     [%1 p.vur p.sed]
   [vur sed]
 ::
-++  fitz                                                ::  odor compatibility
+++  fitz                                                ::  aura compatibility
   ~/  %fitz
   |=  {yaz/term wix/term}
   =+  ^=  fiz
