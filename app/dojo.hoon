@@ -514,8 +514,8 @@
         %+  dy-print  cay
         =+  mar=|.(?:(=(%noun p.cay) ~ [%rose [~ "    " ~] >p.cay< ~]~))
         ?-  p.p.mad
-          $0  ~
-          $1  [[%rose [~ "  " ~] (skol p.q.cay) ~] (mar)]
+          $0  ?:(?=({$ex {$base $bean}} q.q.mad) (dy-show-overview cay) ~)
+          $1  (dy-show-span cay)
           $2  [[%rose [~ "  " ~] (dy-show-span-noun p.q.cay) ~] (mar)]
         ==
       ==
@@ -537,12 +537,270 @@
           t=(turn `wain`?~(r.hit ~ (lore:lines:clay q.u.r.hit)) trip)
       ==
     ::
+    ++  dy-show-overview
+      ''':displays an overview of the documentation in the subject.''':
+      =<  $
+      |%
+      ++  $
+        |=  cay/cage
+        ^-  (list tank)
+        =+  [lib hun]=(find-spans cay)
+        =/  max-len  %-  dy-longest-tape
+          %+  weld
+            (turn hun |=({a/tape b/tape} a))
+            (turn lib |=({a/tape b/tape} a))
+        =/  output
+          ;:  weld
+            `tang`~[[%leaf "Hoon:"]]
+            (turn hun |=({a/tape b/tape} (print-line a b max-len)))
+            `tang`~[[%leaf ""]]
+          ==
+        =?  output  !=(~ lib)
+          ;:  weld
+            output
+            `tang`~[[%leaf "Libraries:"]]
+            (turn lib |=({a/tape b/tape} (print-line a b max-len)))
+            `tang`~[[%leaf ""]]
+          ==
+        (flop output)
+      ::
+      ++  print-line
+        ''':build a line of output from an identifier and a help tape.''':
+        |=  {lhs/tape rhs/tape max/@u}
+        ^-  tank
+        :-  %leaf
+        ;:  weld
+          "  "
+          (dy-build-space (sub max (lent lhs)))
+          lhs
+          " : "
+          (dy-truncate (sub 80 (add 5 max)) rhs)
+        ==
+      ::
+      ++  find-spans
+        ''':scan the spans for interesting documentation.
+        
+        this scans the span of tail of the vase starting from +7 in the dojo
+        and separates out loaded libraries and documented core hoon.''':
+        |=  cay/cage
+        ^-  {(list {tape tape}) (list {tape tape})}
+        =+  depth=2
+        =|  libraries/(list {tape tape})                :: library to docs
+        =|  stdlib/(list {tape tape})                   :: stdlib axis to docs
+        |-
+        =+  unit-span=(span-at depth cay)
+        ?~  unit-span
+          :: we are at the end of the inspectable span.
+          [libraries stdlib]
+        ::  sut: the current span being inspected.
+        ::
+        =+  sut=(need unit-span)
+        ?+  sut  $(depth (add 1 depth))
+        ::
+            {$help *}
+          ?~  p.sut
+            $(depth (add 1 depth))
+          ::  todo: better way to print a number without ',' in it?
+          =*  remove-commas  |=(a/@tD ^-((unit @tD) ?:(=(a ',') ~ `a)))
+          =*  axis-as-tape
+            (weld "+" `tape`(murn ~(rud at (user-axis depth)) remove-commas))
+          =*  documentation  (trip i.p:sut)
+          %=  $
+            stdlib  [[axis-as-tape documentation] stdlib]
+            depth  (add 1 depth)
+          ==
+        ::
+            {$core *}
+          =/  foot-arms  q.r.q.sut
+          ?.  ?=({{* *} $~ $~} foot-arms)
+            ::  this core has more than one arm and thus isn't a library
+            $(depth (add 1 depth))
+          =/  foot-span  (~(play ut sut) p.q.n.foot-arms)
+          ?+  foot-span  $(depth (add 1 depth))
+          ::
+              {$help *}
+            ?~  p.foot-span
+              $(depth (add 1 depth))
+            =*  next-name  (get-name (trip p.n.foot-arms) libraries)
+            =*  next-docs  (trip i.p:foot-span)
+            %=  $
+              libraries  [[next-name next-docs] libraries]
+              depth  (add 1 depth)
+            ==
+          ==
+        ==
+      ::
+      ++  get-name
+        ''':gets the string a user needs to type to refer to this library.
+        
+        because standard naming conventions will have sur/ and lib/ code use
+        the same file name, make sure we can disambiguate between them.''':
+        |=  {nom/tape old/(list {tape tape})}
+        ^-  tape
+        ?:  (lien old |=({n/tape *} =(nom n)))
+          (weld "^" nom)
+        nom
+      ::
+      ++  span-at
+        ''':gets the subspan a of cay.''':
+        |=  {depth/@ cay/cage}
+        ^-  (unit span)
+        ::  val: possibly the vase of the subspan at axe.
+        ::
+        =+  val=(slew (span-axis depth) q.cay)
+        ?~  val
+          ~
+        `p:(need val)
+      ::
+      ++  user-axis
+        ''':calculates the user level axis.''':
+        |=(depth/@ (sub (mul 2 (bex depth)) 1))
+      ::
+      ++  span-axis
+        ''':translates a user entered axis to a dojo span axis.''':
+        |=(depth/@ (user-axis (add 2 depth)))
+      --
+    ::
+    ++  dy-show-span
+      ''':renders the span information, surfacing help if they exist.''':
+      =<  $
+      |%
+      ++  $
+        |=  cay/cage
+        ^-  tang
+        =/  s/span  p.q.cay
+        |-  ^-  tang
+        ?+  s  [[%rose [~ "  " ~] (skol p.q.cay) ~] ~]
+        ::
+            {$help *}
+          ?+  q.s  (flop (print-wain p.s))
+              {$core *}
+            (print-core-with-arms cay p.s s q.q.s)
+          ==
+        ::
+            {$core *}
+          (print-core-with-arms cay ~ s q.s)
+        ::
+            {$hold *}
+          $(s (~(play ut p.s) q.s))
+        ==
+      ::
+      ++  print-wain
+        ''':takes a list of cords and outputs a list of tanks.''':
+        |=  w/wain
+        ^-  (list tank)
+        =/  formatted/(list tank)  (turn w |=(a/cord [%leaf (trip a)]))
+        =?  formatted  =(~ formatted)
+          `(list tank)`[[%leaf "(Undocumented core)"] ~]
+        (weld formatted `(list tank)`[[%leaf ""] ~])
+      ::
+      ++  print-core-with-arms
+        ''':renders the span for a core.
+        
+        prints the help which wrapped this core. if this core has more than a
+        single default arm, also prints out the list of arms with the first
+        line of their documentation.''':
+        |=  {cay/cage c/wain p/span q/coil}
+        ^-  (list tank)
+        =/  t/(list tank)  (print-wain c)
+        =*  foot-arms  q.r.q
+        ?:  ?=({{$$ *} $~ $~} foot-arms)
+          ?~  c
+            [[%rose [~ "  " ~] (skol p.q.cay) ~] ~]
+          ::  this core is a simple gate; don't try to print the arms.
+          (flop t)
+        =+  arms=(build-arm-help p q)
+        =/  max  %-  dy-longest-tape
+          (turn arms |=({s/tape name/tape *} name))
+        %-  flop
+        ;:  weld
+          t
+          %-  limo  :~
+            [%leaf "Arms:"]
+          ==
+          %+  turn  arms
+            |=  {s/tape name/tape help/tape}
+            ^-  tank
+            =+  line=:(weld "  " s name)
+            =+  name-len=(lent name)
+            =+  diff=(sub max name-len)
+            =?  line  (gth diff 0)
+              (weld line (dy-build-space diff))
+            =?  line  !=(0 (lent help))
+              :(weld line " : " (dy-truncate (sub 80 (add 7 name-len)) help))
+            [%leaf line]
+          `(list tank)`[[%leaf ""] ~]
+        ==
+      ::
+      ++  build-arm-help
+        ''':extracts the type, name and help of each arm in the given coil.''':
+        |=  {s/span c/coil}
+        ^-  (list {tape tape tape})
+        %+  turn
+          %+  sort
+            (~(tap by q.r.c))
+            |=  {a/{p/term q/foot} b/{p/term q/foot}}
+            (aor p.a p.b)
+        |=  {p/term q/foot}
+        ^-  {tape tape tape}
+        =/  arm-type/tape  ?-  q
+                 {$ash *}  "++"
+                 {$elm *}  "+-"
+               ==
+        =/  header/tape
+          =/  f  (~(play ut s) p.q)
+          ?:  ?=({$help * *} f)
+            ?~  p.f
+              ~
+            (trip i.p.f)
+          ~
+        [arm-type (trip p) header]
+      --
+    ::
+    ++  dy-truncate
+      ''':truncates t down to i characters, adding an ellipsis.
+      
+      todo: when ~palfun's string library is landed, switch to his
+      implementation.''':
+      |=  {i/@u t/tape}
+      ^-  tape
+      =+  t-len=(lent t)
+      ?:  (lth t-len i)
+        t
+      :(weld (scag (sub i 4) t) "...")
+    ::
+    ++  dy-build-space
+      ''':creates a tape of i spaces, used for padding.
+      
+      todo: when ~palfun's string library is landed, switch to his
+      implementation.''':
+      |=  i/@u
+      ^-  tape
+      =|  t/tape
+      |-
+      ?:  =(0 i)
+        t
+      $(t (weld " " t), i (sub i 1))
+    ::
+    ++  dy-longest-tape
+      ''':returns the length of the longest tape in c.''':
+      |=  c/(list tape)
+      =|  ret/@ud
+      |-
+      ?~  c
+        ret
+      =+  l=(lent i.c)
+      ?:  (gth l ret)
+        $(ret l, c t.c)
+      $(c t.c)
+    ::
     ++  dy-show-span-noun
       |=  a/span  ^-  tank
       =-  >[-]<
       |-  ^-  $?  $%  {$atom @tas (unit @)}
                       {$cell _$ _$}
                       {$cube * _$}
+                      {$help wain _$}
                       {$face $@(term tune) _$}
                       {$fork (set _$)}
                       {$hold _$ twig}
@@ -551,7 +809,7 @@
                   $?($noun $void)
               ==
       ?+  a  a
-        {?($cube $face) ^}  a(q $(a q.a))
+        {?($cube $face $help) ^}  a(q $(a q.a))
         {$cell ^}  a(p $(a p.a), q $(a q.a))
         {$fork *}  a(p (silt (turn (~(tap in p.a)) |=(b/span ^$(a b)))))
         {$core ^}  `wain`/core
