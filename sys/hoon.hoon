@@ -4545,7 +4545,6 @@
              (boss 256 (star qat))
            ==
          ==
-::
 ++  soz  ;~(plug soq soq soq)                           ::  delimiting '''
 ++  sym                                                 ::  symbol
   %+  cook
@@ -5450,6 +5449,7 @@
     {$burn p/twig}                                      ::  ^~
     {$name p/toga q/twig}                               ::  ^=
     {$lead p/twig}                                      ::  ^?
+    {$help p/wain q/twig}                               ::  ^:
   ::                                            ::::::  hints
     {$show p/twig q/twig}                               ::  ~|  sell on trace
     {$lurk p/twig q/twig}                               ::  ~_  tank on trace
@@ -5532,6 +5532,7 @@
               {$core p/span q/coil}                     ::  object
               {$face p/$@(term tune) q/span}            ::  namespace (new)
               {$fork p/(set span)}                      ::  union
+              {$help p/wain q/span}                     ::  documentation
               {$hold p/span q/twig}                     ::  lazy evaluation
           ==                                            ::
 ++  tone  $%  {$0 p/*}                                  ::  success
@@ -5596,6 +5597,14 @@
   |=  {pac/span con/coil}
   ^-  span
   ?:(=(%void pac) %void [%core pac con])
+::
+++  help
+  ~/  %help
+  |=  {p/wain q/span}
+  ^-  span
+  ?:  =(%void q)
+    %void
+  [%help p q]
 ::
 ++  face                                                ::  make %face span
   ~/  %face
@@ -6506,6 +6515,7 @@
                     ?:  =(.?(u.mor) .?(u.dis))
                       ?:((gor u.mor u.dis) mor dis)
                     ?@(u.mor mor dis)
+        {$help *}   $(sut repo)
         {$hold *}   ?:  (~(has in gil) sut)
                       ~
                     $(sut repo, gil (~(put in gil) sut))
@@ -6572,6 +6582,7 @@
           {$core *}  ?:(?=(?({$atom *} {$cell *}) ref) sut sint)
           {$face *}  (face p.sut dext(sut q.sut))
           {$fork *}  (fork (turn (~(tap in p.sut)) |=(span dext(sut +<))))
+          {$help *}  (help p.sut dext(sut q.sut))
           {$hold *}  ?<  (~(has in bix) [sut ref])
                      dext(sut repo, bix (~(put in bix) [sut ref]))
           $noun      dext(sut repo)
@@ -6988,6 +6999,9 @@
               ?:  con.pec  $(sut p.sut, axe (peg axe 3))
               $(sut (peek(sut p.sut) way 2), axe (peg axe 6))
             ::
+                {$help *}
+              $(sut repo)
+            ::
                 {$face *}
               ?:  ?=($~ q.heg)  here(sut q.sut)
               ?@  p.sut
@@ -7118,6 +7132,7 @@
         {$fork *}   =+  yed=(~(tap in p.sut))
                     |-  ^-  nock
                     ?~(yed [%1 1] (flor ^$(sut i.yed) $(yed t.yed)))
+        {$help *}   $(sut q.sut)
         {$hold *}
       ?:  (~(has in vot) sut)
         [%0 0]
@@ -7155,6 +7170,7 @@
         {$core *}  $(sut repo)
         {$face *}  (face p.sut $(sut q.sut))
         {$fork *}  (fork (turn (~(tap in p.sut)) |=(span ^$(sut +<))))
+        {$help *}  (help p.sut $(sut q.sut))
         {$hold *}
       ?:  (~(has in bix) [sut ref])
         ~>(%mean.[%leaf "fuse-loop"] !!)
@@ -7257,6 +7273,11 @@
         {$name *}  =+(vat=$(gen q.gen) [(conk(sut p.vat) p.gen) q.vat])
         {$tune *}  [(face p.gen sut) [%0 %1]]
         {$lead *}  =+(vat=$(gen p.gen) [(wrap(sut p.vat) %lead) q.vat])
+    ::
+        {$help *}
+      =+  hum=$(gen q.gen)
+      [(help p.gen p.hum) q.hum]
+    ::
         {$peep *}  ~_(duck(sut (play p.gen)) $(gen q.gen))
         {$hint *}
       =+  hum=$(gen q.gen)
@@ -7368,6 +7389,7 @@
       {$core *}  $(sut p.sut)
       {$face *}  $(sut q.sut)
       {$fork *}  (lien (~(tap in p.sut)) |=(span ^$(sut +<)))
+      {$help *}  $(sut q.sut)
       {$hold *}  |((~(has in gil) sut) $(gil (~(put in gil) sut), sut repo))
       $noun      |
       $void      &
@@ -7419,6 +7441,9 @@
     ::
         {$lead *}
       =+(vat=$(gen p.gen) [(wrap(sut p.vat) %lead) (wrap(sut q.vat) %lead)])
+    ::
+        {$help *}
+      =+(vat=$(gen q.gen) [(help p.gen p.vat) (help p.gen q.vat)])
     ::
         {$burn *}  $(gen p.gen)
         {$peep *}  ~_(duck(sut (play p.gen)) $(gen q.gen))
@@ -7606,6 +7631,7 @@
         {$face *}  dext(sut q.sut)
         {$fork *}  ?.  ?=(?({$atom *} $noun {$cell *} {$core *}) ref)  sint
                    (lien (~(tap in p.sut)) |=(span dext(tel |, sut +<)))
+        {$help *}  dext(sut q.sut)
         {$hold *}  ?:  (~(has in seg) sut)  |
                    ?:  (~(has in gil) [sut ref])  &
                    %=  dext
@@ -7625,6 +7651,7 @@
         {$core *}   dext(ref repo(sut ref))
         {$face *}   dext(ref q.ref)
         {$fork *}   (levy (~(tap in p.ref)) |=(span sint(ref +<)))
+        {$help *}   dext(ref q.ref)
         {$hold *}   ?:  (~(has in reg) ref)  &
                     ?:  (~(has in gil) [sut ref])  &
                     %=  dext
@@ -7710,6 +7737,7 @@
       {$burn *}  $(gen p.gen)
       {$name *}  (conk(sut $(gen q.gen)) p.gen)
       {$lead *}  (wrap(sut $(gen p.gen)) %lead)
+      {$help *}  (help p.gen $(gen q.gen))
       {$peep *}  ~_(duck(sut ^$(gen p.gen)) $(gen q.gen))
       {$hint *}  $(gen q.gen)
       {$per *}   $(gen q.gen, sut $(gen p.gen))
@@ -7742,6 +7770,7 @@
     ?-  sut
       {$core *}   [%cell %noun p.sut]
       {$face *}   q.sut
+      {$help *}   q.sut
       {$hold *}   (rest [[p.sut q.sut] ~])
       $noun       (fork [%atom %$ ~] [%cell %noun %noun] ~)
       *           ~>(%mean.[%leaf "repo-fltt"] !!)
@@ -7792,6 +7821,7 @@
                  (core $(sut p.sut, u.i.vit lat) q.sut)
       {$face *}  (face p.sut $(sut q.sut))
       {$fork *}  (fork (turn (~(tap in p.sut)) |=(span ^$(sut +<))))
+      {$help *}  (help p.sut $(sut q.sut))
       {$hold *}  ?:  (~(has in vil) sut)
                    %void
                  $(sut repo, vil (~(put in vil) sut))
@@ -7832,6 +7862,7 @@
       {$core *}  ?>(|(=(%gold p.q.sut) =(%lead yoz)) sut(p.q yoz))
       {$face *}  (face p.sut $(sut q.sut))
       {$fork *}  (fork (turn (~(tap in p.sut)) |=(span ^$(sut +<))))
+      {$help *}  (help p.sut $(sut q.sut))
       {$hold *}  $(sut repo)
     ==
   --
@@ -8239,6 +8270,9 @@
           [1 (add 'a' (mod (div gum 676) 26))]
       ==
     ::
+        {$help *}
+      $(sut q.sut)
+    ::
         {$face *}
       =+  yad=$(sut q.sut)
       ?^(p.sut yad [p.yad [%face p.sut q.yad]])
@@ -8373,6 +8407,19 @@
 ++  vast  !.
   =+  [bug=`?`| was=*(set path) wer=*path]
   |%
+  ++  dqut                                              ::  irregular docstring
+    =+  dsoz=;~(plug soq soq soq col)
+    =+  nl=(just '\0a')
+    =+  end=;~(pose dsoz ;~(plug nl dsoz))
+    ::  separator between lines: not nl''':, but just a newline.
+    =*  mid  ;~(less end nl)
+    ::  printable characters which aren't an newline or an unquoted ''':
+    =*  dqat  ;~(less ;~(pose nl dsoz) ;~(pose ;~(pfix bas soq) prn))
+    %-  iny  %+  ifix
+      :-  ;~(pose ;~(plug dsoz nl) dsoz)
+      end
+    (more mid (boss 256 (star dqat)))
+  ::
   ++  gash  %+  cook
               |=  a/(list tyke)  ^-  tyke
               ?~(a ~ (weld i.a $(a t.a)))
@@ -8797,7 +8844,10 @@
           (stag %sand (stag %f (cold & pam)))
         ==
       :-  '\''
-        (stag %sand (stag %t qut))
+        ;~  pose
+          (stag %help ;~(plug dqut ;~(pfix gap tall)))
+          (stag %sand (stag %t qut))
+        ==
       :-  '('
         (stag %call (ifix [pel per] (most ace wide)))
       :-  '{'
@@ -9134,6 +9184,7 @@
                     ['~' (rune sig %burn expa)]
                     ['=' (rune tis %name expg)]
                     ['?' (rune wut %lead expa)]
+                    [':' (rune col %help expx)]
                 ==
               ==
             :-  '~'
@@ -9341,6 +9392,7 @@
     ++  expu  |.(;~(gunk rope loaf (butt hank)))        ::  wing, twig, twigs
     ++  expv  |.((butt rick))                           ::  just changes
     ++  expw  |.(;~(gunk rope loaf loaf loaf))          ::  wing and three twigs
+    ++  expx  |.(;~(gunk wqut loaf))                    ::  wain and twig
     ++  expz  |.(loaf(bug &))                           ::  twig with tracing
     ::
     ::    tiki expansion for %wt runes
@@ -9498,6 +9550,21 @@
       |=  {a/pint b/twig}
       ?:(bug [%dbug [wer a] b] b)
     zor
+  ++  wqut                                                ::  cord as wain for ^:
+    =+  end=;~(plug (just '\0a') soz)
+    =*  mid  ;~(less end (just '\0a'))
+    ;~  simu  soq
+      ;~  pose
+        ;~  less  soz
+          (cook |=(a/@ [a ~]) (ifix [soq soq] (boss 256 (more gon qit))))
+        ==
+        =+  hed=;~(pose ;~(plug (plus ace) vul) (just '\0a'))
+        %-  iny  %+  ifix
+          :-  ;~(plug soz hed)
+          end
+        (more mid (boss 256 (star prn)))
+      ==
+    ==
   --
 ::
 ++  vest
