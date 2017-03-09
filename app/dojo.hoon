@@ -554,6 +554,7 @@
         {?($cube $face) ^}  a(q $(a q.a))
         {$cell ^}  a(p $(a p.a), q $(a q.a))
         {$fork *}  a(p (silt (turn (~(tap in p.a)) |=(b/span ^$(a b)))))
+        {$help *}  !!
         {$core ^}  `wain`/core
         {$hold *}  a(p $(a p.a))
       ==
