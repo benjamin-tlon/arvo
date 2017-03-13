@@ -1,4 +1,4 @@
-::                                                      ::
+!:                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
 ~>  %slog.[0 leaf+"hoon-assembly"]
@@ -8446,6 +8446,8 @@
   ++  mota  %+  cook
               |=({a/tape b/tape} (rap 3 (weld a b)))
             ;~(plug (star low) (star hig))
+  ++  epic                                              ::  to end of line 
+    (cook crip (ifix [;~(plug ace ace) (just `@`10)] (star prn)))
   ::
   ++  plex
     |=  gen/twig  ^-  (unit path)
@@ -8990,6 +8992,18 @@
       ==
     ==
   ++  sump  (ifix [kel ker] (stag %conp (most ace wide)))
+  ++  nora
+    %+  cook
+      |=  {a/wain b/twig c/(unit cord)}
+      ^-  twig
+      =.  a  ?~(c a [u.c a])
+      ?~  a  b
+      [%help a b]
+    ;~  plug
+      (more gap ;~(pfix ;~(plug (star ace) col gar) epic))
+      (norm &)
+      (punt ;~(pfix ;~(plug (star ace) col gal) epic))
+    ==
   ++  norm                                              ::  rune regular form
     |=  tol/?
     =<  %-  stew
@@ -9541,7 +9555,7 @@
               |=({a/term b/(unit twig)} ?~(b a [a u.b]))
             ;~(plug sym (punt ;~(pfix fas wide)))
   ++  tall  %+  knee  *twig                             ::  full tall form
-            |.(~+((wart ;~(pose (norm &) long lute ape:(sail &)))))
+            |.(~+((wart ;~(pose nora long lute ape:(sail &)))))
   ++  wide  %+  knee  *twig                             ::  full wide form
             |.(~+((wart ;~(pose (norm |) long ape:(sail |)))))
   ++  wart
