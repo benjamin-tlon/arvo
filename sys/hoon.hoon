@@ -9546,8 +9546,6 @@
     %+  cook
       |=  {a/wain b/twig c/(unit cord)}
       ^-  twig
-      ~?  ?=(^ a)  [%wack-prefix a]
-      ~?  ?=(^ c)  [%wack-postfix u.c]
       =.  a  ?~(c a [u.c a])
       ?~  a  b
       [%help a b]
