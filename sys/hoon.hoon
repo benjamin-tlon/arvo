@@ -9647,7 +9647,7 @@
 ++  arch  {fil/(unit @uvI) dir/(map @ta $~)}            ::  fundamental node
 ++  ares  (unit {p/term q/(list tank)})                 ::  possible error
 ++  arvo  (wind {p/term q/mill} mill)                   ::  arvo card
-++  beam  {{p/ship q/desk r/case} s/path}               ::  global name
+++  beam  {{p/ship q/desk r/case} s/spur}               ::  global name
 ++  beak  {p/ship q/desk r/case}                        ::  path prefix
 ++  bone  @ud                                           ::  opaque duct
 ++  case                                                ::  version
