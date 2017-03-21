@@ -229,8 +229,9 @@
             ::    /sur    %ford structures
             ::    /ren    %ford renderers
             ::    /web    %eyre web content
+            ::    /sys    system files
             ::
-            (user /app /gen /lib /mar /sur /ren /web ~)
+            (user /app /gen /lib /mar /sur /ren /web /sys ~)
         ==
     ::                                                  ::  
     ++  user                                            ::  userspace loading
