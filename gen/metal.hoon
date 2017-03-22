@@ -123,8 +123,8 @@
         ::  check that the new compiler formula equals the old formula.
         ::  this is not proof against thompson attacks but it doesn't hurt.
         ::
-        ~>  %slog.[0 leaf+"1-d"]
-        ?>  =(compiler-formula +:compiler-tool)
+        ::  ~>  %slog.[0 leaf+"1-d"]
+        ::  ?>  =(compiler-formula +:compiler-tool)
         ::
         ::  get the span (type) of the kernel core, which is the context
         ::  of the compiler gate.  we just compiled the compiler,
