@@ -289,6 +289,7 @@
 ::
 ::  main-events: full events with advancing times
 ::
+=.  now  ~2017.3.1
 =+  ^=  main-events
     |-  ^-  (list (pair @da ovum))
     ?~  main-moves  ~
