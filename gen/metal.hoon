@@ -231,7 +231,7 @@
             ::    /web    %eyre web content
             ::    /sys    system files
             ::
-            (user /app /gen /lib /mar /sur /ren /web /sys ~)
+            (user /app /gen /lib /mar /ren /sec /sur /sys /web ~)
         ==
     ::                                                  ::  
     ++  user                                            ::  userspace loading
