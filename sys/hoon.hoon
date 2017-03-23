@@ -1,4 +1,4 @@
-!:                                                      ::
+::                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
 ~>  %slog.[0 leaf+"hoon-assembly"]
