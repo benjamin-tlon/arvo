@@ -125,7 +125,7 @@
         ::  language changes -- the first-generation formula will 
         ::  generate last-generation spans for `!>`, etc.
         ::
-        ::  ~>  %slog.[0 leaf+"1-d"]
+        ~>  %slog.[0 leaf+"1-d"]
         =.  compiler-gate  .*(0 +:compiler-tool)
         ::
         ::  get the span (type) of the kernel core, which is the context
