@@ -5424,11 +5424,11 @@
     {$pick p/(list twig)}                               ::  $? untagged fork
     {$coat p/term q/twig}                               ::  $= name
   ::                                            ::::::  cores
-    {$door p/twig q/(map term (pair wain foot))}        ::  |_
+    {$door p/twig q/(map @ tome)}                       ::  |_
     {$gasp p/twig q/twig}                               ::  |:
-    {$core p/(map term (pair wain foot))}               ::  |%
+    {$core p/(map @ tome)}                              ::  |%
     {$trap p/twig}                                      ::  |.
-    {$cork p/twig q/(map term (pair wain foot))}        ::  |^
+    {$cork p/twig q/(map @ tome)}                       ::  |^
     {$loop p/twig}                                      ::  |-
     {$port p/twig q/twig}                               ::  |~
     {$gill p/twig q/twig}                               ::  |*
@@ -5442,7 +5442,6 @@
     {$conl p/(list twig)}                                ::  :~ [p ~]
     {$conp p/(list twig)}                                ::  :* p as a tuple
   ::                                            ::::::  invocations
-    {$bunt p/twig}                                      ::  %$
     {$keep p/wing q/(list (pair wing twig))}            ::  %_
     {$lace p/twig q/twig}                               ::  %.
     {$call p/twig q/(list twig)}                        ::  %-
@@ -5838,21 +5837,21 @@
       {* $~ *}
     =+  yep=(look cog q.q.n.dom)
     ?^  yep
-      [~ (peg (peg axe 2) p.yep) q.yep]
+      [~ (peg (peg axe 2) p.u.yep) q.u.yep]
     $(axe (peg axe 3), dom r.dom)
   ::
       {* * $~}
     =+  yep=(look cog q.q.n.dom)
     ?^  yep
-      [~ (peg (peg axe 2) p.yep) q.yep]
+      [~ (peg (peg axe 2) p.u.yep) q.u.yep]
     $(axe (peg axe 3), dom l.dom)
   ::
       {* * *}
     =+  yep=(look cog q.q.n.dom)
     ?^  yep
-      [~ (peg (peg axe 2) p.yep) q.yep]
-    =.  yep  $(axe (peg axe 6), dom l.dom)
-    ?^  yep  yep
+      [~ (peg (peg axe 2) p.u.yep) q.u.yep]
+    =+  pey=$(axe (peg axe 6), dom l.dom)
+    ?^  pey  pey
     $(axe (peg axe 7), dom r.dom)
   ==
 ::
@@ -6250,14 +6249,22 @@
         {$door *}  [%pin [%bunt p.gen] [%core q.gen]]
         {$gasp *}  [%pin [%burn p.gen] [%trap q.gen]]
         {$trap *}  :-  %core 
+                   =-  [[0 ~ -] ~ ~]
                    (~(put by *(map term (pair wain foot))) %$ ~ [%ash p.gen])
-        {$cork *}  [%per [%core (~(put by q.gen) %$ ~ [%ash p.gen])] [%limb %$]]
+        {$cork *}  :+  %per 
+                      :-  %core
+                      =+  one=(~(got by q.gen) 0)
+                      %+  ~(put by q.gen)  0
+                      one(q (~(put by q.one) %$ [~ [%ash p.gen]]))
+                   [%limb %$]
         {$loop *}  [%rap [%limb %$] [%trap p.gen]]
         {$port *}  [%iron [%gate p.gen q.gen]]
         {$gill *}  :+  %pin  [%bunt p.gen]
                    :-  %core 
+                   =-  [[0 ~ -] ~ ~]
                    (~(put by *(map term (pair wain foot))) %$ ~ [%elm q.gen])
         {$gate *}  :+  %door  p.gen 
+                   =-  [[0 ~ -] ~ ~]
                    (~(put by *(map term (pair wain foot))) %$ ~ [%ash q.gen])
         {$tray *}  [%lead %trap p.gen]
     ::
@@ -6498,6 +6505,244 @@
     ?.  ?=({@ $~} wig)
       ~>(%mean.[%leaf "rusk-twig"] !!)
     i.wig
+  ::                                                    ::
+  ++  walk                                              ::  forward traverse
+    |*  life/mold
+    |=  $:  vit/life
+            mac/$-({twig life} (unit (pair twig life)))
+        ==
+    ^-  {twig life}
+    =/  gun  (mac gen vit)
+    ?^  gun  u.gun
+    ?:  ?=(^ -.gen)
+      =^  neg  vit  $(gen -.gen)
+      =^  gan  vit  $(gen +.gen)
+      [[neg gan] vit]
+    |^  ?-    -.gen
+            $$      [gen vit]
+            $base   [gen vit] 
+            $bunt   ((expa %bunt) p.gen)
+            $bust   [gen vit]
+            $dbug   =^  one  vit  ^$(gen q.gen)
+                    [[%dbug p.gen one] vit]
+            $hand   [gen vit]
+            $knit 
+          !!
+            $leaf
+          !!
+            $limb
+          !!
+            $lost
+          !!
+            $rock
+          !!
+            $sand
+          !!
+            $tell
+          !!
+            $tune
+          !!
+            $wing
+          !!
+            $yell
+          !!
+            $claw
+          !!
+            $shoe
+          !!
+            $bank
+          !!
+            $book
+          !!
+            $lamb
+          !!
+            $bush
+          !!
+            $pick
+          !!
+            $coat
+          !!
+            $door
+          !!
+            $gasp
+          !!
+            $core
+          !!
+            $trap
+          !!
+            $cork
+          !!
+            $loop
+          !!
+            $port
+          !!
+            $gill
+          !!
+            $gate
+          !!
+            $tray
+          !!
+            $scon
+          !!
+            $conq
+          !!
+            $cons
+          !!
+            $cont
+          !!
+            $conl
+          !!
+            $conp
+          !!
+            $keep
+          !!
+            $lace
+          !!
+            $call
+          !!
+            $bake
+          !!
+            $calq
+          !!
+            $calt
+          !!
+            $open
+          !!
+            $make
+          !!
+            $wish
+          !!
+            $bump
+          !!
+            $nock
+          !!
+            $same
+          !!
+            $deep
+          !!
+            $iron
+          !!
+            $ward
+          !!
+            $like
+          !!
+            $cast
+          !!
+            $zinc
+          !!
+            $burn
+          !!
+            $name
+          !!
+            $lead
+          !!
+            $help
+          !!
+            $show
+          !!
+            $lurk
+          !!
+            $fast
+          !!
+            $funk
+          !!
+            $thin
+          !!
+            $hint
+          !!
+            $poll
+          !!
+            $memo
+          !!
+            $dump
+          !!
+            $ddup
+          !!
+            $warn
+          !!
+            $peep
+          !!
+            $wad
+          !!
+            $nub
+          !!
+            $dip
+          !!
+            $fry
+          !!
+            $new
+          !!
+            $fix
+          !!
+            $var
+          !!
+            $rev
+          !!
+            $set
+          !!
+            $huh
+          !!
+            $rap
+          !!
+            $nip
+          !!
+            $per
+          !!
+            $sip
+          !!
+            $pin
+          !!
+            $tow
+          !!
+            $aka
+          !!
+            $use
+          !!
+            $or
+          !!
+            $case
+          !!
+            $if
+          !!
+            $lest
+          !!
+            $ifcl
+          !!
+            $deny
+          !!
+            $sure
+          !!
+            $deft
+          !!
+            $and
+          !!
+            $ifat
+          !!
+            $ifno
+          !!
+            $fits
+          !!
+            $not
+          !!
+            $twig
+          !!
+            $wrap
+          !!
+            $spit
+          !!
+            $code
+          !!
+            $need
+          !!
+            $fail
+          !!
+        ==
+    ++  expa
+      |*  sem/@tas
+      |=  p/twig
+      =^  one  vit  ^$(gen p)
+      [[sem one] vit]
+    --
   --
 ::
 ::::  5c: compiler backend and prettyprinter
@@ -7303,7 +7548,7 @@
       =+  tal=$(gen q.gen, gol %noun)
       [(nice (cell p.hed p.tal)) (cons q.hed q.tal)]
     ::
-        {$core *}  (grow %gold [%$ 1] [[0 ~ p.gen] ~ ~])
+        {$core *}  (grow %gold [%$ 1] p.gen)
     ::
         {$make *}  (~(mint et p.gen q.gen) gol)
         {$wish *}
@@ -7442,7 +7687,7 @@
       ^-  {p/span q/nock}
       =+  dan=^$(gen ruf, gol %noun)
       =+  toc=(core p.dan [%gold p.dan [~ dom]])
-      =+  dez=(harp(sut toc) dom)
+      =+  dez=(hope(sut toc) dom)
       :-  (nice (core p.dan mel p.dan [dez dom]))
       (cons [%1 dez] q.dan)
     --
@@ -7475,7 +7720,7 @@
       =+  tal=$(gen q.gen, gol %noun)
       [(nice (cell p.hed p.tal)) (cell q.hed q.tal)]
     ::
-        {$core *}  (grow %gold [%$ 1] [[0 ~ p.gen] ~ ~])
+        {$core *}  (grow %gold [%$ 1] p.gen)
         {$make *}  (~(mull et p.gen q.gen) gol dox)
         {$wish *}  =+($(gen q.gen, gol %noun) $(gen [%bunt p.gen]))
         {$bump *}  =+($(gen p.gen, gol [%atom %$ ~]) (beth [%atom %$ ~]))
@@ -7605,7 +7850,7 @@
       =+  dan=^$(gen ruf, gol %noun)
       =+  ^=  toc  :-  p=(core p.dan [%gold p.dan [~ dom]])
                    q=(core q.dan [%gold q.dan [~ dom]])
-      =+  (bake(sut p.toc, dox q.toc) dom)
+      =+  (balk(sut p.toc, dox q.toc) dom)
       :-  (nice (core p.dan mel p.dan [[%0 0] dom]))
       (core q.dan [mel q.dan [[%0 0] dom]])
     ::
@@ -7620,19 +7865,19 @@
             $elm  ~
           ==
       ?-  dab
-        {* $~ $~}  vad
-        {* $~ *}   [vad $(dab r.dab)]
-        {* * $~}   [vad $(dab l.dab)]
-        {* * *}    [vad $(dab l.dab) $(dab r.dab)]
+        {* $~ $~}  dov
+        {* $~ *}   [dov $(dab r.dab)]
+        {* * $~}   [dov $(dab l.dab)]
+        {* * *}    [dov $(dab l.dab) $(dab r.dab)]
       ==
     ::
     ++  balk
       |=  dom/(map @ tome)
-      ^-  ?($~ ^)
+      ^-  *
       ?:  ?=($~ dom)
         ~
       =+  dov=(bake q.q.n.dom)
-      ?-    dab
+      ?-    dom
         {* $~ $~}   dov
         {* $~ *}    [dov $(dom r.dom)]
         {* * $~}    [dov $(dom l.dom)]
@@ -7804,7 +8049,7 @@
     ^-  span
     ?-  gen
       {^ *}      (cell $(gen p.gen) $(gen q.gen))
-      {$core *}  (core sut %gold sut [[%0 0] [[0 ~ p.gen] ~ ~])
+      {$core *}  (core sut %gold sut [[%0 0] p.gen])
       {$make *}  ~(play et p.gen q.gen)
       {$wish *}  $(gen [%bunt p.gen])
       {$bump *}  [%atom %$ ~]
@@ -8494,7 +8739,7 @@
   |=  {bug/? wer/path}
   %*(. vast bug bug, wer wer)
 ::
-++  vast  !.
+++  vast
   =+  [bug=`?`| was=*(set path) wer=*path]
   |%
   ++  dqut                                              ::  irregular docstring
@@ -8871,6 +9116,8 @@
             :+  %lace  `twig`[p.i.lut [%conp $(lut t.lut)]]
             :+  %new  [%base %cell]
             :-  %core
+            ^-  (map @ tome)
+            =-  [[0 ~ -] ~ ~]
             ^-  (map term (pair wain foot))
             :_  [~ ~]
             =+  sug=[[%& 12] ~]
@@ -9386,8 +9633,8 @@
       %+  sear
         |=  a/(list (pair term (pair wain foot)))
         =|  b/(map term (pair wain foot))
-        |-  ^-  (unit _b)
-        ?~  a  `b
+        |-  ^-  (unit (map @ tome))
+        ?~  a  `[[0 ~ b] ~ ~]
         ?:  (~(has by b) p.i.a)
           ~&(duplicate-arm+p.i.a ~)
         $(a t.a, b (~(put by b) p.i.a q.i.a))
