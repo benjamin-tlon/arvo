@@ -1,4 +1,4 @@
-::                                                      ::
+!:                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
 ~>  %slog.[0 leaf+"hoon-assembly"]
@@ -5339,8 +5339,8 @@
               {ven/term pro/term ver/@ kel/@}           ::  all of the above
           ==                                            ::
 ++  coil  $:  p/?($gold $iron $lead $zinc)              ::  core span
-              q/span                                    ::
-              r/{p/?($~ ^) q/(map term {p/wain q/foot})}::
+              q/span                                    ::  built with
+              r/{p/?($~ ^) q/(map @ tome)}              ::  arms
           ==                                            ::
 ++  foot  $%  {$ash p/twig}                             ::  dry arm, geometric
               {$elm p/twig}                             ::  wet arm, generic
@@ -5384,6 +5384,8 @@
               {$1 p/$@(term tune) q/toga}               ::  deep toga
               {$2 p/toga q/toga}                        ::  cell toga
           ==                                            ::
+++  tomb  (pair (set @) (list tome))                    ::  core body
+++  tome  (pair wain (map term (pair wain foot)))       ::  core chapter
 ++  tuna                                                ::  tagflow
           $%  {$a p/twig}                               ::  plain text
               {$b p/twig}                               ::  single tag
@@ -5819,6 +5821,39 @@
     ?:  (gor cog p.n.dab)
       $(axe (peg axe 6), dab l.dab)
     $(axe (peg axe 7), dab r.dab)
+  ==
+::
+++  loot
+  ~/  %loot
+  |=  {cog/term dom/(map @ tome)}
+  =+  axe=1
+  |-  ^-  (unit {p/axis q/foot})
+  ?-  dom
+      $~  ~
+  ::
+      {* $~ $~}
+    %+  bind  (look cog q.q.n.dom) 
+    |=((pair axis foot) [(peg axe p) q])
+  ::
+      {* $~ *}
+    =+  yep=(look cog q.q.n.dom)
+    ?^  yep
+      [~ (peg (peg axe 2) p.yep) q.yep]
+    $(axe (peg axe 3), dom r.dom)
+  ::
+      {* * $~}
+    =+  yep=(look cog q.q.n.dom)
+    ?^  yep
+      [~ (peg (peg axe 2) p.yep) q.yep]
+    $(axe (peg axe 3), dom l.dom)
+  ::
+      {* * *}
+    =+  yep=(look cog q.q.n.dom)
+    ?^  yep
+      [~ (peg (peg axe 2) p.yep) q.yep]
+    =.  yep  $(axe (peg axe 6), dom l.dom)
+    ?^  yep  yep
+    $(axe (peg axe 7), dom r.dom)
   ==
 ::
 ::::  5b: macro expansion
@@ -7006,7 +7041,7 @@
                 {$core *}
               ?~  q.heg  here
               =^  zem  p.heg
-                  =+  zem=(look u.q.heg q.r.q.sut)
+                  =+  zem=(loot u.q.heg q.r.q.sut)
                   ?~  zem  [~ p.heg]
                   ?:(=(0 p.heg) [zem 0] [~ (dec p.heg)])
               ?^  zem
@@ -7073,8 +7108,6 @@
     ~/  %find
     |=  {way/vial hyp/wing}
     ^-  port
-    ~_  (dunk %find-bug)
-    ~|  hype+hyp
     ~_  (show [%c %find] %l hyp)
     =-  ?@  -  !!
         ?-    -<
@@ -7217,10 +7250,23 @@
           $elm  q:(mint(vet |) %noun p.q.q.n.dab)
         ==
     ?-    dab
-        {* $~ $~}   vad
-        {* $~ *}    [vad $(dab r.dab)]
-        {* * $~}    [vad $(dab l.dab)]
-        {* * *}     [vad $(dab l.dab) $(dab r.dab)]
+      {* $~ $~}   vad
+      {* $~ *}    [vad $(dab r.dab)]
+      {* * $~}    [vad $(dab l.dab)]
+      {* * *}     [vad $(dab l.dab) $(dab r.dab)]
+    ==
+  ::
+  ++  hope
+    |=  dom/(map @ tome)
+    ^-  ?($~ ^)
+    ?:  ?=($~ dom)
+      ~
+    =+  dov=(harp q.q.n.dom)
+    ?-    dom
+      {* $~ $~}   dov
+      {* $~ *}    [dov $(dom r.dom)]
+      {* * $~}    [dov $(dom l.dom)]
+      {* * *}     [dov $(dom l.dom) $(dom r.dom)]
     ==
   ::
   ++  lose
@@ -7257,7 +7303,7 @@
       =+  tal=$(gen q.gen, gol %noun)
       [(nice (cell p.hed p.tal)) (cons q.hed q.tal)]
     ::
-        {$core *}  (grow %gold [%$ 1] p.gen)
+        {$core *}  (grow %gold [%$ 1] [[0 ~ p.gen] ~ ~])
     ::
         {$make *}  (~(mint et p.gen q.gen) gol)
         {$wish *}
@@ -7392,12 +7438,12 @@
       typ
     ::
     ++  grow
-      |=  {mel/vair ruf/twig dab/(map term (pair wain foot))}
+      |=  {mel/vair ruf/twig dom/(map @ tome)}
       ^-  {p/span q/nock}
       =+  dan=^$(gen ruf, gol %noun)
-      =+  toc=(core p.dan [%gold p.dan [~ dab]])
-      =+  dez=(harp(sut toc) dab)
-      :-  (nice (core p.dan mel p.dan [dez dab]))
+      =+  toc=(core p.dan [%gold p.dan [~ dom]])
+      =+  dez=(harp(sut toc) dom)
+      :-  (nice (core p.dan mel p.dan [dez dom]))
       (cons [%1 dez] q.dan)
     --
   ::
@@ -7429,7 +7475,7 @@
       =+  tal=$(gen q.gen, gol %noun)
       [(nice (cell p.hed p.tal)) (cell q.hed q.tal)]
     ::
-        {$core *}  (grow %gold [%$ 1] p.gen)
+        {$core *}  (grow %gold [%$ 1] [[0 ~ p.gen] ~ ~])
         {$make *}  (~(mull et p.gen q.gen) gol dox)
         {$wish *}  =+($(gen q.gen, gol %noun) $(gen [%bunt p.gen]))
         {$bump *}  =+($(gen p.gen, gol [%atom %$ ~]) (beth [%atom %$ ~]))
@@ -7553,22 +7599,22 @@
       typ
     ::
     ++  grow
-      |=  {mel/vair ruf/twig dab/(map term (pair wain foot))}
+      |=  {mel/vair ruf/twig dom/(map @ tome)}
       ~_  leaf+"mull-grow"
       ^-  {p/span q/span}
       =+  dan=^$(gen ruf, gol %noun)
-      =+  ^=  toc  :-  p=(core p.dan [%gold p.dan [~ dab]])
-                   q=(core q.dan [%gold q.dan [~ dab]])
-      =+  (bake(sut p.toc, dox q.toc) dab)
-      :-  (nice (core p.dan mel p.dan [[%0 0] dab]))
-      (core q.dan [mel q.dan [[%0 0] dab]])
+      =+  ^=  toc  :-  p=(core p.dan [%gold p.dan [~ dom]])
+                   q=(core q.dan [%gold q.dan [~ dom]])
+      =+  (bake(sut p.toc, dox q.toc) dom)
+      :-  (nice (core p.dan mel p.dan [[%0 0] dom]))
+      (core q.dan [mel q.dan [[%0 0] dom]])
     ::
     ++  bake
       |=  dab/(map term (pair wain foot))
       ^-  *
       ?:  ?=($~ dab)
         ~
-      =+  ^=  vad
+      =+  ^=  dov
           ?-  -.q.q.n.dab
             $ash  ^$(gol %noun, gen p.q.q.n.dab)
             $elm  ~
@@ -7578,6 +7624,19 @@
         {* $~ *}   [vad $(dab r.dab)]
         {* * $~}   [vad $(dab l.dab)]
         {* * *}    [vad $(dab l.dab) $(dab r.dab)]
+      ==
+    ::
+    ++  balk
+      |=  dom/(map @ tome)
+      ^-  ?($~ ^)
+      ?:  ?=($~ dom)
+        ~
+      =+  dov=(bake q.q.n.dom)
+      ?-    dab
+        {* $~ $~}   dov
+        {* $~ *}    [dov $(dom r.dom)]
+        {* * $~}    [dov $(dom l.dom)]
+        {* * *}     [dov $(dom l.dom) $(dom r.dom)]
       ==
     --
   ::
@@ -7602,22 +7661,30 @@
       dext(sut (peek vay 2), ref (peek(sut ref) vay 2))
     ::
     ++  deep
-      |=  $:  dab/(map term (pair wain foot)) 
-              hem/(map term (pair wain foot))
+      |=  $:  dom/(map @ tome)
+              vim/(map @ tome)
           ==
       ^-  ?
-      ?:  ?=($~ dab)  =(hem ~)
-      ?:  ?=($~ hem)  |
-      ?&  =(p.n.dab p.n.hem)
-          $(dab l.dab, hem l.hem)
-          $(dab r.dab, hem r.hem)
-          ?-  -.q.q.n.dab
-            $elm  =(q.q.n.dab q.q.n.hem)
-            $ash  ?&  ?=($ash -.q.q.n.hem)
-                      %=  dext
-                        sut  (play p.q.q.n.dab)
-                        ref  (play(sut ref) p.q.q.n.hem)
-      ==  ==      ==  ==
+      ?:  ?=($~ dom)  =(vim ~)
+      ?:  ?=($~ vim)  |
+      ?&  =(p.n.dom p.n.vim)
+          $(dom l.dom, vim l.vim)
+          $(dom r.dom, vim r.vim)
+      ::
+          =+  [dab hem]=[q.q.n.dom q.q.n.vim]
+          |-  ^-  ?
+          ?:  ?=($~ dab)  =(hem ~)
+          ?:  ?=($~ hem)  |
+          ?&  =(p.n.dab p.n.hem)
+              $(dab l.dab, hem l.hem)
+              $(dab r.dab, hem r.hem)
+              ?-  -.q.q.n.dab
+                $elm  =(q.q.n.dab q.q.n.hem)
+                $ash  ?&  ?=($ash -.q.q.n.hem)
+                          %=  dext
+                            sut  (play p.q.q.n.dab)
+                            ref  (play(sut ref) p.q.q.n.hem)
+      ==  ==  ==      ==  ==
     ::
     ++  dext
       ^-  ?
@@ -7737,7 +7804,7 @@
     ^-  span
     ?-  gen
       {^ *}      (cell $(gen p.gen) $(gen q.gen))
-      {$core *}  (core sut %gold sut [[%0 0] p.gen])
+      {$core *}  (core sut %gold sut [[%0 0] [[0 ~ p.gen] ~ ~])
       {$make *}  ~(play et p.gen q.gen)
       {$wish *}  $(gen [%bunt p.gen])
       {$bump *}  [%atom %$ ~]
