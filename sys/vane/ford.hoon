@@ -1559,7 +1559,7 @@
           %+  cope  $(hon q.hon)
           %-  flux
           |=  {mar/mark vax/vase}
-          [mar [%face p.hon p.vax] q.vax]
+          [mar [%face [~ p.hon] p.vax] q.vax]
         ::
             $fan
           %+  cope

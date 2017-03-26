@@ -3,13 +3,13 @@
   ::                                                    ::
 ~>  %slog.[0 leaf+"hoon-assembly"]
 =<  ride
-=>  %148  =>
+=>  %147  =>
 ::                                                      ::
 ::::    0: version stub                                 ::
   ::                                                    ::
-~%  %k.148  ~  ~                                        ::
+~%  %k.147  ~  ~                                        ::
 |%
-++  a148  %148
+++  a147  %147
 ++  hoon  +
 --  =>
 ::                                                      ::
@@ -21,7 +21,7 @@
   ::
 ~%  %one  +  ~
 |%
-++  a148  %148
+++  a147  %147
 ::                                                      ::
 ::::    1a: unsigned arithmetic                         ::
   ::
@@ -208,7 +208,7 @@
   ::
 ~%  %two  +  ~
 |%
-++  a148  %148
+++  a147  %147
 ::                                                      ::
 ::::  2a: unit logic                                    ::
   ::                                                    ::
@@ -1725,7 +1725,7 @@
   ::                                                    ::
 ~%  %tri  +  ~
 |%
-++  a148  %148
+++  a147  %147
 ::
 ::::  3a: signed and modular ints                       ::
   ::                                                    ::
@@ -3440,7 +3440,7 @@
     %show  show
   ==
 |%
-++  a148  %148
+++  a147  %147
 ::
 ::::  4a: exotic bases
   ::
@@ -5545,7 +5545,7 @@
           $%  {$atom p/term q/(unit @)}                 ::  atom / constant
               {$cell p/span q/span}                     ::  ordered pair
               {$core p/span q/coil}                     ::  object
-              {$face p/$@(term tune) q/span}            ::  namespace (new)
+              {$face p/{p/wain q/$@(term tune)} q/span} ::  namespace (new)
               {$fork p/(set span)}                      ::  union
               {$help p/wain q/span}                     ::  documentation
               {$hold p/span q/twig}                     ::  lazy evaluation
@@ -5596,7 +5596,7 @@
     %ut    ut
   ==
 |%
-++  a148  %148
+++  a147  %147
 ::
 ::::  5a: compiler utilities
   ::
@@ -5623,7 +5623,7 @@
 ::
 ++  face                                                ::  make %face span
   ~/  %face
-  |=  {giz/$@(term tune) der/span}
+  |=  {giz/{wain $@(term tune)} der/span}
   ^-  span
   ?:  =(%void der)
     %void
@@ -6545,21 +6545,21 @@
     ~/  %busk
     |=  gen/twig
     ^-  span
-    [%face [~ [gen ~]] sut]
+    [%face [~ ~ [gen ~]] sut]
   ::
   ++  buss
     ~/  %buss
     |=  {cog/term gen/twig}
     ^-  span
-    [%face [[[cog ~ gen] ~ ~] ~] sut]
+    [%face [~ [[cog ~ gen] ~ ~] ~] sut]
   ::
   ++  conk
     |=  got/toga
     ^-  span
-    ?@  got  [%face got sut]
+    ?@  got  [%face [~ got] sut]
     ?-  -.got
       $0  sut
-      $1  [%face p.got $(got q.got)]
+      $1  [%face [~ p.got] $(got q.got)]
       $2  ?>  |(!vet (nest(sut [%cell %noun %noun]) & sut))
           :+  %cell
             $(got p.got, sut (peek %both 2))
@@ -7022,13 +7022,14 @@
             ::
                 {$face *}
               ?:  ?=($~ q.heg)  here(sut q.sut)
-              ?@  p.sut
-                ?:(=(u.q.heg p.sut) here(sut q.sut) lose)
+              =*  zot  q.p.sut
+              ?@  zot
+                ?:(=(u.q.heg zot) here(sut q.sut) lose)
               =<  main
               |%
               ++  main
                 ^-  pony
-                =+  tyr=(~(get by p.p.sut) u.q.heg)
+                =+  tyr=(~(get by p.zot) u.q.heg)
                 ?~  tyr
                   next
                 ?~  u.tyr
@@ -7042,13 +7043,13 @@
                 ==
               ++  next
                 |-  ^-  pony
-                ?~  q.p.sut
+                ?~  q.zot
                   ^$(sut q.sut, lon [~ lon])
-                =+  tiv=(mint(sut q.sut) %noun i.q.p.sut)
+                =+  tiv=(mint(sut q.sut) %noun i.q.zot)
                 =+  fid=^$(sut p.tiv, lon ~, axe 1, gil ~)
                 ?~  fid  ~
                 ?:  ?=({$| $& *} fid)
-                  $(q.p.sut t.q.p.sut, p.heg p.p.fid)
+                  $(q.zot t.q.zot, p.heg p.p.fid)
                 =+  vat=(fine `port`?-(-.fid $& fid, $| [%| p.p.fid]))
                 [%| %| p.vat (comb (comb [%0 axe] q.tiv) q.vat)]
               --
@@ -7291,7 +7292,7 @@
       ?:(?=($0 -.moc) [%1 p.moc] q.nef)
     ::
         {$name *}  =+(vat=$(gen q.gen) [(conk(sut p.vat) p.gen) q.vat])
-        {$tune *}  [(face p.gen sut) [%0 %1]]
+        {$tune *}  [(face [~ p.gen] sut) [%0 %1]]
         {$lead *}  =+(vat=$(gen p.gen) [(wrap(sut p.vat) %lead) q.vat])
     ::
         {$help *}
@@ -7457,7 +7458,7 @@
       =+(vat=$(gen q.gen) [(conk(sut p.vat) p.gen) (conk(sut q.vat) p.gen)])
     ::
         {$tune *}
-      [(face p.gen sut) (face p.gen dox)]
+      [(face [~ p.gen] sut) (face [~ p.gen] dox)]
     ::
         {$lead *}
       =+(vat=$(gen p.gen) [(wrap(sut p.vat) %lead) (wrap(sut q.vat) %lead)])
@@ -7748,7 +7749,7 @@
                    ?:  =(%n p.gen)  ?>(=(0 q.gen) [%atom p.gen ~ q.gen])
                    ?:(=(%f p.gen) ?>((lte q.gen 1) bool) [%atom p.gen ~])
                  [%cell $(q.gen -.q.gen) $(q.gen +.q.gen)]
-      {$tune *}  (face p.gen sut)
+      {$tune *}  (face [~ p.gen] sut)
       {$nock *}  %noun
       {$same *}  bool
       {$deep *}  bool
@@ -8297,7 +8298,7 @@
     ::
         {$face *}
       =+  yad=$(sut q.sut)
-      ?^(p.sut yad [p.yad [%face p.sut q.yad]])
+      ?^(q.p.sut yad [p.yad [%face q.p.sut q.yad]])
     ::
         {$fork *}
       =+  yed=(~(tap in p.sut))

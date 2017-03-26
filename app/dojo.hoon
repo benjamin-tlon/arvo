@@ -543,7 +543,7 @@
       |-  ^-  $?  $%  {$atom @tas (unit @)}
                       {$cell _$ _$}
                       {$cube * _$}
-                      {$face $@(term tune) _$}
+                      {$face {wain $@(term tune)} _$}
                       {$fork (set _$)}
                       {$hold _$ twig}
                   ==
@@ -659,7 +659,7 @@
       %+  sloop
         %-  ~(rep by var)
         |=  {{a/term @ b/vase} c/vase}  ^-  vase
-        (sloop b(p face+[a p.b]) c)
+        (sloop b(p face+[[~ a] p.b]) c)
       !>([our=our now=now eny=eny]:hid)
     ::
     ++  dy-made-dial                                    ::  dialog product
