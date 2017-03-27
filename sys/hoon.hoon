@@ -1,4 +1,4 @@
-::                                                      ::
+!:                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
 ~>  %slog.[0 leaf+"hoon-assembly"]
@@ -8787,6 +8787,8 @@
   ++  mota  %+  cook
               |=({a/tape b/tape} (rap 3 (weld a b)))
             ;~(plug (star low) (star hig))
+  ++  epic                                              ::  to end of line 
+    (cook crip (ifix [;~(plug ace ace) (just `@`10)] (star prn)))
   ::
   ++  plex
     |=  gen/twig  ^-  (unit path)
@@ -9883,8 +9885,32 @@
   ++  wise  %+  cook
               |=({a/term b/(unit twig)} ?~(b a [a u.b]))
             ;~(plug sym (punt ;~(pfix fas wide)))
+  ++  wack
+    %+  cook
+      |=  {a/wain b/twig c/(unit cord)}
+      ^-  twig
+      =.  a  ?~(c a [u.c a])
+      ?~  a  b
+      [%help a b]
+    ;~  plug
+      (star (ifix [;~(plug col gar) (punt gap)] epic))
+      ;~(pose (norm &) long lute ape:(sail &))
+      ::
+      ::  XX performance: this makes the parser about 50% slower.
+      ::  because we double-parse most of the spaces in the file.
+      ::  just so we can do a postfix doc-comment.
+      ::  
+      ::  the correct solution to this problem is to unify the
+      ::  parsing of docs with the parsing of comments/spaces.
+      ::  but at this point we're pretty much in parser rewrite.
+      ::
+      ::  it should go without saying that ++vast needs a rewrite.
+      ::  it dates to 2011.
+      ::
+      (punt ;~(pfix ;~(plug (star ace) col gal) epic))
+    ==
   ++  tall  %+  knee  *twig                             ::  full tall form
-            |.(~+((wart ;~(pose (norm &) long lute ape:(sail &)))))
+            |.(~+((wart wack)))
   ++  wide  %+  knee  *twig                             ::  full wide form
             |.(~+((wart ;~(pose (norm |) long ape:(sail |)))))
   ++  wart
