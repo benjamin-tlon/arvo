@@ -8696,8 +8696,14 @@
   |=  {cog/@tas typ/span}
   ^-  ?
   ?+  typ  |
-    {$hold *}  $(typ ~(repo ut typ))
-    {$core *}  (~(has by q.r.q.typ) cog)
+      {$hold *}  $(typ ~(repo ut typ))
+      {$core *}
+    |-  ^-  ?
+    ?~  q.r.q.typ  |
+    ?|  (~(has by q.q.n.q.r.q.typ) cog)
+        $(q.r.q.typ l.q.r.q.typ)
+        $(q.r.q.typ r.q.r.q.typ)
+    ==
   ==
 ::
 ++  sloe                                                ::  get arms in core
