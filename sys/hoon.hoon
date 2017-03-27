@@ -5381,7 +5381,7 @@
 ++  toga                                                ::  face control
           $@  p/term                                    ::  two togas
           $%  {$0 $~}                                   ::  no toga
-              {$1 p/$@(term tune) q/toga}               ::  deep toga
+              {$1 p/(pair wain $@(term tune)) q/toga}   ::  deep toga
               {$2 p/toga q/toga}                        ::  cell toga
           ==                                            ::
 ++  tomb  (pair (set @) (list tome))                    ::  core body
@@ -5411,7 +5411,7 @@
     {$rock p/term q/*}                                  ::  fixed constant
     {$sand p/term q/*}                                  ::  unfixed constant
     {$tell p/(list twig)}                               ::  render as tape
-    {$tune p/$@(term tune)}                             ::  minimal face
+    {$tune p/(pair wain $@(term tune))}                 ::  minimal face
     {$wing p/wing}                                      ::  pulls p
     {$yell p/(list twig)}                               ::  render as tank
   ::                                            ::::::  molds
@@ -5967,7 +5967,7 @@
     ?.  ?=($bark -.sec)  [[%0 ~] sec]
     =+  got=$(sec q.sec)
     :_  q.got
-    ?:(?=({$0 $~} p.got) p.sec [%1 p.sec p.got])
+    ?:(?=({$0 $~} p.got) p.sec [%1 [~ p.sec] p.got])
   ::
   ++  whip
     |=  axe/axis
@@ -6839,7 +6839,7 @@
     ?@  got  [%face [~ got] sut]
     ?-  -.got
       $0  sut
-      $1  [%face [~ p.got] $(got q.got)]
+      $1  [%face p.got $(got q.got)]
       $2  ?>  |(!vet (nest(sut [%cell %noun %noun]) & sut))
           :+  %cell
             $(got p.got, sut (peek %both 2))
@@ -7583,7 +7583,7 @@
       ?:(?=($0 -.moc) [%1 p.moc] q.nef)
     ::
         {$name *}  =+(vat=$(gen q.gen) [(conk(sut p.vat) p.gen) q.vat])
-        {$tune *}  [(face [~ p.gen] sut) [%0 %1]]
+        {$tune *}  [(face p.gen sut) [%0 %1]]
         {$lead *}  =+(vat=$(gen p.gen) [(wrap(sut p.vat) %lead) q.vat])
     ::
         {$help *}
@@ -7749,7 +7749,7 @@
       =+(vat=$(gen q.gen) [(conk(sut p.vat) p.gen) (conk(sut q.vat) p.gen)])
     ::
         {$tune *}
-      [(face [~ p.gen] sut) (face [~ p.gen] dox)]
+      [(face p.gen sut) (face p.gen dox)]
     ::
         {$lead *}
       =+(vat=$(gen p.gen) [(wrap(sut p.vat) %lead) (wrap(sut q.vat) %lead)])
@@ -8061,7 +8061,7 @@
                    ?:  =(%n p.gen)  ?>(=(0 q.gen) [%atom p.gen ~ q.gen])
                    ?:(=(%f p.gen) ?>((lte q.gen 1) bool) [%atom p.gen ~])
                  [%cell $(q.gen -.q.gen) $(q.gen +.q.gen)]
-      {$tune *}  (face [~ p.gen] sut)
+      {$tune *}  (face p.gen sut)
       {$nock *}  %noun
       {$same *}  bool
       {$deep *}  bool
