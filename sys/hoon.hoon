@@ -6088,6 +6088,48 @@
       %rake  rake
     ==
   |_  gen/twig
+  ++  dock                                              ::  apply document
+    |=  doc/cord
+    |^  ^-  (unit twig)
+        =/  rah  ^-  (each (pair term cord) cord)
+                 (rash doc very)
+        ?-(-.rah $& (rave p.rah), $| (graf p.rah))
+    ::
+    ++  graf                                            ::  apply general doc
+      |=  doc/cord
+      ^-  (unit twig)
+      =-  ?~  u.q.dep
+            `p.dep
+          `[%help doc gen]
+      ^=  dep
+      ^-  {(pair twig (unit cord))}
+      %+  (walk (unit cord))
+        `doc
+      |=  {gen/twig vit/(unit cord)}
+      ^-  (unit (pair twig (unit cord)))
+      ::  XX stub
+      `[gen vit]
+    ::
+    ++  rave                                            ::  apply variable doc
+      |=  {cog/term doc/cord}
+      ^-  (unit twig)
+      =-  ?~  u.q.dep
+            `p.dep
+          ~
+      ^=  dep
+      ^-  {(pair twig (unit cord))}
+      %+  (walk (unit (pair term cord)))
+        `doc
+      |=  {gen/twig vit/(unit (pair term cord))}
+      ^-  (unit (pair twig (pair term cord)))
+      ::  XX stub
+      `[gen vit]
+    ::
+    ++  very                                            ::  variable cord rule
+      %+  pick
+        ;~(plug sym (cook crip ;~(pfix ;~(plug col ace) (star prn))))
+      (cook crip (star prn))
+    --
   ++  etch
     ~_  leaf+"etch"
     |-  ^-  term
@@ -6505,244 +6547,14 @@
     ?.  ?=({@ $~} wig)
       ~>(%mean.[%leaf "rusk-twig"] !!)
     i.wig
-  ::                                                    ::
+  ::
   ++  walk                                              ::  forward traverse
     |*  life/mold
     |=  $:  vit/life
             mac/$-({twig life} (unit (pair twig life)))
         ==
     ^-  {twig life}
-    =/  gun  (mac gen vit)
-    ?^  gun  u.gun
-    ?:  ?=(^ -.gen)
-      =^  neg  vit  $(gen -.gen)
-      =^  gan  vit  $(gen +.gen)
-      [[neg gan] vit]
-    |^  ?-    -.gen
-            $$      [gen vit]
-            $base   [gen vit] 
-            $bunt   ((expa %bunt) p.gen)
-            $bust   [gen vit]
-            $dbug   =^  one  vit  ^$(gen q.gen)
-                    [[%dbug p.gen one] vit]
-            $hand   [gen vit]
-            $knit 
-          !!
-            $leaf
-          !!
-            $limb
-          !!
-            $lost
-          !!
-            $rock
-          !!
-            $sand
-          !!
-            $tell
-          !!
-            $tune
-          !!
-            $wing
-          !!
-            $yell
-          !!
-            $claw
-          !!
-            $shoe
-          !!
-            $bank
-          !!
-            $book
-          !!
-            $lamb
-          !!
-            $bush
-          !!
-            $pick
-          !!
-            $coat
-          !!
-            $door
-          !!
-            $gasp
-          !!
-            $core
-          !!
-            $trap
-          !!
-            $cork
-          !!
-            $loop
-          !!
-            $port
-          !!
-            $gill
-          !!
-            $gate
-          !!
-            $tray
-          !!
-            $scon
-          !!
-            $conq
-          !!
-            $cons
-          !!
-            $cont
-          !!
-            $conl
-          !!
-            $conp
-          !!
-            $keep
-          !!
-            $lace
-          !!
-            $call
-          !!
-            $bake
-          !!
-            $calq
-          !!
-            $calt
-          !!
-            $open
-          !!
-            $make
-          !!
-            $wish
-          !!
-            $bump
-          !!
-            $nock
-          !!
-            $same
-          !!
-            $deep
-          !!
-            $iron
-          !!
-            $ward
-          !!
-            $like
-          !!
-            $cast
-          !!
-            $zinc
-          !!
-            $burn
-          !!
-            $name
-          !!
-            $lead
-          !!
-            $help
-          !!
-            $show
-          !!
-            $lurk
-          !!
-            $fast
-          !!
-            $funk
-          !!
-            $thin
-          !!
-            $hint
-          !!
-            $poll
-          !!
-            $memo
-          !!
-            $dump
-          !!
-            $ddup
-          !!
-            $warn
-          !!
-            $peep
-          !!
-            $wad
-          !!
-            $nub
-          !!
-            $dip
-          !!
-            $fry
-          !!
-            $new
-          !!
-            $fix
-          !!
-            $var
-          !!
-            $rev
-          !!
-            $set
-          !!
-            $huh
-          !!
-            $rap
-          !!
-            $nip
-          !!
-            $per
-          !!
-            $sip
-          !!
-            $pin
-          !!
-            $tow
-          !!
-            $aka
-          !!
-            $use
-          !!
-            $or
-          !!
-            $case
-          !!
-            $if
-          !!
-            $lest
-          !!
-            $ifcl
-          !!
-            $deny
-          !!
-            $sure
-          !!
-            $deft
-          !!
-            $and
-          !!
-            $ifat
-          !!
-            $ifno
-          !!
-            $fits
-          !!
-            $not
-          !!
-            $twig
-          !!
-            $wrap
-          !!
-            $spit
-          !!
-            $code
-          !!
-            $need
-          !!
-            $fail
-          !!
-        ==
-    ++  expa
-      |*  sem/@tas
-      |=  p/twig
-      =^  one  vit  ^$(gen p)
-      [[sem one] vit]
-    --
+    !!
   --
 ::
 ::::  5c: compiler backend and prettyprinter
