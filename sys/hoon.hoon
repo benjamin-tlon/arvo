@@ -1,4 +1,4 @@
-!:                                                      ::
+::                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
 ~>  %slog.[0 leaf+"hoon-assembly"]
@@ -5559,12 +5559,6 @@
           $:  p/(map term (unit twig))                  ::  definitions
               q/(list twig)                             ::  bridges
           ==                                            ::
-++  tusk                                                ::  general face control
-          $@  term                                      ::  simple label
-          $:  p/(map term wing)                         ::  aliases
-              q/(set term)                              ::  blocks
-              r/(list (pair term twig))                 ::  bridges
-          ==                                            ::
 ++  typo  span                                          ::  old span
 ++  vase  {p/span q/*}                                  ::  span-value pair
 ++  vise  {p/typo q/*}                                  ::  old vase
@@ -6098,32 +6092,30 @@
     ++  graf                                            ::  apply general doc
       |=  doc/cord
       ^-  (unit twig)
-      =-  ?~  u.q.dep
-            `p.dep
-          `[%help doc gen]
+      =-  ?^  q.dep  `[%help [doc ~] gen]
+          `p.dep
       ^=  dep
-      ^-  {(pair twig (unit cord))}
+      ^-  (pair twig (unit cord))
       %+  (walk (unit cord))
         `doc
       |=  {gen/twig vit/(unit cord)}
       ^-  (unit (pair twig (unit cord)))
       ::  XX stub
-      `[gen vit]
+      ~
     ::
     ++  rave                                            ::  apply variable doc
       |=  {cog/term doc/cord}
       ^-  (unit twig)
-      =-  ?~  u.q.dep
-            `p.dep
-          ~
+      =-  ?^  q.dep  ~
+          `p.dep
       ^=  dep
-      ^-  {(pair twig (unit cord))}
+      ^-  (pair twig (unit (pair term cord)))
       %+  (walk (unit (pair term cord)))
-        `doc
+        `[cog doc]
       |=  {gen/twig vit/(unit (pair term cord))}
-      ^-  (unit (pair twig (pair term cord)))
+      ^-  (unit (pair twig (unit (pair term cord))))
       ::  XX stub
-      `[gen vit]
+      ~
     ::
     ++  very                                            ::  variable cord rule
       %+  pick

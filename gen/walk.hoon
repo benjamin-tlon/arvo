@@ -64,173 +64,226 @@
     ?^  gun  u.gun
     |^  ^-  {twig life}
         ?:  ?=(^ -.gen)
-          %.(gen double)
+          %.(gen dubs)
         ?-  -.gen
-          $$      (compose -.gen %.(+.gen default))
-          $base   (compose -.gen %.(+.gen default))
-          $bunt   (compose -.gen %.(+.gen single))
-          $bust   (compose -.gen %.(+.gen default))
-          $dbug   (compose -.gen %.(+.gen single-pre))
-          $hand   (compose -.gen %.(+.gen default))
-          $knit   (compose -.gen %.(+.gen nifty))
-          $leaf   (compose -.gen %.(+.gen default))
-          $limb   (compose -.gen %.(+.gen default))
-          $lost   (compose -.gen %.(+.gen single))
-          $rock   (compose -.gen %.(+.gen default))
-          $sand   (compose -.gen %.(+.gen default))
-          $tell   (compose -.gen %.(+.gen repeat))
-        ::::::::::::::::::
-          $tune   (compose -.gen %.(+.gen default))
-          $wing   (compose -.gen %.(+.gen default))
-          $yell   (compose -.gen %.(+.gen default))
-          $claw   (compose -.gen %.(+.gen default))
-          $shoe   (compose -.gen %.(+.gen default))
-          $bank   (compose -.gen %.(+.gen default))
-          $book   (compose -.gen %.(+.gen default))
-          $lamb   (compose -.gen %.(+.gen default))
-          $bush   (compose -.gen %.(+.gen default))
-          $pick   (compose -.gen %.(+.gen default))
-          $coat   (compose -.gen %.(+.gen default))
-          $door   (compose -.gen %.(+.gen default))
-          $gasp   (compose -.gen %.(+.gen default))
-          $core   (compose -.gen %.(+.gen default))
-          $trap   (compose -.gen %.(+.gen default))
-          $cork   (compose -.gen %.(+.gen default))
-          $loop   (compose -.gen %.(+.gen default))
-          $port   (compose -.gen %.(+.gen default))
-          $gill   (compose -.gen %.(+.gen default))
-          $gate   (compose -.gen %.(+.gen default))
-          $tray   (compose -.gen %.(+.gen default))
-          $scon   (compose -.gen %.(+.gen default))
-          $conq   (compose -.gen %.(+.gen default))
-          $cons   (compose -.gen %.(+.gen default))
-          $cont   (compose -.gen %.(+.gen default))
-          $conl   (compose -.gen %.(+.gen default))
-          $conp   (compose -.gen %.(+.gen default))
-          $keep   (compose -.gen %.(+.gen default))
-          $lace   (compose -.gen %.(+.gen default))
-          $call   (compose -.gen %.(+.gen default))
-          $bake   (compose -.gen %.(+.gen default))
-          $calq   (compose -.gen %.(+.gen default))
-          $calt   (compose -.gen %.(+.gen default))
-          $open   (compose -.gen %.(+.gen default))
-          $make   (compose -.gen %.(+.gen default))
-          $wish   (compose -.gen %.(+.gen default))
-          $bump   (compose -.gen %.(+.gen default))
-          $nock   (compose -.gen %.(+.gen default))
-          $same   (compose -.gen %.(+.gen default))
-          $deep   (compose -.gen %.(+.gen default))
-          $iron   (compose -.gen %.(+.gen default))
-          $ward   (compose -.gen %.(+.gen default))
-          $like   (compose -.gen %.(+.gen default))
-          $cast   (compose -.gen %.(+.gen default))
-          $zinc   (compose -.gen %.(+.gen default))
-          $burn   (compose -.gen %.(+.gen default))
-          $name   (compose -.gen %.(+.gen default))
-          $lead   (compose -.gen %.(+.gen default))
-          $help   (compose -.gen %.(+.gen default))
-          $show   (compose -.gen %.(+.gen default))
-          $lurk   (compose -.gen %.(+.gen default))
-          $fast   (compose -.gen %.(+.gen default))
-          $funk   (compose -.gen %.(+.gen default))
-          $thin   (compose -.gen %.(+.gen default))
-          $hint   (compose -.gen %.(+.gen default))
-          $poll   (compose -.gen %.(+.gen default))
-          $memo   (compose -.gen %.(+.gen default))
-          $dump   (compose -.gen %.(+.gen default))
-          $ddup   (compose -.gen %.(+.gen default))
-          $warn   (compose -.gen %.(+.gen default))
-          $peep   (compose -.gen %.(+.gen default))
-          $wad    (compose -.gen %.(+.gen default))
-          $nub    (compose -.gen %.(+.gen default))
-          $dip    (compose -.gen %.(+.gen default))
-          $fry    (compose -.gen %.(+.gen default))
-          $new    (compose -.gen %.(+.gen default))
-          $fix    (compose -.gen %.(+.gen default))
-          $var    (compose -.gen %.(+.gen default))
-          $rev    (compose -.gen %.(+.gen default))
-          $set    (compose -.gen %.(+.gen default))
-          $huh    (compose -.gen %.(+.gen default))
-          $rap    (compose -.gen %.(+.gen default))
-          $nip    (compose -.gen %.(+.gen default))
-          $per    (compose -.gen %.(+.gen default))
-          $sip    (compose -.gen %.(+.gen default))
-          $pin    (compose -.gen %.(+.gen default))
-          $tow    (compose -.gen %.(+.gen default))
-          $aka    (compose -.gen %.(+.gen default))
-          $use    (compose -.gen %.(+.gen default))
-          $or     (compose -.gen %.(+.gen default))
-          $case   (compose -.gen %.(+.gen default))
-          $if     (compose -.gen %.(+.gen default))
-          $lest   (compose -.gen %.(+.gen default))
-          $ifcl   (compose -.gen %.(+.gen default))
-          $deny   (compose -.gen %.(+.gen default))
-          $sure   (compose -.gen %.(+.gen default))
-          $deft   (compose -.gen %.(+.gen default))
-          $and    (compose -.gen %.(+.gen default))
-          $ifat   (compose -.gen %.(+.gen default))
-          $ifno   (compose -.gen %.(+.gen default))
-          $fits   (compose -.gen %.(+.gen default))
-          $not    (compose -.gen %.(+.gen default))
-          $twig   (compose -.gen %.(+.gen default))
-          $wrap   (compose -.gen %.(+.gen default))
-          $spit   (compose -.gen %.(+.gen default))
-          $code   (compose -.gen %.(+.gen default))
-          $need   (compose -.gen %.(+.gen default))
-          $fail   (compose -.gen %.(+.gen default))
+          $$     (lead -.gen %.(+.gen noop))
+          $base  (lead -.gen %.(+.gen noop))
+          $bunt  (lead -.gen %.(+.gen expr))
+          $bust  (lead -.gen %.(+.gen noop))
+          $dbug  (lead -.gen %.(+.gen nexp))
+          $hand  (lead -.gen %.(+.gen noop))
+          $knit  (lead -.gen %.(+.gen (moto bark)))
+          $leaf  (lead -.gen %.(+.gen noop))
+          $limb  (lead -.gen %.(+.gen noop))
+          $lost  (lead -.gen %.(+.gen expr))
+          $rock  (lead -.gen %.(+.gen noop))
+          $sand  (lead -.gen %.(+.gen noop))
+          $tell  (lead -.gen %.(+.gen moar))
+          $tune  (lead -.gen %.(+.gen tung))
+          $wing  (lead -.gen %.(+.gen noop))
+          $yell  (lead -.gen %.(+.gen moar))
+          $claw  (lead -.gen %.(+.gen dubs))
+          $shoe  (lead -.gen %.(+.gen expr))
+          $bank  (lead -.gen %.(+.gen moar))
+          $book  (lead -.gen %.(+.gen moar))
+          $lamb  (lead -.gen %.(+.gen dubs))
+          $bush  (lead -.gen %.(+.gen dubs))
+          $pick  (lead -.gen %.(+.gen moar))
+          $coat  (lead -.gen %.(+.gen nexp))
+          $door  (lead -.gen %.(+.gen (twin expr arms)))
+          $gasp  (lead -.gen %.(+.gen dubs))
+          $core  (lead -.gen %.(+.gen arms)) 
+          $trap  (lead -.gen %.(+.gen expr))
+          $cork  (lead -.gen %.(+.gen (twin expr arms)))
+          $loop  (lead -.gen %.(+.gen expr))
+          $port  (lead -.gen %.(+.gen dubs))
+          $gill  (lead -.gen %.(+.gen dubs))
+          $gate  (lead -.gen %.(+.gen dubs))
+          $tray  (lead -.gen %.(+.gen expr))
+          $scon  (lead -.gen %.(+.gen dubs))
+          $conq  (lead -.gen %.(+.gen (quad expr expr expr expr)))
+          $cons  (lead -.gen %.(+.gen dubs))
+          $cont  (lead -.gen %.(+.gen trey))
+          $conl  (lead -.gen %.(+.gen moar))
+          $conp  (lead -.gen %.(+.gen moar))
+          $keep  (lead -.gen %.(+.gen (twin noop moan)))
+          $lace  (lead -.gen %.(+.gen dubs))
+          $call  (lead -.gen %.(+.gen (twin expr moar)))
+          $bake  (lead -.gen %.(+.gen (trio noop expr moan)))
+          $calq  (lead -.gen %.(+.gen (quad expr expr expr expr)))
+          $calt  (lead -.gen %.(+.gen trey))
+          $open  (lead -.gen %.(+.gen (trio noop expr moar)))
+          $make  (lead -.gen %.(+.gen (twin noop moan)))
+          $wish  (lead -.gen %.(+.gen dubs))
+          $bump  (lead -.gen %.(+.gen expr))
+          $nock  (lead -.gen %.(+.gen dubs))
+          $same  (lead -.gen %.(+.gen dubs))
+          $deep  (lead -.gen %.(+.gen expr))
+          $iron  (lead -.gen %.(+.gen expr))
+          $ward  (lead -.gen %.(+.gen dubs))
+          $like  (lead -.gen %.(+.gen dubs))
+          $cast  (lead -.gen %.(+.gen dubs))
+          $zinc  (lead -.gen %.(+.gen expr))
+          $burn  (lead -.gen %.(+.gen expr))
+          $name  (lead -.gen %.(+.gen nexp))
+          $lead  (lead -.gen %.(+.gen expr))
+          $help  (lead -.gen %.(+.gen nexp))
+          $show  (lead -.gen %.(+.gen dubs))
+          $lurk  (lead -.gen %.(+.gen dubs))
+          $crap  (lead -.gen %.(+.gen (raid expr)))
+          $fast  (lead -.gen %.(+.gen (quad noop expr moan expr)))
+          $funk  (lead -.gen %.(+.gen nexp))
+          $thin  (lead -.gen %.(+.gen (twin toad expr)))
+          $hint  (lead -.gen %.(+.gen (twin toad expr)))
+          $poll  (lead -.gen %.(+.gen nexp))
+          $memo  (lead -.gen %.(+.gen nexp))
+          $dump  (lead -.gen %.(+.gen trip))
+          $ddup  (lead -.gen %.(+.gen dubs))
+          $warn  (lead -.gen %.(+.gen (quad noop expr expr expr)))
+          $peep  (lead -.gen %.(+.gen dubs))
+          $wad   (lead -.gen %.(+.gen (twin expr moar)))
+          $nub   (lead -.gen %.(+.gen expr))
+          $dip   (lead -.gen %.(+.gen (twin expr moar)))
+          $fry   (lead -.gen %.(+.gen dubs))
+          $new   (lead -.gen %.(+.gen dubs))
+          $fix   (lead -.gen %.(+.gen (twin moan expr)))
+          $var   (lead -.gen %.(+.gen (trio toad expr expr)))
+          $rev   (lead -.gen %.(+.gen (trio toad expr expr)))
+          $set   (lead -.gen %.(+.gen trip))
+          $huh   (lead -.gen %.(+.gen (quad noop expr expr expr)))
+          $rap   (lead -.gen %.(+.gen dubs))
+          $nip   (lead -.gen %.(+.gen dubs))
+          $per   (lead -.gen %.(+.gen dubs))
+          $sip   (lead -.gen %.(+.gen (quad toad noop expr expr)))
+          $pin   (lead -.gen %.(+.gen dubs))
+          $tow   (lead -.gen %.(+.gen moar))
+          $aka   (lead -.gen %.(+.gen trip))
+          $use   (lead -.gen %.(+.gen dubs))
+          $or    (lead -.gen %.(+.gen moar))
+          $case  (lead -.gen %.(+.gen (twin noop (moto dubs))))
+          $if    (lead -.gen %.(+.gen trey))
+          $lest  (lead -.gen %.(+.gen trey))
+          $ifcl  (lead -.gen %.(+.gen trip))
+          $deny  (lead -.gen %.(+.gen dubs))
+          $sure  (lead -.gen %.(+.gen dubs))
+          $deft  (lead -.gen %.(+.gen (trio noop expr (moto dubs))))
+          $and   (lead -.gen %.(+.gen moar))
+          $ifat  (lead -.gen %.(+.gen trip))
+          $ifno  (lead -.gen %.(+.gen trip))
+          $fits  (lead -.gen %.(+.gen (twin expr noop)))
+          $not   (lead -.gen %.(+.gen expr))
+          $twig  (lead -.gen %.(+.gen dubs))
+          $wrap  (lead -.gen %.(+.gen expr))
+          $spit  (lead -.gen %.(+.gen dubs))
+          $code  (lead -.gen %.(+.gen expr))
+          $need  (lead -.gen %.(+.gen nexp))
+          $fail  (lead -.gen %.(+.gen noop))
         ==
-    ++  compose
-      |*  {sem/@tas out/{* life}}
-      ^-  {twig life}
-      [[sem -.out] +.out]
+    ++  arms
+      (raid (twin noop (raid (twin noop heel))))
     ::
-    ++  default
-      |*  *
-      [+< vit]
+    ++  bark 
+      |=  wof/woof
+      ?-(wof @ [wof vit], ^ (lead ~ (expr p.wof)))
     ::
-    ++  single
+    ++  dubs
+      (twin expr expr)
+    ::
+    ++  expr
       |=  p/twig
       ^^$(gen p)
     ::
-    ++  single-pre
-      |*  bud/{p/* q/twig}
-      =^  one  vit  ^^$(gen q.bud)
-      [[p.bud one] vit]
+    ++  heel
+      |=  bud/foot
+      ?-  -.bud
+        $ash  =^(nex vit ^^$(gen p.bud) [[%ash nex] vit])
+        $elm  =^(nex vit ^^$(gen p.bud) [[%elm nex] vit])
+      ==
     ::
-    ++  double
-      |=  bud/{p/twig q/twig}
-      =^  one  vit  ^^$(gen p.bud)
-      =^  two  vit  ^^$(gen q.bud)
-      [[one two] vit]
+    ++  lead
+      |*  {sem/@tas out/{* life}}
+      [[sem -.out] +.out]
     ::
-    ++  triple
-      |=  bud/{p/twig q/twig r/twig}
-      =^  one  vit  ^^$(gen p.bud)
-      =^  two  vit  ^^$(gen q.bud)
-      =^  tri  vit  ^^$(gen r.bud)
-      [[one two] vit]
+    ++  moan
+      (moto nexp)
     ::
-    ++  repeat
-      |=  bud/{p/(list twig)}
-      =|  out/(list twig)
-      |-  ^-  {(list twig) life}
-      ?~  p.bud
-        [(flop out) vit]
-      =^  nex  vit  ^^^$(gen i.p.bud)
-      $(p.bud t.p.bud, out [nex out])
+    ++  moar
+      (moto expr)
     ::
-    ++  nifty
-      |=  bud/{p/(list woof)}
-      =|  wof/(list woof)
-      |-  ^-  (pair (list woof) life)
-      ?~  p.bud  [(flop wof) vit]
-      =^  ned  vit
-        ?-  i.p.bud
-          @   [i.p.bud vit]
-          ^   =^  deg  vit  ^^^$(gen p.i.p.bud)
-              [[~ deg] vit]
-        ==
-      $(p.bud t.p.bud, wof [ned wof])
+    ++  moto
+      |*  etc/$-(* {* life})
+      |*  bud/*
+      ^+  [bud vit]
+      ?:  =(~ bud)  [bud vit]
+      =^  heb  vit  (etc -.bud)
+      =^  mor  vit  $(bud +.bud)
+      [[heb mor] vit]
+    ::
+    ++  nexp
+      (twin noop expr)
+    ::
+    ++  noop
+      |*  bud/*
+      [bud vit]
+    ::
+    ++  quad
+      |*  $:  one/$-(* {* life})
+              two/$-(* {* life})
+              tri/$-(* {* life})
+              qua/$-(* {* life})
+          ==
+      |*  bud/*
+      =^  yal  vit  (one -.bud)
+      =^  ves  vit  (two +<.bud)
+      =^  jot  vit  (tri +>-.bud)
+      =^  wip  vit  (qua +>+.bud)
+      [[yal ves jot wip] vit]
+    ::
+    ++  raid
+      |*  etc/$-(* {* life})
+      |*  bud/*
+      ^+  [bud vit]
+      ?:  =(~ bud)  [bud vit]
+      =^  lef  vit  $(bud +<.bud)
+      =^  ryt  vit  $(bud +>.bud)
+      =^  top  vit  (etc ->.bud)
+      [[[-<.bud top] lef ryt] vit]
+    ::
+    ++  trey
+      (trio expr expr expr)
+    ::
+    ++  trio
+      |*  {one/$-(* {* life}) two/$-(* {* life}) tri/$-(* {* life})}
+      |*  bud/*
+      =^  yal  vit  (one -.bud)
+      =^  ves  vit  (two +<.bud)
+      =^  jot  vit  (tri +>.bud)
+      [[yal ves jot] vit]
+    ::
+    ++  trip
+      (trio noop expr expr)
+    ::
+    ++  toad
+      |=  bud/$@(term {p/term q/twig})
+      ?@  bud  [bud vit]
+      (lead p.bud (expr q.bud))
+    ::
+    ++  tung
+      |=  bud/{p/wain q/$@(term tune)}
+      ?@  q.bud  [bud vit]
+      (lead p.bud %.(q.bud (twin (raid twee) (moto expr))))
+    ::
+    ++  twee
+      |=  bud/(unit twig)
+      ?~  bud  [~ vit]
+      (lead ~ (expr u.bud))
+    ::
+    ++  twin
+      |*  {one/$-(* {* life}) two/$-(* {* life})}
+      |*  bud/*
+      =^  yal  vit  (one -.bud)
+      =^  ves  vit  (two +.bud)
+      [[yal ves] vit]
     --
   --
 --
