@@ -32,8 +32,26 @@
         `doc
       |=  {gen/twig vit/life aid/$-({twig life} {twig life})}
       ^-  (unit (pair twig life))
-      ?^  -.gen  ~
-      ~
+      ?~  vit  `[gen ~]
+      |^  ?+  -.gen  
+                   outside-image
+            ^      outside-image
+            $dbug  ~
+            $help  `[[%help [doc p.gen] q.gen] ~]
+            $claw  outside-model
+            $shoe  outside-model
+            $bank  outside-model
+            $lamb  outside-model
+            $bush  outside-model
+            $pick  outside-model
+            $coat  outside-model
+            $halo  `[[%halo [doc p.gen] q.gen] ~]
+          ==
+      ++  outside-model
+        `[[%halo [doc ~] gen] ~]
+      ++  outside-image
+        `[[%help [doc ~] gen] ~]
+      --
     ::
     ++  rave                                            ::  apply variable doc
       =*  life  (unit (pair term cord))
@@ -47,10 +65,10 @@
         `[cog doc]
       |=  {gen/twig vit/life aid/$-({twig life} {twig life})}
       ^-  (unit (pair twig life))
-      ?~  vit  `[gen vit]
+      ?~  vit  `[gen ~]
       ~
     ::
-    ++  very                                            ::  variable cord rule
+    ++  very                                            ::  variable reparse
       %+  pick
         ;~(plug sym (cook crip ;~(pfix ;~(plug col ace) (star prn))))
       (cook crip (star prn))
