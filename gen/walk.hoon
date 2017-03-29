@@ -21,31 +21,33 @@
         ?-(-.rah $& (rave p.rah), $| (graf p.rah))
     ::
     ++  graf                                            ::  apply general doc
+      =*  life  (unit cord)
       |=  doc/cord
       ^-  (unit twig)
       =-  ?^  q.dep  `[%help [doc ~] gen]
           `p.dep
       ^=  dep
-      ^-  (pair twig (unit cord))
-      %+  (walk (unit cord))
+      ^-  (pair twig life)
+      %+  (walk life)
         `doc
-      |=  {gen/twig vit/(unit cord)}
-      ^-  (unit (pair twig (unit cord)))
-      ::  XX stub
+      |=  {gen/twig vit/life aid/$-({twig life} {twig life})}
+      ^-  (unit (pair twig life))
+      ?^  -.gen  ~
       ~
     ::
     ++  rave                                            ::  apply variable doc
+      =*  life  (unit (pair term cord))
       |=  {cog/term doc/cord}
       ^-  (unit twig)
       =-  ?^  q.dep  ~
           `p.dep
       ^=  dep
-      ^-  (pair twig (unit (pair term cord)))
-      %+  (walk (unit (pair term cord)))
+      ^-  (pair twig life)
+      %+  (walk life)
         `[cog doc]
-      |=  {gen/twig vit/(unit (pair term cord))}
-      ^-  (unit (pair twig (unit (pair term cord))))
-      ::  XX stub
+      |=  {gen/twig vit/life aid/$-({twig life} {twig life})}
+      ^-  (unit (pair twig life))
+      ?~  vit  `[gen vit]
       ~
     ::
     ++  very                                            ::  variable cord rule
@@ -57,10 +59,16 @@
   ++  walk                                              ::  forward traverse
     |*  life/mold
     |=  $:  vit/life
-            mac/$-({twig life} (unit (pair twig life)))
+            $=  mac
+            $-  $:  twig
+                    life
+                    $-({twig life} {twig life})
+                ==
+            (unit (pair twig life))
         ==
     ^-  {twig life}
-    =/  gun  (mac gen vit)
+    =*  aid  |=({twig life} ^$(gen +<-, vit +<+))
+    =/  gun  (mac gen vit aid)
     ?^  gun  u.gun
     |^  ^-  {twig life}
         ?:  ?=(^ -.gen)
