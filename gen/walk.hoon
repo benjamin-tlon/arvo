@@ -135,6 +135,7 @@
           $burn  (lead -.gen %.(+.gen expr))
           $name  (lead -.gen %.(+.gen nexp))
           $lead  (lead -.gen %.(+.gen expr))
+          $halo  (lead -.gen %.(+.gen nexp))
           $help  (lead -.gen %.(+.gen nexp))
           $show  (lead -.gen %.(+.gen dubs))
           $lurk  (lead -.gen %.(+.gen dubs))
@@ -261,7 +262,10 @@
       (trio expr expr expr)
     ::
     ++  trio
-      |*  {one/$-(* {* life}) two/$-(* {* life}) tri/$-(* {* life})}
+      |*  $:  one/$-(* {* life})
+              two/$-(* {* life})
+              tri/$-(* {* life})
+          ==
       |*  bud/*
       =^  yal  vit  (one -.bud)
       =^  ves  vit  (two +<.bud)
