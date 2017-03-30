@@ -1,15 +1,15 @@
-::                                                      ::
+!:                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
 ~>  %slog.[0 leaf+"hoon-assembly"]
 =<  ride
-=>  %146  =>
+=>  %145  =>
 ::                                                      ::
 ::::    0: version stub                                 ::
   ::                                                    ::
-~%  %k.146  ~  ~                                        ::
+~%  %k.145  ~  ~                                        ::
 |%
-++  a146  %146
+++  a145  %145
 ++  hoon  +
 --  =>
 ::                                                      ::
@@ -21,7 +21,7 @@
   ::
 ~%  %one  +  ~
 |%
-++  a146  %146
+++  a145  %145
 ::                                                      ::
 ::::    1a: unsigned arithmetic                         ::
   ::
@@ -208,7 +208,7 @@
   ::
 ~%  %two  +  ~
 |%
-++  a146  %146
+++  a145  %145
 ::                                                      ::
 ::::  2a: unit logic                                    ::
   ::                                                    ::
@@ -1725,7 +1725,7 @@
   ::                                                    ::
 ~%  %tri  +  ~
 |%
-++  a146  %146
+++  a145  %145
 ::
 ::::  3a: signed and modular ints                       ::
   ::                                                    ::
@@ -3440,7 +3440,7 @@
     %show  show
   ==
 |%
-++  a146  %146
+++  a145  %145
 ::
 ::::  4a: exotic bases
   ::
@@ -5382,7 +5382,7 @@
 ++  toga                                                ::  face control
           $@  p/term                                    ::  two togas
           $%  {$0 $~}                                   ::  no toga
-              {$1 p/(pair wain $@(term tune)) q/toga}   ::  deep toga
+              {$1 p/(pair wain term) q/toga}            ::  deep toga
               {$2 p/toga q/toga}                        ::  cell toga
           ==                                            ::
 ++  tomb  (pair wain (map term (pair wain foot)))       ::  core chapter
@@ -5557,7 +5557,7 @@
               {$2 p/(list {@ta *})}                     ::  error ~_s
           ==                                            ::
 ++  tune                                                ::  complex
-          $:  p/(map term (unit twig))                  ::  definitions
+          $:  p/(map term (pair wain (unit twig)))      ::  aliases
               q/(list twig)                             ::  bridges
           ==                                            ::
 ++  typo  span                                          ::  old span
@@ -5592,7 +5592,7 @@
     %ut    ut
   ==
 |%
-++  a146  %146
+++  a145  %145
 ::
 ::::  5a: compiler utilities
   ::
@@ -6680,7 +6680,7 @@
     ~/  %buss
     |=  {cog/term gen/twig}
     ^-  span
-    [%face [~ [[cog ~ gen] ~ ~] ~] sut]
+    [%face [~ [[cog ~ ~ gen] ~ ~] ~] sut]
   ::
   ++  conk
     |=  got/toga
@@ -7161,11 +7161,11 @@
                 =+  tyr=(~(get by p.zot) u.q.heg)
                 ?~  tyr
                   next
-                ?~  u.tyr
+                ?~  q.u.tyr
                   $(sut q.sut, lon [~ lon], p.heg +(p.heg))
                 ?.  =(0 p.heg)
                   next(p.heg (dec p.heg))
-                =+  tor=(fund way u.u.tyr)
+                =+  tor=(fund way u.q.u.tyr)
                 ?-  -.tor
                   $&  [%& (weld p.p.tor `vein`[~ `axe lon]) q.p.tor]
                   $|  [%| %| p.p.tor (comb [%0 axe] q.p.tor)]
