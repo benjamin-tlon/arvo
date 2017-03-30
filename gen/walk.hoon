@@ -27,6 +27,7 @@
       =-  ?^  q.dep  `[%help [doc ~] gen]
           `p.dep
       ^=  dep
+      =/  foo/@tas  %foobar
       ^-  (pair twig life)
       %+  (walk life)
         `doc
@@ -90,6 +91,7 @@
     |%  
     ++  apex
       |-  ^-  {twig life}
+      =-  [~=(gen -<)  ~=(vit +>)]
       =*  aid  |=  {use/? gen/twig vit/life} 
                ^$(use use, gen gen, vit vit)
       =/  gun  ?:(use (mac gen vit aid) ~)

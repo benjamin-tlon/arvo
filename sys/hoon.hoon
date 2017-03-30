@@ -5368,7 +5368,7 @@
           ==                                            ::
 ++  tile  $^  {p/tile q/tile}                           ::  ordered pair
           $%  {$axil p/base}                            ::  base span
-              {$bark p/term q/tile}                     ::  name
+              {$bark p/toga q/tile}                     ::  name
               {$bush p/tile q/tile}                     ::  pair+tag
               {$deet p/spot q/tile}                     ::  set debug
               {$fern p/{i/tile t/(list tile)}}          ::  plain selection
@@ -5424,7 +5424,7 @@
     {$lamb p/twig q/twig}                               ::  $- function
     {$bush p/twig q/twig}                               ::  $^ pairhead fork
     {$pick p/(list twig)}                               ::  $? untagged fork
-    {$coat p/term q/twig}                               ::  $= name
+    {$coat p/toga q/twig}                               ::  $= name
   ::                                            ::::::  cores
     {$door p/twig q/(map @ tomb)}                       ::  |_
     {$gasp p/twig q/twig}                               ::  |:
@@ -5488,14 +5488,14 @@
   ::                                            ::::::  compositions
     {$new p/twig q/twig}                                ::  =|  push bunt
     {$fix p/(list (pair wing twig)) q/twig}             ::  =:  q with p changes
-    {$var p/taro q/twig r/twig}                         ::  =/  typed variable
-    {$rev p/taro q/twig r/twig}                         ::  =;  =/(q p r)
+    {$var p/toro q/twig r/twig}                         ::  =/  typed variable
+    {$rev p/toro q/twig r/twig}                         ::  =;  =/(q p r)
     {$set p/wing q/twig r/twig}                         ::  =.  r with p as q
     {$huh p/wing q/twig r/twig s/twig}                  ::  =?  conditional =.
     {$rap p/twig q/twig}                                ::  =<  =>(q p)
     {$nip p/twig q/twig}                                ::  =-  =+(q p)
     {$per p/twig q/twig}                                ::  =>  q w/subject p
-    {$sip p/taro q/wing r/twig s/twig}                  ::  =^  state machine
+    {$sip p/toro q/wing r/twig s/twig}                  ::  =^  state machine
     {$pin p/twig q/twig}                                ::  =+  q w/[p subject]
     {$tow p/(list twig)}                                ::  =~  twig stack
     {$aka p/term q/twig r/twig}                         ::  =*  r w/alias p/q
@@ -5523,7 +5523,7 @@
     {$need p/$@(p/@ {p/@ q/@}) q/twig}                  ::  !?
     {$fail $~}                                          ::  !!
   ==                                                    ::
-++  taro  $@(term (pair term twig))                     ::
+++  toro  (pair toga (unit twig))                       ::
 ++  tyre  (list {p/term q/twig})                        ::
 ++  tyke  (list (unit twig))                            ::
 ::                                                      ::::::  virtual nock
@@ -5977,17 +5977,6 @@
       (hail (home p.sec))
     ==
   ++  clam  ^-(twig [%gate [%base %noun] (whip(gom 7) 6)])
-  ++  cloq
-    |-  ^-  {p/toga q/tile}
-    =.  sec  ?.(?=($herb -.sec) sec ~(boil ap p.sec))
-    ?:  ?=($deet -.sec)  $(sec q.sec)
-    ?:  ?=(^ -.sec)
-      =+  [one=$(sec p.sec) two=$(sec q.sec)]
-      [[%2 p.one p.two] [q.one q.two]]
-    ?.  ?=($bark -.sec)  [[%0 ~] sec]
-    =+  got=$(sec q.sec)
-    :_  q.got
-    ?:(?=({$0 $~} p.got) p.sec [%1 [~ p.sec] p.got])
   ::
   ++  whip
     |=  axe/axis
@@ -6493,9 +6482,9 @@
       [%per [%keep [[%& 1] ~] p.gen] q.gen]
     ::
         {$var *}
-      ?@  p.gen
-        [%pin [%name p.gen q.gen] r.gen]
-      [%pin [%cast [%coat p.gen] q.gen] r.gen]
+      ?~  q.p.gen
+        [%pin [%name p.p.gen q.gen] r.gen]
+      [%pin [%cast [%coat p.p.gen u.q.p.gen] q.gen] r.gen]
     ::
         {$rev *}  [%var p.gen r.gen q.gen]
         {$set *}
@@ -6507,16 +6496,16 @@
       =+  wuy=(weld q.gen `wing`[%v ~])                 ::
       :+  %per  [%name %v %$ 1]                         ::  =>  v=.
       :+  %pin  [%name %a %per [%limb %v] r.gen]        ::  =+  a==>(v \r.gen)
-      :^  %set  wuy  [%rap [%$ 3] [%limb %a]]           ::  =.  \wuy  +.a
-      :+  %per  :-  ?@  p.gen                           ::
-                       :+  %name  p.gen                 ::  =>  :-  ^=  \p.gen
-                       [%rap [%$ 2] [%limb %a]]         ::          -.a
+      :^  %set  wuy  [%rap [%$ 3] [%limb %a]]
+      :+  %per  :-  ?~  q.p.gen
+                       :+  %name  p.p.gen
+                       [%rap [%$ 2] [%limb %a]]
                      :+  %cast
-                        :+  %coat  -.p.gen
-                        [%per [%limb %v] +.p.gen]       ::  =>  :-  ^-  \p.gen
-                     [%rap [%$ 2] [%limb %a]]           ::          -.a
-                [%limb %v]                              ::      v
-      s.gen                                             ::  s.gen
+                        :+  %coat  p.p.gen
+                        [%per [%limb %v] u.q.p.gen]
+                     [%rap [%$ 2] [%limb %a]] 
+                [%limb %v]
+      s.gen
     ::
         {$rap *}  [%per q.gen p.gen]
         {$pin *}  [%per [p.gen [%$ 1]] q.gen]
@@ -9726,9 +9715,7 @@
       ==
     ==
   ::
-  ++  wise  %+  cook
-              |=({a/term b/(unit twig)} ?~(b a [a u.b]))
-            ;~(plug sym (punt ;~(pfix fas wide)))
+  ++  wise  ;~(plug sym (punt ;~(pfix fas wide)))
   ++  wack
     %+  cook
       |=  {a/wain b/twig c/(unit cord)}
