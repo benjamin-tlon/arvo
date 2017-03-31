@@ -7054,7 +7054,7 @@
                     (pair wain palo)                    ::  arm or leg
                   %+  each                              ::  abnormal
                     @ud                                 ::  unmatched
-                  (pair span nock)                      ::  synthetic
+                  (pair wain (pair span nock))          ::  synthetic
         --
     ^-  pony
     ?~  hyp
@@ -7065,8 +7065,8 @@
       ?-    -.p.mor
           $&  mor
           $|
-        =+  fex=(mint(sut p.p.p.mor) %noun [%wing i.hyp ~])
-        [%| %| p.fex (comb q.p.p.mor q.fex)]
+        =+  fex=(mint(sut p.q.p.p.mor) %noun [%wing i.hyp ~])
+        [%| %| p.p.p.mor p.fex (comb q.q.p.p.mor q.fex)]
       ==
     ::
         $&
@@ -7095,9 +7095,9 @@
                       ?>  ?&  ?=($| -.yor)
                               ?=($| -.p.hax)
                               ?=($| -.p.yor)
-                              =(q.p.p.hax q.p.p.yor)
+                              =(q.q.p.p.hax q.q.p.p.yor)
                           ==
-                      [%| %| (fork p.p.p.hax p.p.p.yor ~) q.p.p.hax]
+                      [%| %| ~ (fork p.q.p.p.hax p.q.p.p.yor ~) q.q.p.p.hax]
                     ?>  ?=($& -.yor)
                     ?>  =(p.q.p.hax p.q.p.yor)
                     :^    %&  
@@ -7160,7 +7160,7 @@
                 =+  tor=(fund way u.q.u.tyr)
                 ?-  -.tor
                   $&  [%& ~ (weld p.p.tor `vein`[~ `axe lon]) q.p.tor]
-                  $|  [%| %| p.p.tor (comb [%0 axe] q.p.tor)]
+                  $|  [%| %| p.u.tyr p.p.tor (comb [%0 axe] q.p.tor)]
                 ==
               ++  next
                 |-  ^-  pony
@@ -7171,8 +7171,12 @@
                 ?~  fid  ~
                 ?:  ?=({$| $& *} fid)
                   $(q.zot t.q.zot, p.heg p.p.fid)
-                =+  vat=(fine `port`?-(-.fid $& [%& q.p.fid], $| [%| p.p.fid]))
-                [%| %| p.vat (comb (comb [%0 axe] q.tiv) q.vat)]
+                =+  ^-  {wan/wain vat/(pair span nock)}
+                    ?-    -.fid
+                      $&  [p.p.fid (fine %& q.p.fid)]
+                      $|  [p.p.p.fid (fine %| q.p.p.fid)]
+                    ==
+                [%| %| wan p.vat (comb (comb [%0 axe] q.tiv) q.vat)]
               --
             ::
                 {$fork *}
@@ -7199,7 +7203,7 @@
         ?-    -<
           $&  [%& q.p.-]
           $|  ?-  -.p.-
-                $|  [%| p.p.-]
+                $|  [%| q.p.p.-]
                 $&  !!
         ==    ==
     (fond way hyp)
