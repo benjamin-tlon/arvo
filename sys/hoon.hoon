@@ -5788,30 +5788,30 @@
   ~/  %look
   |=  {cog/term dab/(map term (pair wain foot))}
   =+  axe=1
-  |-  ^-  (unit {p/axis q/foot})
+  |-  ^-  (unit {p/axis q/(pair wain foot)})
   ?-  dab
       $~  ~
   ::
       {* $~ $~}
-    ?:(=(cog p.n.dab) [~ axe q.q.n.dab] ~)
+    ?:(=(cog p.n.dab) [~ axe q.n.dab] ~)
   ::
       {* $~ *}
     ?:  =(cog p.n.dab)
-      [~ (peg axe 2) q.q.n.dab]
+      [~ (peg axe 2) q.n.dab]
     ?:  (gor cog p.n.dab)
       ~
     $(axe (peg axe 3), dab r.dab)
   ::
       {* * $~}
     ?:  =(cog p.n.dab)
-      [~ (peg axe 2) q.q.n.dab]
+      [~ (peg axe 2) q.n.dab]
     ?:  (gor cog p.n.dab)
       $(axe (peg axe 3), dab l.dab)
     ~
   ::
       {* * *}
     ?:  =(cog p.n.dab)
-      [~ (peg axe 2) q.q.n.dab]
+      [~ (peg axe 2) q.n.dab]
     ?:  (gor cog p.n.dab)
       $(axe (peg axe 6), dab l.dab)
     $(axe (peg axe 7), dab r.dab)
@@ -5821,13 +5821,13 @@
   ~/  %loot
   |=  {cog/term dom/(map @ tomb)}
   =+  axe=1
-  |-  ^-  (unit {p/axis q/foot})
+  |-  ^-  (unit {p/axis q/(pair wain foot)})
   ?-  dom
       $~  ~
   ::
       {* $~ $~}
     %+  bind  (look cog q.q.n.dom) 
-    |=((pair axis foot) [(peg axe p) q])
+    |=((pair axis (pair wain foot)) [(peg axe p) q])
   ::
       {* $~ *}
     =+  yep=(look cog q.q.n.dom)
@@ -7131,8 +7131,10 @@
                   ?~  zem  [~ p.heg]
                   ?:(=(0 p.heg) [zem 0] [~ (dec p.heg)])
               ?^  zem
-                :^  %&  ~  [`axe lon]
-                [%| (peg 2 p.u.zem) [[sut(p.q %gold) q.u.zem] ~ ~]]
+                :^    %&  
+                    p.q.u.zem
+                  [`axe lon]
+                [%| (peg 2 p.u.zem) [[sut(p.q %gold) q.q.u.zem] ~ ~]]
               =+  pec=(peel way p.q.sut)
               ?.  sam.pec  lose
               ?:  con.pec  $(sut p.sut, axe (peg axe 3))
