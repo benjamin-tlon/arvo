@@ -1,4 +1,4 @@
-!:                                                      ::
+::                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
 ~>  %slog.[0 leaf+"hoon-assembly"]
@@ -5428,6 +5428,7 @@
   ::                                            ::::::  cores
     {$door p/wain q/root r/(map @ tomb)}                ::  |_
     {$gasp p/wain q/root r/twig}                        ::  |:
+    {$corp p/wain q/(map @ tomb)}                       ::  |%
     {$core p/(map @ tomb)}                              ::  |%
     {$trap p/wain q/twig}                               ::  |.
     {$cork p/wain q/twig r/(map @ tomb)}                ::  |^
@@ -7401,6 +7402,7 @@
       [(nice (cell p.hed p.tal)) (cons q.hed q.tal)]
     ::
         {$core *}  (grow %gold [%$ 1] p.gen)
+        {$corp *}  (grow %gold [%$ 1] q.gen)
     ::
         {$make *}  (~(mint et p.gen q.gen) gol)
         {$wish *}
@@ -7573,6 +7575,7 @@
       [(nice (cell p.hed p.tal)) (cell q.hed q.tal)]
     ::
         {$core *}  (grow %gold [%$ 1] p.gen)
+        {$corp *}  (grow %gold [%$ 1] q.gen)
         {$make *}  (~(mull et p.gen q.gen) gol dox)
         {$wish *}  =+($(gen q.gen, gol %noun) $(gen [%bunt p.gen]))
         {$bump *}  =+($(gen p.gen, gol [%atom %$ ~]) (beth [%atom %$ ~]))
@@ -7902,6 +7905,7 @@
     ?-  gen
       {^ *}      (cell $(gen p.gen) $(gen q.gen))
       {$core *}  (core sut %gold sut [[%0 0] p.gen])
+      {$corp *}  (core sut %gold sut [[%0 0] q.gen])
       {$make *}  ~(play et p.gen q.gen)
       {$wish *}  $(gen [%bunt p.gen])
       {$bump *}  [%atom %$ ~]
