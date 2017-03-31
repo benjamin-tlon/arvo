@@ -5426,16 +5426,16 @@
     {$pick p/(list twig)}                               ::  $? untagged fork
     {$coat p/toga q/root}                               ::  $= name
   ::                                            ::::::  cores
-    {$door p/root q/(map @ tomb)}                       ::  |_
-    {$gasp p/root q/twig}                               ::  |:
+    {$door p/wain q/root r/(map @ tomb)}                ::  |_
+    {$gasp p/wain q/root r/twig}                        ::  |:
     {$core p/(map @ tomb)}                              ::  |%
-    {$trap p/twig}                                      ::  |.
-    {$cork p/twig q/(map @ tomb)}                       ::  |^
-    {$loop p/twig}                                      ::  |-
-    {$port p/twig q/twig}                               ::  |~
-    {$gill p/root q/twig}                               ::  |*
-    {$gate p/root q/twig}                               ::  |=
-    {$tray p/twig}                                      ::  |?
+    {$trap p/wain q/twig}                               ::  |.
+    {$cork p/wain q/twig r/(map @ tomb)}                ::  |^
+    {$loop p/wain q/twig}                               ::  |-
+    {$port p/wain q/twig r/twig}                        ::  |~
+    {$gill p/wain q/root r/twig}                        ::  |*
+    {$gate p/wain q/root r/twig}                        ::  |=
+    {$tray p/wain q/twig}                               ::  |?
   ::                                            ::::::  tuples
     {$scon p/twig q/twig}                                ::  :_ [q p]
     {$conq p/twig q/twig r/twig s/twig}                  ::  :^ [p q r s]
@@ -5976,7 +5976,7 @@
         {$weed *}
       (hail (home p.sec))
     ==
-  ++  clam  ^-(twig [%gate [%base %noun] (whip(gom 7) 6)])
+  ++  clam  ^-(twig [%gate ~ [%base %noun] (whip(gom 7) 6)])
   ::
   ++  whip
     |=  axe/axis
@@ -6248,7 +6248,7 @@
       ==
     ::
         {$bush *}  [%bush boil(gen p.gen) boil(gen q.gen)]
-        {$lamb *}  [%weed [%port p.gen [%bunt [%per [%$ 7] q.gen]]]]
+        {$lamb *}  [%weed [%port ~ p.gen [%bunt [%per [%$ 7] q.gen]]]]
         {$halo *}  [%plow p.gen boil(gen q.gen)]
         {$coat *}  [%bark p.gen boil(gen q.gen)]
         {$pick *}  =+  (turn p.gen |=(a/twig boil(gen a)))
@@ -6266,9 +6266,9 @@
     ::
         {$knit *}                                       ::
       :+  %per  [%name %v %$ 1]                        ::  =>  v=.
-      :-  %loop                                         ::  |-
+      :+  %loop  ~                                      ::  |-
       :+  %like                                         ::  ^+
-        :-  %loop                                       ::  |-
+        :+  %loop  ~                                     ::  |-
         :^    %if                                     ::  ?:
             [%bust %bean]                               ::  ?
           [%bust %null]                                 ::  ~
@@ -6289,7 +6289,7 @@
             [%per [%limb %v] p.i.p.gen]                ::  =>(v {p.i.p.gen})
         [%name %b res]                                  ::  b={res}
       ^-  twig                                          ::
-      :-  %loop                                         ::  |-
+      :+  %loop  ~                                       ::  |-
       :^    %ifat                                       ::  ?@
           [%a ~]                                        ::  a
         [%limb %b]                                      ::  b
@@ -6314,27 +6314,27 @@
         {$coat *}  ~(clam al boil)
         {$halo *}  ~(clam al boil)
     ::
-        {$door *}  [%pin [%bunt p.gen] [%core q.gen]]
-        {$gasp *}  [%pin [%burn p.gen] [%trap q.gen]]
+        {$door *}  [%pin [%bunt q.gen] [%core r.gen]]
+        {$gasp *}  [%pin [%burn q.gen] [%trap p.gen r.gen]]
         {$trap *}  :-  %core 
                    =-  [[0 ~ -] ~ ~]
-                   (~(put by *(map term (pair wain foot))) %$ ~ [%ash p.gen])
+                   (~(put by *(map term (pair wain foot))) %$ ~ [%ash q.gen])
         {$cork *}  :+  %per 
                       :-  %core
-                      =+  one=(~(got by q.gen) 0)
-                      %+  ~(put by q.gen)  0
-                      one(q (~(put by q.one) %$ [~ [%ash p.gen]]))
+                      =+  one=(~(got by r.gen) 0)
+                      %+  ~(put by r.gen)  0
+                      one(q (~(put by q.one) %$ [~ [%ash q.gen]]))
                    [%limb %$]
-        {$loop *}  [%rap [%limb %$] [%trap p.gen]]
-        {$port *}  [%iron [%gate p.gen q.gen]]
-        {$gill *}  :+  %pin  [%bunt p.gen]
+        {$loop *}  [%rap [%limb %$] [%trap p.gen q.gen]]
+        {$port *}  [%iron [%gate p.gen q.gen r.gen]]
+        {$gill *}  :+  %pin  [%bunt q.gen]
                    :-  %core 
                    =-  [[0 ~ -] ~ ~]
-                   (~(put by *(map term (pair wain foot))) %$ ~ [%elm q.gen])
-        {$gate *}  :+  %door  p.gen 
+                   (~(put by *(map term (pair wain foot))) %$ ~ [%elm r.gen])
+        {$gate *}  :^  %door  p.gen  q.gen 
                    =-  [[0 ~ -] ~ ~]
-                   (~(put by *(map term (pair wain foot))) %$ ~ [%ash q.gen])
-        {$tray *}  [%lead %trap p.gen]
+                   (~(put by *(map term (pair wain foot))) %$ ~ [%ash r.gen])
+        {$tray *}  [%lead %trap p.gen q.gen]
     ::
         {$conq *}  [p.gen q.gen r.gen s.gen]
         {$cont *}  [p.gen q.gen r.gen]
@@ -6390,10 +6390,10 @@
         :-  %mean
         =+  fek=~(feck ap p.gen)
         ?^  fek  [%rock %tas u.fek]
-        [%trap [%call [%limb %cain] [%wrap [%per [%$ 3] p.gen]] ~]]
+        [%trap ~ [%call [%limb %cain] [%wrap [%per [%$ 3] p.gen]] ~]]
       q.gen
     ::
-        {$lurk *}  [%hint [%mean [%trap p.gen]] q.gen]
+        {$lurk *}  [%hint [%mean [%trap ~ p.gen]] q.gen]
         {$fast *}
       :+  %thin
         :-  %fast
@@ -6458,7 +6458,7 @@
           :+  %rap                                     ::
             [%wing [%| 0 ~] [%& 6] ~]                   ::
           [%limb %b]                                    ::
-        :-  %trap                                       ::  |.
+        :+  %trap  ~                                    ::  |.
         :^    %calt                                     ::  %+
             [%per [%limb %v] p.gen]                    ::      =>(v {p.gen})
           [%call [%limb %b] [%limb %c] ~]               ::    (b c)
@@ -9192,17 +9192,16 @@
               ;~  pfix  bar
                 %-  stew
                 ^.  stet  ^.  limo
-                :~  ['_' (rune cab %door expr)]
+                :~  ['_' (runo cab %door ~ expr)]
                     ['%' (rune cen %core expe)]
-                    [':' (rune col %gasp expb)]
-                    ['.' (rune dot %trap expa)]
-                    ['/' (rune fas %door expr)]
-                    ['-' (rune hep %loop expa)]
-                    ['^' (rune ket %cork expr)]
-                    ['~' (rune sig %port expb)]
-                    ['*' (rune tar %gill expb)]
-                    ['=' (rune tis %gate expb)]
-                    ['?' (rune wut %tray expa)]
+                    [':' (runo col %gasp ~ expb)]
+                    ['.' (runo dot %trap ~ expa)]
+                    ['-' (runo hep %loop ~ expa)]
+                    ['^' (runo ket %cork ~ expr)]
+                    ['~' (runo sig %port ~ expb)]
+                    ['*' (runo tar %gill ~ expb)]
+                    ['=' (runo tis %gate ~ expb)]
+                    ['?' (runo wut %tray ~ expa)]
                 ==
               ==
             :-  '$'
@@ -9246,17 +9245,16 @@
                       ['*' (rune tar %conp exps)]
                   ==
                 ::
-                  (word %door expr)
+                  (worn %door ~ expr)
                   (word %core expe)
-                  (word %gasp expb)
-                  (word %trap expa)
-                  (word %door expr)
-                  (word %loop expa)
-                  (word %cork expr)
-                  (word %port expb)
-                  (word %gill expb)
-                  (word %gate expb)
-                  (word %tray expa)
+                  (worn %gasp ~ expb)
+                  (worn %trap ~ expa)
+                  (worn %loop ~ expa)
+                  (worn %cork ~ expr)
+                  (worn %port ~ expb)
+                  (worn %gill ~ expb)
+                  (worn %gate ~ expb)
+                  (worn %tray ~ expa)
                 ::
                   (word %bunt expa)
                   (word %claw expb)
@@ -9505,9 +9503,17 @@
       |*  {dif/rule tuq/* har/_expa}
       ;~(pfix dif (stag tuq (toad har)))
     ::
+    ++  runo                                            ::  rune plus
+      |*  {dif/rule hil/* tuq/* har/_expa}
+      ;~(pfix dif (stag hil (stag tuq (toad har))))
+    ::
     ++  word                                            ::  build keyword
       |*  {key/cord har/_expa}
       ;~(pfix (jest key) (stag key (toad har)))
+    ::
+    ++  worn                                            ::  padded keyword
+      |*  {key/cord tuq/* har/_expa}
+      ;~(pfix (jest key) (stag key (stag tuq (toad har))))
     ::
     ++  moar                                            ::  :moar hack
       %+  cook
