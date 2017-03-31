@@ -5340,7 +5340,8 @@
           ==                                            ::
 ++  coil  $:  p/?($gold $iron $lead $zinc)              ::  core span
               q/span                                    ::  built with
-              r/{p/?($~ ^) q/(map @ tomb)}              ::  arms
+              r/wain                                    ::  docs
+              s/{p/?($~ ^) q/(map @ tomb)}              ::  arms
           ==                                            ::
 ++  foot  $%  {$ash p/twig}                             ::  dry arm, geometric
               {$elm p/twig}                             ::  wet arm, generic
@@ -6641,7 +6642,7 @@
         {$atom *}   q.sut
         {$cell *}   %+  biff  $(sut p.sut)
                     |=(* (biff ^$(sut q.sut) |=(* `[+>+< +<])))
-        {$core *}   (biff $(sut p.sut) |=(* `[p.r.q.sut +<]))
+        {$core *}   (biff $(sut p.sut) |=(* `[p.s.q.sut +<]))
         {$face *}   $(sut repo)
         {$fork *}   =+  yed=(~(tap in p.sut))
                     |-  ^-  (unit)
@@ -7133,7 +7134,7 @@
                 {$core *}
               ?~  q.heg  here
               =^  zem  p.heg
-                  =+  zem=(loot u.q.heg q.r.q.sut)
+                  =+  zem=(loot u.q.heg q.s.q.sut)
                   ?~  zem  [~ p.heg]
                   ?:(=(0 p.heg) [zem 0] [~ (dec p.heg)])
               ?^  zem
@@ -7540,9 +7541,9 @@
       |=  {mel/vair ruf/twig dom/(map @ tomb)}
       ^-  {p/span q/nock}
       =+  dan=^$(gen ruf, gol %noun)
-      =+  toc=(core p.dan [%gold p.dan [~ dom]])
+      =+  toc=(core p.dan [%gold p.dan ~ [~ dom]])
       =+  dez=(hope(sut toc) dom)
-      :-  (nice (core p.dan mel p.dan [dez dom]))
+      :-  (nice (core p.dan mel p.dan ~ [dez dom]))
       (cons [%1 dez] q.dan)
     --
   ::
@@ -7703,11 +7704,11 @@
       ~_  leaf+"mull-grow"
       ^-  {p/span q/span}
       =+  dan=^$(gen ruf, gol %noun)
-      =+  ^=  toc  :-  p=(core p.dan [%gold p.dan [~ dom]])
-                   q=(core q.dan [%gold q.dan [~ dom]])
+      =+  ^=  toc  :-  p=(core p.dan [%gold p.dan ~ [~ dom]])
+                   q=(core q.dan [%gold q.dan ~ [~ dom]])
       =+  (balk(sut p.toc, dox q.toc) dom)
-      :-  (nice (core p.dan mel p.dan [[%0 0] dom]))
-      (core q.dan [mel q.dan [[%0 0] dom]])
+      :-  (nice (core p.dan mel p.dan ~ [[%0 0] dom]))
+      (core q.dan [mel q.dan ~ [[%0 0] dom]])
     ::
     ++  bake
       |=  dab/(map term (pair wain foot))
@@ -7811,7 +7812,7 @@
                        dext(sut q.q.ref, ref p.ref)
                        (deem(sut q.q.sut, ref q.q.ref) p.q.sut p.q.ref)
                        ?|  (~(has in gil) [sut ref])
-                           %.  [q.r.q.sut q.r.q.ref]
+                           %.  [q.s.q.sut q.s.q.ref]
                            %=  deep
                              gil  (~(put in gil) [sut ref])
                              sut  sut(p q.q.sut, p.q %gold)
@@ -7904,8 +7905,8 @@
     ^-  span
     ?-  gen
       {^ *}      (cell $(gen p.gen) $(gen q.gen))
-      {$core *}  (core sut %gold sut [[%0 0] p.gen])
-      {$corp *}  (core sut %gold sut [[%0 0] q.gen])
+      {$core *}  (core sut %gold sut ~ [[%0 0] p.gen])
+      {$corp *}  (core sut %gold sut p.gen [[%0 0] q.gen])
       {$make *}  ~(play et p.gen q.gen)
       {$wish *}  $(gen [%bunt p.gen])
       {$bump *}  [%atom %$ ~]
@@ -8443,18 +8444,18 @@
         %~  rent  co
             :+  %$  %ud
             |-  ^-  @
-            ?-  q.r.q.sut
+            ?-  q.s.q.sut
               $~         0
               {* $~ $~}  1
-              {* $~ *}   +($(q.r.q.sut r.q.r.q.sut))
-              {* * $~}   +($(q.r.q.sut l.q.r.q.sut))
+              {* $~ *}   +($(q.s.q.sut r.q.s.q.sut))
+              {* * $~}   +($(q.s.q.sut l.q.s.q.sut))
               {* * *}    .+  %+  add
-                               $(q.r.q.sut l.q.r.q.sut)
-                             $(q.r.q.sut r.q.r.q.sut)
+                               $(q.s.q.sut l.q.s.q.sut)
+                             $(q.s.q.sut r.q.s.q.sut)
         ==  ==
       %^  cat  3
         ?-(p.q.sut $gold '.', $iron '|', $lead '?', $zinc '&')
-      =+  gum=(mug q.r.q.sut)
+      =+  gum=(mug q.s.q.sut)
       %+  can  3
       :~  [1 (add 'a' (mod gum 26))]
           [1 (add 'a' (mod (div gum 26) 26))]
@@ -8555,10 +8556,10 @@
       {$hold *}  $(typ ~(repo ut typ))
       {$core *}
     |-  ^-  ?
-    ?~  q.r.q.typ  |
-    ?|  (~(has by q.q.n.q.r.q.typ) cog)
-        $(q.r.q.typ l.q.r.q.typ)
-        $(q.r.q.typ r.q.r.q.typ)
+    ?~  q.s.q.typ  |
+    ?|  (~(has by q.q.n.q.s.q.typ) cog)
+        $(q.s.q.typ l.q.s.q.typ)
+        $(q.s.q.typ r.q.s.q.typ)
     ==
   ==
 ::
@@ -8568,7 +8569,7 @@
   ?+    typ  ~
       {$hold *}  $(typ ~(repo ut typ))
       {$core *}
-    (turn (~(tap by q.r.q.typ) ~) |=({a/term *} a))
+    (turn (~(tap by q.s.q.typ) ~) |=({a/term *} a))
   ==
 ::
 ++  slop                                                ::  cons two vases
