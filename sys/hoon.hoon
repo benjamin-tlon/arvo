@@ -5430,7 +5430,6 @@
     {$door p/wain q/root r/(map @ tomb)}                ::  |_
     {$gasp p/wain q/root r/twig}                        ::  |:
     {$corp p/wain q/(map @ tomb)}                       ::  |%
-    {$core p/(map @ tomb)}                              ::  |%
     {$trap p/wain q/twig}                               ::  |.
     {$cork p/wain q/twig r/(map @ tomb)}                ::  |^
     {$loop p/wain q/twig}                               ::  |-
@@ -6316,13 +6315,13 @@
         {$coat *}  ~(clam al boil)
         {$halo *}  ~(clam al boil)
     ::
-        {$door *}  [%pin [%bunt q.gen] [%core r.gen]]
+        {$door *}  [%pin [%bunt q.gen] [%corp p.gen r.gen]]
         {$gasp *}  [%pin [%burn q.gen] [%trap p.gen r.gen]]
-        {$trap *}  :-  %core 
+        {$trap *}  :+  %corp  p.gen
                    =-  [[0 ~ -] ~ ~]
                    (~(put by *(map term (pair wain foot))) %$ ~ [%ash q.gen])
         {$cork *}  :+  %per 
-                      :-  %core
+                      :+  %corp  p.gen
                       =+  one=(~(got by r.gen) 0)
                       %+  ~(put by r.gen)  0
                       one(q (~(put by q.one) %$ [~ [%ash q.gen]]))
@@ -6330,7 +6329,7 @@
         {$loop *}  [%rap [%limb %$] [%trap p.gen q.gen]]
         {$port *}  [%iron [%gate p.gen q.gen r.gen]]
         {$gill *}  :+  %pin  [%bunt q.gen]
-                   :-  %core 
+                   :+  %corp  p.gen
                    =-  [[0 ~ -] ~ ~]
                    (~(put by *(map term (pair wain foot))) %$ ~ [%elm r.gen])
         {$gate *}  :^  %door  p.gen  q.gen 
@@ -7402,7 +7401,6 @@
       =+  tal=$(gen q.gen, gol %noun)
       [(nice (cell p.hed p.tal)) (cons q.hed q.tal)]
     ::
-        {$core *}  (grow %gold [%$ 1] p.gen)
         {$corp *}  (grow %gold [%$ 1] q.gen)
     ::
         {$make *}  (~(mint et p.gen q.gen) gol)
@@ -7575,7 +7573,6 @@
       =+  tal=$(gen q.gen, gol %noun)
       [(nice (cell p.hed p.tal)) (cell q.hed q.tal)]
     ::
-        {$core *}  (grow %gold [%$ 1] p.gen)
         {$corp *}  (grow %gold [%$ 1] q.gen)
         {$make *}  (~(mull et p.gen q.gen) gol dox)
         {$wish *}  =+($(gen q.gen, gol %noun) $(gen [%bunt p.gen]))
@@ -7905,8 +7902,7 @@
     ^-  span
     ?-  gen
       {^ *}      (cell $(gen p.gen) $(gen q.gen))
-      {$core *}  (core sut %gold sut ~ [[%0 0] p.gen])
-      {$corp *}  (core sut %gold sut p.gen [[%0 0] q.gen])
+      {$corp *}  (core sut %gold sut [[%0 0] q.gen])
       {$make *}  ~(play et p.gen q.gen)
       {$wish *}  $(gen [%bunt p.gen])
       {$bump *}  [%atom %$ ~]
@@ -8980,7 +8976,7 @@
         $c  :_  ~
             :+  %lace  `twig`[p.i.lut [%conp $(lut t.lut)]]
             :+  %new  [%base %cell]
-            :-  %core
+            :+  %corp  ~
             ^-  (map @ tomb)
             =-  [[0 ~ -] ~ ~]
             ^-  (map term (pair wain foot))
@@ -9198,7 +9194,7 @@
                 %-  stew
                 ^.  stet  ^.  limo
                 :~  ['_' (runo cab %door ~ expr)]
-                    ['%' (rune cen %core expe)]
+                    ['%' (runo cen %corp ~ expe)]
                     [':' (runo col %gasp ~ expb)]
                     ['.' (runo dot %trap ~ expa)]
                     ['-' (runo hep %loop ~ expa)]
@@ -9251,7 +9247,7 @@
                   ==
                 ::
                   (worn %door ~ expr)
-                  (word %core expe)
+                  (worn %corp ~ expe)
                   (worn %gasp ~ expb)
                   (worn %trap ~ expa)
                   (worn %loop ~ expa)
