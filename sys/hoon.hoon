@@ -7083,6 +7083,9 @@
       |%  ++  here  ?:  =(0 p.heg)
                       [%& ~ [~ `axe lon] %& sut]
                     [%| %& (dec p.heg)]
+          ++  join  |=  {a/wain b/wain}
+                    ?:  =(a b)  a
+                    :(weld a `wain`['||' b])
           ++  lose  [%| %& p.heg]
           ++  stop  ?~(q.heg here lose)
           ++  twin  |=  {hax/pony yor/pony}
@@ -7097,12 +7100,14 @@
                               ?=($| -.p.yor)
                               =(q.q.p.p.hax q.q.p.p.yor)
                           ==
-                      [%| %| ~ (fork p.q.p.p.hax p.q.p.p.yor ~) q.q.p.p.hax]
+                      :^    %|
+                          %|
+                        (join p.p.p.hax p.p.p.yor)
+                      [(fork p.q.p.p.hax p.q.p.p.yor ~) q.q.p.p.hax]
                     ?>  ?=($& -.yor)
                     ?>  =(p.q.p.hax p.q.p.yor)
                     :^    %&  
-                        ?:  =(p.p.hax p.p.yor)  p.p.hax
-                        :(weld p.p.hax `wain`['||' p.p.yor])
+                        (join p.p.hax p.p.yor)
                       p.q.p.hax
                     ?:  &(?=($& -.q.q.p.hax) ?=($& -.q.q.p.yor))
                       [%& (fork p.q.q.p.hax p.q.q.p.yor ~)]
