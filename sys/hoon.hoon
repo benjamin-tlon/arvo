@@ -5351,7 +5351,6 @@
           ==                                            ::
 ++  line  {p/{$leaf p/aura q/@} q/tile}                 ::  %book case
 ++  metl  ?($gold $iron $zinc $lead)                    ::  core variance
-++  moss  twig                                          ::  twig producing mold
 ++  noun  *                                             ::  any noun
 ++  null  $~                                            ::  null, nil, etc
 ++  onyx  (list (pair span foot))                       ::  arm activation
@@ -5362,6 +5361,7 @@
 ++  palo  (pair vein opal)                              ::  wing trace, match
 ++  pock  (pair axis nock)                              ::  changes
 ++  port  (each palo (pair span nock))                  ::  successful match
+++  root  twig                                          ::  produce model
 ++  tiki                                                ::  test case
           $%  {$& p/(unit term) q/wing}                 ::  simple wing
               {$| p/(unit term) q/twig}                 ::  named wing
@@ -5400,12 +5400,12 @@
     {$$ p/axis}                                         ::  simple leg
   ::                                                    ::
     {$base p/base}                                      ::  base
-    {$bunt p/twig}                                      ::  mold default value
+    {$bunt p/root}                                      ::  mold default value
     {$bust p/base}                                      ::  bunt base
     {$dbug p/spot q/twig}                               ::  debug info in trace
     {$hand p/span q/nock}                               ::  premade result
     {$help p/wain q/twig}                               ::  annotate image
-    {$halo p/wain q/twig}                               ::  annotate model
+    {$halo p/wain q/root}                               ::  annotate model
     {$knit p/(list woof)}                               ::  assemble string
     {$leaf p/(pair term @)}                             ::  symbol
     {$limb p/term}                                      ::  pulls limb p
@@ -5417,24 +5417,24 @@
     {$wing p/wing}                                      ::  pulls p
     {$yell p/(list twig)}                               ::  render as tank
   ::                                            ::::::  molds
-    {$claw p/twig q/twig}                               ::  $@ depth fork
+    {$claw p/root q/root}                               ::  $@ depth fork
     {$shoe p/twig}                                      ::  $_ example
-    {$bank p/(list twig)}                               ::  $: tuple
-    {$book p/(list twig)}                               ::  $% tagged fork
-    {$lamb p/twig q/twig}                               ::  $- function
-    {$bush p/twig q/twig}                               ::  $^ pairhead fork
+    {$bank p/(list root)}                               ::  $: tuple
+    {$book p/(list root)}                               ::  $% tagged fork
+    {$lamb p/root q/root}                               ::  $- function
+    {$bush p/root q/root}                               ::  $^ pairhead fork
     {$pick p/(list twig)}                               ::  $? untagged fork
-    {$coat p/toga q/twig}                               ::  $= name
+    {$coat p/toga q/root}                               ::  $= name
   ::                                            ::::::  cores
-    {$door p/twig q/(map @ tomb)}                       ::  |_
-    {$gasp p/twig q/twig}                               ::  |:
+    {$door p/root q/(map @ tomb)}                       ::  |_
+    {$gasp p/root q/twig}                               ::  |:
     {$core p/(map @ tomb)}                              ::  |%
     {$trap p/twig}                                      ::  |.
     {$cork p/twig q/(map @ tomb)}                       ::  |^
     {$loop p/twig}                                      ::  |-
     {$port p/twig q/twig}                               ::  |~
-    {$gill p/twig q/twig}                               ::  |*
-    {$gate p/twig q/twig}                               ::  |=
+    {$gill p/root q/twig}                               ::  |*
+    {$gate p/root q/twig}                               ::  |=
     {$tray p/twig}                                      ::  |?
   ::                                            ::::::  tuples
     {$scon p/twig q/twig}                                ::  :_ [q p]
@@ -5453,7 +5453,7 @@
     {$open p/wing q/twig r/(list twig)}                 ::  %~
     {$make p/wing q/(list (pair wing twig))}            ::  %=
   ::                                            ::::::  nock
-    {$wish p/twig q/twig}                               ::  .^  nock 11
+    {$wish p/root q/twig}                               ::  .^  nock 11
     {$bump p/twig}                                      ::  .+  nock 4
     {$nock p/twig q/twig}                               ::  .*  nock 2
     {$same p/twig q/twig}                               ::  .=  nock 5
@@ -5462,7 +5462,7 @@
     {$iron p/twig}                                      ::  ^|
     {$ward p/twig q/twig}                               ::  ^.
     {$like p/twig q/twig}                               ::  ^+
-    {$cast p/twig q/twig}                               ::  ^-
+    {$cast p/root q/twig}                               ::  ^-
     {$zinc p/twig}                                      ::  ^&
     {$burn p/twig}                                      ::  ^~
     {$name p/toga q/twig}                               ::  ^=
@@ -5486,7 +5486,7 @@
     {$dip p/twig q/(list twig)}                         ::  ;~  kleisli arrow
     {$fry p/twig q/twig}                                ::  ;;  normalize
   ::                                            ::::::  compositions
-    {$new p/twig q/twig}                                ::  =|  push bunt
+    {$new p/root q/twig}                                ::  =|  push bunt
     {$fix p/(list (pair wing twig)) q/twig}             ::  =:  q with p changes
     {$var p/toro q/twig r/twig}                         ::  =/  typed variable
     {$rev p/toro q/twig r/twig}                         ::  =;  =/(q p r)
@@ -5513,7 +5513,7 @@
     {$ifat p/wing q/twig r/twig}                        ::  ?@  if p is atom
     {$ifno p/wing q/twig r/twig}                        ::  ?~  if p is null
   ::
-    {$fits p/twig q/wing}                               ::  ?=  if q matches p
+    {$fits p/root q/wing}                               ::  ?=  if q matches p
     {$not p/twig}                                       ::  ?!  loobean not
   ::                                            ::::::  special
     {$twig p/twig q/twig}                               ::  !,
@@ -5523,7 +5523,7 @@
     {$need p/$@(p/@ {p/@ q/@}) q/twig}                  ::  !?
     {$fail $~}                                          ::  !!
   ==                                                    ::
-++  toro  (pair toga (unit twig))                       ::
+++  toro  (pair toga (unit root))                       ::
 ++  tyre  (list {p/term q/twig})                        ::
 ++  tyke  (list (unit twig))                            ::
 ::                                                      ::::::  virtual nock
@@ -7051,14 +7051,14 @@
         ++  pony                                        ::  raw match
                   $@  $~                                ::  void
                   %+  each                              ::  natural/abnormal
-                    palo                                ::  arm or leg
+                    (pair wain palo)                    ::  arm or leg
                   %+  each                              ::  abnormal
                     @ud                                 ::  unmatched
                   (pair span nock)                      ::  synthetic
         --
     ^-  pony
     ?~  hyp
-      [%& ~ %& sut]
+      [%& ~ ~ %& sut]
     =+  mor=$(hyp t.hyp)
     ?-    -.mor
         $|
@@ -7070,18 +7070,18 @@
       ==
     ::
         $&
-      =.  sut  (felt q.p.mor)
+      =.  sut  (felt q.q.p.mor)
       =>  :_  +
           :*  axe=`axis`1
-              lon=p.p.mor
+              lon=p.q.p.mor
               heg=?^(i.hyp i.hyp [%| p=0 q=(some i.hyp)])
           ==
       ?:  ?=($& -.heg)
-        [%& [`p.heg lon] %& (peek way p.heg)]
+        [%& ~ [`p.heg lon] %& (peek way p.heg)]
       =|  gil/(set span)
       =<  $
       |%  ++  here  ?:  =(0 p.heg)
-                      [%& [~ `axe lon] %& sut]
+                      [%& ~ [~ `axe lon] %& sut]
                     [%| %& (dec p.heg)]
           ++  lose  [%| %& p.heg]
           ++  stop  ?~(q.heg here lose)
@@ -7099,14 +7099,17 @@
                           ==
                       [%| %| (fork p.p.p.hax p.p.p.yor ~) q.p.p.hax]
                     ?>  ?=($& -.yor)
-                    ?>  =(p.p.hax p.p.yor)
-                    :+  %&  p.p.hax
-                    ?:  &(?=($& -.q.p.hax) ?=($& -.q.p.yor))
-                      [%& (fork p.q.p.hax p.q.p.yor ~)]
-                    ?>  &(?=($| -.q.p.hax) ?=($| -.q.p.yor))
                     ?>  =(p.q.p.hax p.q.p.yor)
-                    =+  wal=(~(uni in q.q.p.hax) q.q.p.yor)
-                    [%| p.q.p.hax wal]
+                    :^    %&  
+                        ?:  =(p.p.hax p.p.yor)  p.p.hax
+                        :(weld p.p.hax `wain`['||' p.p.yor])
+                      p.q.p.hax
+                    ?:  &(?=($& -.q.q.p.hax) ?=($& -.q.q.p.yor))
+                      [%& (fork p.q.q.p.hax p.q.q.p.yor ~)]
+                    ?>  &(?=($| -.q.q.p.hax) ?=($| -.q.q.p.yor))
+                    ?>  =(p.q.q.p.hax p.q.q.p.yor)
+                    =+  wal=(~(uni in q.q.q.p.hax) q.q.q.p.yor)
+                    [%| p.q.q.p.hax wal]
           ++  $
             ^-  pony
             ?-    sut
@@ -7128,7 +7131,7 @@
                   ?~  zem  [~ p.heg]
                   ?:(=(0 p.heg) [zem 0] [~ (dec p.heg)])
               ?^  zem
-                :+  %&  [`axe lon]
+                :^  %&  ~  [`axe lon]
                 [%| (peg 2 p.u.zem) [[sut(p.q %gold) q.u.zem] ~ ~]]
               =+  pec=(peel way p.q.sut)
               ?.  sam.pec  lose
@@ -7156,7 +7159,7 @@
                   next(p.heg (dec p.heg))
                 =+  tor=(fund way u.q.u.tyr)
                 ?-  -.tor
-                  $&  [%& (weld p.p.tor `vein`[~ `axe lon]) q.p.tor]
+                  $&  [%& ~ (weld p.p.tor `vein`[~ `axe lon]) q.p.tor]
                   $|  [%| %| p.p.tor (comb [%0 axe] q.p.tor)]
                 ==
               ++  next
@@ -7168,7 +7171,7 @@
                 ?~  fid  ~
                 ?:  ?=({$| $& *} fid)
                   $(q.zot t.q.zot, p.heg p.p.fid)
-                =+  vat=(fine `port`?-(-.fid $& fid, $| [%| p.p.fid]))
+                =+  vat=(fine `port`?-(-.fid $& [%& q.p.fid], $| [%| p.p.fid]))
                 [%| %| p.vat (comb (comb [%0 axe] q.tiv) q.vat)]
               --
             ::
@@ -7194,7 +7197,7 @@
     ~_  (show [%c %find] %l hyp)
     =-  ?@  -  !!
         ?-    -<
-          $&  [%& p.-]
+          $&  [%& q.p.-]
           $|  ?-  -.p.-
                 $|  [%| p.p.-]
                 $&  !!
@@ -8584,7 +8587,7 @@
   %*(. vast bug bug, wer wer)
 ::
 ++  vast
-  =+  [bug=`?`| was=*(set path) wer=*path]
+  =+  [bug=`?`| wer=*path]
   |%
   ++  dqut                                              ::  irregular docstring
     =+  dsoz=;~(plug soq soq soq col)
