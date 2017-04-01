@@ -5424,7 +5424,7 @@
     {$book p/(list root)}                               ::  $% tagged fork
     {$lamb p/root q/root}                               ::  $- function
     {$bush p/root q/root}                               ::  $^ pairhead fork
-    {$pick p/(list twig)}                               ::  $? untagged fork
+    {$pick p/(list root)}                               ::  $? untagged fork
     {$coat p/toga q/root}                               ::  $= name
   ::                                            ::::::  cores
     {$door p/wain q/root r/(map @ tomb)}                ::  |_
