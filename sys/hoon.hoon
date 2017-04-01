@@ -1,4 +1,4 @@
-!:                                                      ::
+::                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
 ~>  %slog.[0 leaf+"hoon-assembly"]
@@ -7401,7 +7401,7 @@
       =+  tal=$(gen q.gen, gol %noun)
       [(nice (cell p.hed p.tal)) (cons q.hed q.tal)]
     ::
-        {$corp *}  (grow %gold [%$ 1] q.gen)
+        {$corp *}  (grow %gold [%$ 1] p.gen q.gen)
     ::
         {$make *}  (~(mint et p.gen q.gen) gol)
         {$wish *}
@@ -7536,12 +7536,12 @@
       typ
     ::
     ++  grow
-      |=  {mel/vair ruf/twig dom/(map @ tomb)}
+      |=  {mel/vair ruf/twig wan/wain dom/(map @ tomb)}
       ^-  {p/span q/nock}
       =+  dan=^$(gen ruf, gol %noun)
-      =+  toc=(core p.dan [%gold p.dan ~ [~ dom]])
+      =+  toc=(core p.dan [%gold p.dan wan [~ dom]])
       =+  dez=(hope(sut toc) dom)
-      :-  (nice (core p.dan mel p.dan ~ [dez dom]))
+      :-  (nice (core p.dan mel p.dan wan [dez dom]))
       (cons [%1 dez] q.dan)
     --
   ::
@@ -7573,7 +7573,7 @@
       =+  tal=$(gen q.gen, gol %noun)
       [(nice (cell p.hed p.tal)) (cell q.hed q.tal)]
     ::
-        {$corp *}  (grow %gold [%$ 1] q.gen)
+        {$corp *}  (grow %gold [%$ 1] p.gen q.gen)
         {$make *}  (~(mull et p.gen q.gen) gol dox)
         {$wish *}  =+($(gen q.gen, gol %noun) $(gen [%bunt p.gen]))
         {$bump *}  =+($(gen p.gen, gol [%atom %$ ~]) (beth [%atom %$ ~]))
@@ -7697,15 +7697,15 @@
       typ
     ::
     ++  grow
-      |=  {mel/vair ruf/twig dom/(map @ tomb)}
+      |=  {mel/vair ruf/twig wan/wain dom/(map @ tomb)}
       ~_  leaf+"mull-grow"
       ^-  {p/span q/span}
       =+  dan=^$(gen ruf, gol %noun)
-      =+  ^=  toc  :-  p=(core p.dan [%gold p.dan ~ [~ dom]])
-                   q=(core q.dan [%gold q.dan ~ [~ dom]])
+      =+  ^=  toc  :-  p=(core p.dan [%gold p.dan wan [~ dom]])
+                   q=(core q.dan [%gold q.dan wan [~ dom]])
       =+  (balk(sut p.toc, dox q.toc) dom)
-      :-  (nice (core p.dan mel p.dan ~ [[%0 0] dom]))
-      (core q.dan [mel q.dan ~ [[%0 0] dom]])
+      :-  (nice (core p.dan mel p.dan wan [[%0 0] dom]))
+      (core q.dan [mel q.dan wan [[%0 0] dom]])
     ::
     ++  bake
       |=  dab/(map term (pair wain foot))
@@ -7902,7 +7902,7 @@
     ^-  span
     ?-  gen
       {^ *}      (cell $(gen p.gen) $(gen q.gen))
-      {$corp *}  (core sut %gold sut [[%0 0] q.gen])
+      {$corp *}  (core sut %gold sut p.gen [[%0 0] q.gen])
       {$make *}  ~(play et p.gen q.gen)
       {$wish *}  $(gen [%bunt p.gen])
       {$bump *}  [%atom %$ ~]
