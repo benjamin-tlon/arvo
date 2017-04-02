@@ -5427,7 +5427,7 @@
     {$bush p/root q/root}                               ::  $^ pairhead fork
     {$pick p/(list root)}                               ::  $? untagged fork
     {$coat p/toga q/root}                               ::  $= name
-    {$grow p/twig}                                      ::  $/ assembly
+    {$grow p/twig}                                      ::  $; assembly
   ::                                            ::::::  cores
     {$door p/chap q/root r/(map @ tomb)}                ::  |_
     {$gasp p/chap q/root r/twig}                        ::  |:
@@ -9198,6 +9198,7 @@
                 ^.  stet  ^.  limo
                 :~  ['_' (runo cab %door [~ ~] expr)]
                     ['%' (runo cen %corp [~ ~] expe)]
+                    ['#' (runo hax %corp [~ ~] exper)]
                     [':' (runo col %gasp [~ ~] expb)]
                     ['.' (runo dot %trap [~ ~] expa)]
                     ['-' (runo hep %loop [~ ~] expa)]
@@ -9220,7 +9221,7 @@
                     ['-' (rune hep %lamb expb)]
                     ['=' (rune tis %coat expg)]
                     ['?' (rune wut %pick exps)]
-                    ['/' (rune wut %grow expa)]
+                    [';' (rune sem %grow expa)]
                 ==
               ==
             :-  '%'
@@ -9488,17 +9489,67 @@
         ==
       ==
     ::
+    ++  whap                                            ::  chapter
+      (more muck boog)
+    ::
+    ++  whup                                            ::  chapter
+      (most muck boog)
+    ++  wesp                                            ::  core tail
+      %+  sear
+        |=  a/(list (list (pair term (pair wain foot))))
+        ~&  %searing
+        =|  b/@
+        |-  ^-  (unit (map @ tomb))
+        ?~  a  [~ ~]
+        =/  c  $(a t.a, b +(b))
+        ?~  c  ~
+        =/  d
+          =|  e/(map term (pair wain foot))
+          |-  ^-  (unit (map term (pair wain foot)))
+          ?~  i.a  `e
+          ?:  ?|  (~(has by e) p.i.i.a)
+                  |-  ^-  ?
+                  ?:  =(0 b)  |
+                  =.  b  (dec b)
+                  |((~(has by q:(~(got by u.c) b)) p.i.i.a) $)
+              ==
+            ::  XX we don't have a good way to annotate
+            ::  postparse construction "syntax" errors
+            ::
+            ~&(duplicate-arm+p.i.i.a ~)
+          $(i.a t.i.a, e (~(put by e) p.i.i.a q.i.i.a))
+        ?~  d  ~
+        `(~(put by u.c) b [*wain u.d])
+      ;~(sfix ;~(plug whup (easy ~)) ;~(plug gap dun))
+    ::
     ++  wisp                                            ::  core tail
       %-  ulva
       %+  sear
-        |=  a/(list (pair term (pair wain foot)))
-        =|  b/(map term (pair wain foot))
+        |=  a/(list (list (pair term (pair wain foot))))
+        =|  {b/(map @ tomb) c/@}
         |-  ^-  (unit (map @ tomb))
-        ?~  a  `[[0 ~ b] ~ ~]
-        ?:  (~(has by b) p.i.a)
-          ~&(duplicate-arm+p.i.a ~)
-        $(a t.a, b (~(put by b) p.i.a q.i.a))
-      (most muck boog)
+        ?~  a  `b
+        =/  d
+          =|  e/(map term (pair wain foot))
+          |-  ^-  (unit (map term (pair wain foot)))
+          ?~  i.a  `e
+          ?:  ?|  (~(has by e) p.i.i.a)
+                  |-  ^-  ?
+                  ?:  =(0 c)  |
+                  =.  c  (dec c)
+                  |((~(has by q:(~(got by b) c)) p.i.i.a) $)
+              ==
+            ::  XX we don't have a good way to annotate
+            ::  postparse construction "syntax" errors
+            ::
+            ~&(duplicate-arm+p.i.i.a ~)
+          $(i.a t.i.a, e (~(put by e) p.i.i.a q.i.i.a))
+        ?~  d  ~
+        $(a t.a, b (~(put by b) c [*wain u.d]), c +(c))
+      ;~  pose
+        (most muck ;~(pfix ;~(plug lus bar gap) whap))
+        ;~(plug whap (easy ~))
+      ==
     ::
     ++  toad                                            ::  untrap parser exp
       |*  har/_expa
@@ -9580,6 +9631,7 @@
     ++  expc  |.(;~(gunk loaf loaf loaf))               ::  three twigs
     ++  expd  |.(;~(gunk loaf loaf loaf loaf))          ::  four twigs
     ++  expe  |.(wisp)                                  ::  core tail
+    ++  exper  |.(wesp)                                  ::  core tail
     ++  expf  |.(;~(gunk ;~(pfix cen sym) loaf))        ::  %term and twig
     ++  expg  |.(;~(gunk sym loaf))                     ::  term and twig
     ++  exph  |.((butt ;~(gunk rope rick)))             ::  wing, [tile twig]s
