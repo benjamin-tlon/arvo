@@ -5427,6 +5427,7 @@
     {$bush p/root q/root}                               ::  $^ pairhead fork
     {$pick p/(list root)}                               ::  $? untagged fork
     {$coat p/toga q/root}                               ::  $= name
+    {$grow p/twig}                                      ::  $/ assembly
   ::                                            ::::::  cores
     {$door p/chap q/root r/(map @ tomb)}                ::  |_
     {$gasp p/chap q/root r/twig}                        ::  |:
@@ -6255,6 +6256,7 @@
         {$coat *}  [%bark p.gen boil(gen q.gen)]
         {$pick *}  =+  (turn p.gen |=(a/twig boil(gen a)))
                    ?~(- [%axil %void] [%fern -])
+        {$grow *}  [%herb p.gen]
     ==
   ::
   ++  open
@@ -9187,7 +9189,7 @@
     ==
   ++  sump  (ifix [kel ker] (stag %conp (most ace wide)))
   ++  norm                                              ::  rune regular form
-    |=  tol/?
+    |=  {rut/? tol/?}
     =<  %-  stew
         ^.  stet  ^.  limo
         :~  :-  '|'
@@ -9218,6 +9220,7 @@
                     ['-' (rune hep %lamb expb)]
                     ['=' (rune tis %coat expg)]
                     ['?' (rune wut %pick exps)]
+                    ['/' (rune wut %grow expa)]
                 ==
               ==
             :-  '%'
@@ -9267,6 +9270,7 @@
                   (word %lamb expb)
                   (word %coat expg)
                   (word %pick exps)
+                  (word %grow expa)
                 ::
                   (word %keep exph)
                   (word %lace expb)
@@ -9531,7 +9535,8 @@
     ++  ulva  |*  zor/rule                              ::  closing -- and tall
               ?.(tol fail ;~(sfix zor ;~(plug gap dun)))
     ++  hank  (most muck loaf)                          ::  gapped twigs
-    ++  loaf  ?:(tol tall wide)                         ::  hoon, current width
+    ++  loaf  ?:(tol tall wide)                         ::  appropriate twig
+    ++  loan  ?:(tol till wyde)                         ::  appropriate 
     ++  mash  ?:(tol gap ;~(plug com ace))              ::  list separator
     ++  muck  ?:(tol gap ace)                           ::  general separator
     ++  teak  %+  knee  *tiki  |.  ~+                   ::  wing or twig
@@ -9594,6 +9599,11 @@
     ++  expv  |.((butt rick))                           ::  just changes
     ++  expw  |.(;~(gunk rope loaf loaf loaf))          ::  wing and three twigs
     ++  expz  |.(loaf(bug &))                           ::  twig with tracing
+    ::
+    ::    root contents
+    ::
+    ++  exqa  |.(loaf)                                  ::  one root
+
     ::
     ::    tiki expansion for %wt runes
     ::
@@ -9747,7 +9757,31 @@
       [%help a b]
     ;~  plug
       (star (ifix [;~(plug col gar) (punt gap)] epic))
-      ;~(pose (norm &) long lute ape:(sail &))
+      ;~(pose (norm | &) long lute ape:(sail &))
+      ::
+      ::  XX performance: this makes the parser about 50% slower.
+      ::  because we double-parse most of the spaces in the file.
+      ::  just so we can do a postfix doc-comment.
+      ::  
+      ::  the correct solution to this problem is to unify the
+      ::  parsing of docs with the parsing of comments/spaces.
+      ::  but at this point we're pretty much in parser rewrite.
+      ::
+      ::  it should go without saying that ++vast needs a rewrite.
+      ::  it dates to 2011.
+      ::
+      (punt ;~(pfix ;~(plug (star ace) col gal) epic))
+    ==
+  ++  wock
+    %+  cook
+      |=  {a/wain b/twig c/(unit cord)}
+      ^-  twig
+      =.  a  ?~(c a [u.c a])
+      ?~  a  b
+      [%help a b]
+    ;~  plug
+      (star (ifix [;~(plug col gar) (punt gap)] epic))
+      ;~(pose (norm & &) long lute ape:(sail &))
       ::
       ::  XX performance: this makes the parser about 50% slower.
       ::  because we double-parse most of the spaces in the file.
@@ -9764,8 +9798,12 @@
     ==
   ++  tall  %+  knee  *twig                             ::  full tall form
             |.(~+((wart wack)))
+  ++  till  %+  knee  *root                             ::  full tall form
+            |.(~+((wart wack)))
   ++  wide  %+  knee  *twig                             ::  full wide form
-            |.(~+((wart ;~(pose (norm |) long ape:(sail |)))))
+            |.(~+((wart ;~(pose (norm | |) long ape:(sail |)))))
+  ++  wyde  %+  knee  *root                             ::  full wide form
+            |.(~+((wart ;~(pose (norm & |) long ape:(sail |)))))
   ++  wart
     |*  zor/rule
     %+  here
