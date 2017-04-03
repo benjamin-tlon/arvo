@@ -178,8 +178,7 @@
 ++  pole  |*(a/mold $@($~ {a (pole a)}))                ::  faceless list
 ++  qual  |*  {a/mold b/mold c/mold d/mold}             ::  4-tuple
           {p/a q/b r/c s/d}                             ::
-++  quid  |*({a/mold b/*} {a _b})                       ::  mixed for sip
-++  quip  |*({a/mold b/*} {(list a) _b})                ::  list-mixed for sip
+++  quip  |*({a/mold b/mold} {(list a) b})              ::  list-with for sip
 ++  trap  |*(a/mold _|?(*a))                            ::  producer
 ++  tree  |*(a/mold $@($~ {n/a l/(tree a) r/(tree a)})) ::  binary tree
 ++  trel  |*({a/mold b/mold c/mold} {p/a q/b r/c})      ::  3-tuple
@@ -462,7 +461,7 @@
 ::
 ++  sort   !.                                           ::  quicksort
   ~/  %sort
-  |*  {a/(list) b/$-([* *] ?)}
+  |*  {a/(list) b/$-({* *} ?)}
   =>  .(a ^.(homo a))
   |-  ^+  a
   ?~  a  ~
@@ -5430,7 +5429,7 @@
     {$grow p/twig}                                      ::  $; assembly
   ::                                            ::::::  cores
     {$door p/chap q/root r/(map @ tomb)}                ::  |_
-    {$gasp p/chap q/root r/twig}                        ::  |:
+    {$gasp p/chap q/twig r/twig}                        ::  |:
     {$corp p/chap q/(map @ tomb)}                       ::  |%
     {$trap p/chap q/twig}                               ::  |.
     {$cork p/chap q/twig r/(map @ tomb)}                ::  |^
@@ -5505,13 +5504,13 @@
     {$use p/twig q/twig}                                ::  =,  overload p in q
   ::                                            ::::::  conditionals
     {$or p/(list twig)}                                 ::  ?|  loobean or
-    {$case p/wing q/(list (pair twig twig))}            ::  ?-  pick case in q
+    {$case p/wing q/(list (pair root twig))}            ::  ?-  pick case in q
     {$if p/twig q/twig r/twig}                          ::  ?:  if/then/else
     {$lest p/twig q/twig r/twig}                        ::  ?.  ?:(p r q)
     {$ifcl p/wing q/twig r/twig}                        ::  ?^  if p is a cell
     {$deny p/twig q/twig}                               ::  ?<  ?:(p !! q)
     {$sure p/twig q/twig}                               ::  ?>  ?:(p q !!)
-    {$deft p/wing q/twig r/(list (pair twig twig))}     ::  ?+  ?-  w/default
+    {$deft p/wing q/twig r/(list (pair root twig))}     ::  ?+  ?-  w/default
     {$and p/(list twig)}                                ::  ?&  loobean and
     {$ifat p/wing q/twig r/twig}                        ::  ?@  if p is atom
     {$ifno p/wing q/twig r/twig}                        ::  ?~  if p is null
@@ -5878,13 +5877,13 @@
       $|  [[%& 2] ~]
     ==
   ::
-  ++  wthp  |=  opt/(list (pair twig twig))
+  ++  wthp  |=  opt/(list (pair root twig))
             %+  gray  %case
-            [puce (turn opt |=({a/twig b/twig} [a (blue b)]))]
+            [puce (turn opt |=({a/root b/twig} [a (blue b)]))]
   ++  wtkt  |=({sic/twig non/twig} (gray [%ifcl puce (blue sic) (blue non)]))
-  ++  wtls  |=  {gen/twig opt/(list (pair twig twig))}
+  ++  wtls  |=  {gen/twig opt/(list (pair root twig))}
             %+  gray  %deft
-            [puce (blue gen) (turn opt |=({a/twig b/twig} [a (blue b)]))]
+            [puce (blue gen) (turn opt |=({a/root b/twig} [a (blue b)]))]
   ++  wtpt  |=({sic/twig non/twig} (gray [%ifat puce (blue sic) (blue non)]))
   ++  wtsg  |=({sic/twig non/twig} (gray [%ifno puce (blue sic) (blue non)]))
   ++  wtts  |=(gen/twig (gray [%fits (blue gen) puce]))
@@ -9023,6 +9022,18 @@
           ==
           (stag %grow rump)
         ==
+      :-  '%'
+        ;~  pose
+          ;~  pfix  buc
+            ;~  pose
+              (stag %leaf (stag %tas (cold %$ buc)))
+              (stag %leaf (stag %f (cold & pam)))
+              (stag %leaf (stag %f (cold | bar)))
+              (stag %leaf (stag %t qut))
+              (stag %leaf (sear |=(a/coin ?:(?=($$ -.a) (some +.a) ~)) nuck:so))
+            ==
+          ==
+        ==
       :-  '('
         %+  stag  %grow
         %+  stag  %call
@@ -9044,6 +9055,8 @@
           scab
           (cold [%base %cell] ket)
         ==
+      :-  '.'
+        scab
       :-  ['a' 'z']
         ;~  pose
           (stag %coat ;~(plug sym ;~(pfix fas wyde)))
@@ -9281,14 +9294,14 @@
               ;~  pfix  bar
                 %-  stew
                 ^.  stet  ^.  limo
-                :~  ['_' (runo cab %door [~ ~] expr)]
+                :~  ['_' (runo cab %door [~ ~] exqr)]
                     ['%' (runo cen %corp [~ ~] expe)]
                     [':' (runo col %gasp [~ ~] expb)]
                     ['.' (runo dot %trap [~ ~] expa)]
                     ['-' (runo hep %loop [~ ~] expa)]
                     ['^' (runo ket %cork [~ ~] expr)]
                     ['~' (runo sig %port [~ ~] expb)]
-                    ['*' (runo tar %gill [~ ~] expb)]
+                    ['*' (runo tar %gill [~ ~] exqc)]
                     ['=' (runo tis %gate [~ ~] exqc)]
                     ['?' (runo wut %tray [~ ~] expa)]
                 ==
@@ -9378,8 +9391,7 @@
                   (word %nock expb)
                   (word %same expb)
                   (word %deep expa)
-                  (word %wish expn)
-                  (word %wish expn)
+                  (word %wish exqn)
                 ::
                   (word %iron expa)
                   (word %ward expb)
@@ -9453,7 +9465,7 @@
                     ['*' (rune tar %nock expb)]
                     ['=' (rune tis %same expb)]
                     ['?' (rune wut %deep expa)]
-                    ['^' (rune ket %wish expn)]
+                    ['^' (rune ket %wish exqn)]
                 ==
               ==
             :-  '^'
@@ -9462,7 +9474,7 @@
                 ^.  stet  ^.  limo
                 :~  ['|' (rune bar %iron expa)]
                     ['.' (rune dot %ward expb)]
-                    ['-' (rune hep %cast expb)]
+                    ['-' (rune hep %cast exqc)]
                     ['+' (rune lus %like expb)]
                     ['&' (rune pam %zinc expa)]
                     ['~' (rune sig %burn expa)]
@@ -9502,7 +9514,7 @@
               ;~  pfix  tis
                 %-  stew
                 ^.  stet  ^.  limo
-                :~  ['|' (rune bar %new expb)]
+                :~  ['|' (rune bar %new exqc)]
                     ['.' (rune dot %set expq)]
                     ['?' (rune wut %huh expw)]
                     ['^' (rune ket %sip expt)]
@@ -9692,6 +9704,7 @@
                 (stag %| (stag ~ tall))
               ==
     ++  rack  (most mash ;~(gunk loaf loaf))            ::  list [twig twig]
+    ++  ruck  (most mash ;~(gunk loan loaf))            ::  list [root twig]
     ++  rick  (most mash ;~(gunk rope loaf))            ::  list [wing twig]
     ::
     ::    twig contents
@@ -9709,7 +9722,6 @@
     ++  expk  |.(;~(gunk loaf ;~(plug loaf (easy ~))))  ::  list of two twigs
     ++  expl  |.(;~(gunk sym loaf loaf))                ::  term, two twigs
     ++  expm  |.((butt ;~(gunk rope loaf rick)))        ::  several [tile twig]s
-    ++  expn  |.(;~(gunk loaf (stag %conp (butt hank))))::  autoconsed twigs
     ++  expo  |.(;~(gunk wise loaf loaf))               ::  =;
     ++  expp  |.(;~(gunk (butt rick) loaf))             ::  [wing twig]s, twig
     ++  expq  |.(;~(gunk rope loaf loaf))               ::  wing and two twigs
@@ -9729,6 +9741,7 @@
     ++  exqg  |.(;~(gunk sym loan))                     ::  term and root
     ++  exqk  |.(;~(gunk loaf ;~(plug loan (easy ~))))  ::  twig with one root
     ++  exqr  |.(;~(gunk loan wisp))                    ::  root and core tail
+    ++  exqn  |.(;~(gunk loan (stag %conp (butt hank))))::  autoconsed twigs
     ++  exqw  |.(;~(gunk loaf loan))                    ::  twig and root
     ++  exqx  |.(;~(gunk loaf loan loan))               ::  twig, two roots
     ++  exqy  |.(;~(gunk loaf loan loan loan))          ::  twig, three roots
@@ -9736,24 +9749,24 @@
     ::
     ::    tiki expansion for %wt runes
     ::
-    ++  tkhp  |.  %+  cook  |=  {a/tiki b/(list (pair twig twig))}
+    ++  tkhp  |.  %+  cook  |=  {a/tiki b/(list (pair root twig))}
                             (~(wthp ah a) b)
-                  (butt ;~(gunk teak rack))
+                  (butt ;~(gunk teak ruck))
     ++  tkkt  |.  %+  cook  |=  {a/tiki b/twig c/twig}
                             (~(wtkt ah a) b c)
                   ;~(gunk teak loaf loaf)
-    ++  tkls  |.  %+  cook  |=  {a/tiki b/twig c/(list (pair twig twig))}
+    ++  tkls  |.  %+  cook  |=  {a/tiki b/twig c/(list (pair root twig))}
                             (~(wtls ah a) b c)
-                  (butt ;~(gunk teak loaf rack))
+                  (butt ;~(gunk teak loaf ruck))
     ++  tkpt  |.  %+  cook  |=  {a/tiki b/twig c/twig}
                             (~(wtpt ah a) b c)
                   ;~(gunk teak loaf loaf)
     ++  tksg  |.  %+  cook  |=  {a/tiki b/twig c/twig}
                             (~(wtsg ah a) b c)
                   ;~(gunk teak loaf loaf)
-    ++  tkts  |.  %+  cook  |=  {a/twig b/tiki}
+    ++  tkts  |.  %+  cook  |=  {a/root b/tiki}
                             (~(wtts ah b) a)
-                  ;~(gunk loaf teak)
+                  ;~(gunk loan teak)
     ::
     ::    hint syntax
     ::
@@ -9876,7 +9889,7 @@
       ==
     ==
   ::
-  ++  wise  ;~(plug sym (punt ;~(pfix fas wide)))
+  ++  wise  ;~(plug sym (punt ;~(pfix fas wyde)))
   ++  wack
     %+  cook
       |=  {a/wain b/twig c/(unit cord)}

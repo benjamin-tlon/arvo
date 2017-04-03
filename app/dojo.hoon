@@ -1120,7 +1120,7 @@
   =-  [wrap=- +]
   |*  he-arm/_he-span
   |=  _+<.he-arm  
-  ^-  (quip move ..he)
+  ^-  (quip move _..he)
   he-abet:(he-arm +<)
 ::
 ++  peer-sole
@@ -1154,7 +1154,7 @@
 ++  unto       (wrap he-unto):arm
 ++  pull
   |=  {pax/path}
-  ^-  (quip move +>)
+  ^-  (quip move _+>)
   =^  moz  +>  ~(he-abut he ~ (~(got by hoc) ost.hid))
   [moz +>.$(hoc (~(del by hoc) ost.hid))]
 --

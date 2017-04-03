@@ -4119,8 +4119,9 @@
     ::  (raid /ack/~sarnel+.y p=%tas q=%p r=%f ~)
     ::
     =-  |*  {a/path b/{@tas (pole @tas)}}
-        ?~  +.b  `(odo -.b)`(slav -.b -.a)
-        [`(odo -.b)`(slav -.b -.a) (..$ +.a +.b)]
+        =*  fog  (odo -.b)
+        ?~  +.b  `fog`(slav -.b -.a)
+        [`fog`(slav -.b -.a) (..$ +.a +.b)]
     ^=  odo
     |*  a/@tas
     |=  b/*
@@ -4137,10 +4138,11 @@
     |=  a/path
     ?~  a  ~
     =+  hed=(slaw -.b i.a)
+    =*  fog  (odo:raid -.b)
     ?~  +.b
-      ^-  (unit (odo:raid -.b))
+      ^-  (unit fog)
       ?^(+.a ~ hed)
-    ^-  (unit {(odo:raid -.b) _(need *(..^$ +.b))})
+    ^-  (unit {fog _(need *(..^$ +.b))})
     (both hed ((..^$ +.b) +.a))
   --  ::wired
 ::                                                      ::
