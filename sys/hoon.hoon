@@ -1,4 +1,4 @@
-!:                                                      ::
+::                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
 ~>  %slog.[0 leaf+"hoon-assembly"]
@@ -6317,6 +6317,7 @@
         {$pick *}  ~(clam al boil)
         {$coat *}  ~(clam al boil)
         {$halo *}  ~(clam al boil)
+        {$grow *}  p.gen
     ::
         {$door *}  [%pin [%bunt q.gen] [%corp p.gen r.gen]]
         {$gasp *}  [%pin [%burn q.gen] [%trap p.gen r.gen]]
@@ -9026,7 +9027,7 @@
         %+  stag  %grow
         %+  stag  %call
         %+  ifix  [pel per]
-        ;~(plug wide ;~(pfix ace (most ace wyde)))
+        ;~(plug wide ;~(pose ;~(pfix ace (most ace wyde)) (easy ~)))
       :-  '{'
         (stag %bank (ifix [kel ker] (most ace wyde)))
       :-  '*'
@@ -9045,8 +9046,8 @@
         ==
       :-  ['a' 'z']
         ;~  pose
+          (stag %coat ;~(plug sym ;~(pfix fas wyde)))
           scab
-          (stag %name ;~(plug sym ;~(pfix fas wyde)))
         ==
     ==
   ::
@@ -9254,15 +9255,25 @@
                   ^.  stet  ^.  limo
                   :~  ['@' (rune pat %claw exqb)]
                       ['_' (rune cab %shoe expa)]
-                      [':' (rune col %bank exps)]
-                      ['%' (rune cen %book exps)]
-                      ['^' (rune ket %bush expb)]
-                      ['-' (rune hep %lamb expb)]
-                      ['=' (rune tis %coat expg)]
-                      ['?' (rune wut %pick exps)]
+                      [':' (rune col %bank exqs)]
+                      ['%' (rune cen %book exqs)]
+                      ['^' (rune ket %bush exqb)]
+                      ['-' (rune hep %lamb exqb)]
+                      ['=' (rune tis %coat exqg)]
+                      ['?' (rune wut %pick exqs)]
                       [';' (rune sem %grow expa)]
                   ==
                 ==
+            :-  '%'
+              ;~  pfix  cen
+                %-  stew
+                ^.  stet  ^.  limo
+                :~  ['^' (rune ket %calq exqy)]
+                    ['+' (rune lus %calt exqx)]
+                    ['-' (rune hep %call exqk)]
+                    [':' (rune col %call exqz)]
+                ==
+              ==
           ==
         %-  stew
         ^.  stet  ^.  limo
@@ -9278,7 +9289,7 @@
                     ['^' (runo ket %cork [~ ~] expr)]
                     ['~' (runo sig %port [~ ~] expb)]
                     ['*' (runo tar %gill [~ ~] expb)]
-                    ['=' (runo tis %gate [~ ~] expb)]
+                    ['=' (runo tis %gate [~ ~] exqc)]
                     ['?' (runo wut %tray [~ ~] expa)]
                 ==
               ==
@@ -9306,6 +9317,7 @@
                     ['^' (rune ket %calq expd)]
                     ['+' (rune lus %calt expc)]
                     ['-' (rune hep %call expk)]
+                    [':' (rune col %call expi)]
                     ['~' (rune sig %open expu)]
                     ['*' (rune tar %bake expm)]
                     ['=' (rune tis %make exph)]
@@ -9559,6 +9571,14 @@
             ;~(pose (cold %$ buc) sym)
             loaf
           ==
+        ::
+          %+  cook
+            |=({a/$ash b/term c/root} [b *wain a c])
+          ;~  gunk
+            (cold %ash (just '='))
+            sym
+            loan
+          ==
         ==
       ==
     ::
@@ -9704,8 +9724,11 @@
     ::    root contents
     ::
     ++  exqb  |.(;~(gunk loan loan))                    ::  two roots
+    ++  exqc  |.(;~(gunk loan loaf))                    ::  root then twig
     ++  exqs  |.((butt hunk))                           ::  closed gapped roots
     ++  exqg  |.(;~(gunk sym loan))                     ::  term and root
+    ++  exqk  |.(;~(gunk loaf ;~(plug loan (easy ~))))  ::  twig with one root
+    ++  exqr  |.(;~(gunk loan wisp))                    ::  root and core tail
     ++  exqw  |.(;~(gunk loaf loan))                    ::  twig and root
     ++  exqx  |.(;~(gunk loaf loan loan))               ::  twig, two roots
     ++  exqy  |.(;~(gunk loaf loan loan loan))          ::  twig, three roots
@@ -9887,7 +9910,7 @@
       [%help a b]
     ;~  plug
       (star (ifix [;~(plug col gar) (punt gap)] epic))
-      ;~(pose (norm & &) long lute ape:(sail &))
+      ;~(pose (norm & &) scad)
       ::
       ::  XX performance: this makes the parser about 50% slower.
       ::  because we double-parse most of the spaces in the file.
@@ -9905,7 +9928,7 @@
   ++  tall  %+  knee  *twig                             ::  full tall form
             |.(~+((wart wack)))
   ++  till  %+  knee  *root                             ::  full tall form
-            |.(~+((wart wack)))
+            |.(~+((wart wock)))
   ++  wide  %+  knee  *twig                             ::  full wide form
             |.(~+((wart ;~(pose (norm | |) long ape:(sail |)))))
   ++  wyde  %+  knee  *root                             ::  full wide form

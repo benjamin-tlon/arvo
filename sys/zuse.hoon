@@ -644,6 +644,7 @@
   ++  purf  (pair purl (unit @t))                       ::  url with fragment
   ++  purl  {p/hart q/pork r/quay}                      ::  parsed url
   ++  quay  (list {p/@t q/@t})                          ::  parsed url query
+  ++  quer  |-($@($~ {p/@t q/@t t/$}))                  ::  query tree
   ++  quri                                              ::  request-uri
     $%  {$& p/purl}                                     ::  absolute
         {$| p/pork q/quay}                              ::  relative
@@ -4086,7 +4087,7 @@
   ::  MOVEME
   ::                                                    ::  ++fuel:html
   ++  fuel                                              ::  parse urbit fcgi
-      |=  {bem/beam ced/noun:cred quy/|-($@($~ {p/@t q/@t t/$}))}
+      |=  {bem/beam ced/noun:cred quy/quer}
       ^-  epic
       =+  qix=|-(`quay`?~(quy quy [[p q]:quy $(quy t.quy)]))
       [(malt qix) ((hard cred) ced) bem /]
