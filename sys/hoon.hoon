@@ -8604,18 +8604,6 @@
 ++  vast
   =+  [bug=`?`| wer=*path]
   |%
-  ++  dqut                                              ::  irregular docstring
-    =+  dsoz=;~(plug soq soq soq col)
-    =+  nl=(just '\0a')
-    =+  end=;~(pose dsoz ;~(plug nl dsoz))
-    ::  separator between lines: not nl''':, but just a newline.
-    =*  mid  ;~(less end nl)
-    ::  printable characters which aren't an newline or an unquoted ''':
-    =*  dqat  ;~(less ;~(pose nl dsoz) ;~(pose ;~(pfix bas soq) prn))
-    %-  iny  %+  ifix
-      :-  ;~(pose ;~(plug dsoz nl) dsoz)
-      end
-    (more mid (boss 256 (star dqat)))
   ::
   ++  gash  %+  cook
               |=  a/(list tyke)  ^-  tyke
@@ -9041,6 +9029,8 @@
         ;~(plug wide ;~(pose ;~(pfix ace (most ace wyde)) (easy ~)))
       :-  '{'
         (stag %bank (ifix [kel ker] (most ace wyde)))
+      :-  '['
+        (stag %bank (ifix [sel ser] (most ace wyde)))
       :-  '*'
         (cold [%base %noun] tar)
       :-  '@'
@@ -9059,7 +9049,7 @@
         scab
       :-  ['a' 'z']
         ;~  pose
-          (stag %coat ;~(plug sym ;~(pfix fas wyde)))
+          (stag %coat ;~(plug sym ;~(pfix ;~(pose fas tis) wyde)))
           scab
         ==
     ==
@@ -9889,7 +9879,7 @@
       ==
     ==
   ::
-  ++  wise  ;~(plug sym (punt ;~(pfix fas wyde)))
+  ++  wise  ;~(plug sym (punt ;~(pfix ;~(pose fas tis) wyde)))
   ++  wack
     %+  cook
       |=  {a/wain b/twig c/(unit cord)}
