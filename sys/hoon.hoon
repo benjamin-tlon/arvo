@@ -1,4 +1,4 @@
-::                                                      ::
+!:                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
 ~>  %slog.[0 leaf+"hoon-assembly"]
@@ -5374,7 +5374,7 @@
               {$bush p/tile q/tile}                     ::  pair+tag
               {$deet p/spot q/tile}                     ::  set debug
               {$fern p/{i/tile t/(list tile)}}          ::  plain selection
-              {$herb p/twig}                            ::  gate
+              {$herb p/twig}                            ::  assembly
               {$kelp p/{i/line t/(list line)}}          ::  tag selection
               {$leaf p/term q/@}                        ::  constant atom
               {$plow p/wain q/tile}                     ::  apply help
@@ -8994,6 +8994,61 @@
         $f  $(lut (weld p.i.lut t.lut))
       ==
     --
+  ++  scab
+    %+  cook
+      |=  a/(list wing)  ^-  twig
+      :-  %grow
+      |-  ^-  twig
+      ?~(a !! ?~(t.a [%wing i.a] [%rap [%wing i.a] $(a t.a)]))
+    (most col rope)
+  ::
+  ++  scad  !:
+    %+  knee  *root  |.  ~+
+    %-  stew
+    ^.  stet  ^.  limo
+    :~
+      :-  '_'
+        ;~(pfix cab (stag %shoe wide))
+      :-  '$'
+        ;~  pose
+          ;~  pfix  buc
+            ;~  pose
+              (stag %leaf (stag %tas (cold %$ buc)))
+              (stag %leaf (stag %f (cold & pam)))
+              (stag %leaf (stag %f (cold | bar)))
+              (stag %leaf (stag %t qut))
+              (stag %leaf (sear |=(a/coin ?:(?=($$ -.a) (some +.a) ~)) nuck:so))
+            ==
+          ==
+          (stag %grow rump)
+        ==
+      :-  '('
+        %+  stag  %grow
+        %+  stag  %call
+        %+  ifix  [pel per]
+        ;~(plug wide ;~(pfix ace (most ace wyde)))
+      :-  '{'
+        (stag %bank (ifix [kel ker] (most ace wyde)))
+      :-  '*'
+        (cold [%base %noun] tar)
+      :-  '@'
+        ;~(pfix pat (stag %base (stag %atom mota)))
+      :-  '?'
+        ;~  pose
+          (stag %pick ;~(pfix wut (ifix [pel per] (most ace wyde))))
+          (cold [%base %bean] wut)
+        ==
+      :-  '^'
+        ;~  pose
+          scab
+          (cold [%base %cell] ket)
+        ==
+      :-  ['a' 'z']
+        ;~  pose
+          scab
+          (stag %name ;~(plug sym ;~(pfix fas wyde)))
+        ==
+    ==
   ::
   ++  scat  !:
     %+  knee  *twig  |.  ~+
@@ -9190,7 +9245,26 @@
   ++  sump  (ifix [kel ker] (stag %conp (most ace wide)))
   ++  norm                                              ::  rune regular form
     |=  {rut/? tol/?}
-    =<  %-  stew
+    =<  ?:  rut
+          %-  stew
+          ^.  stet  ^.  limo
+          :~  :-  '$'
+                ;~  pfix  buc
+                  %-  stew
+                  ^.  stet  ^.  limo
+                  :~  ['@' (rune pat %claw exqb)]
+                      ['_' (rune cab %shoe expa)]
+                      [':' (rune col %bank exps)]
+                      ['%' (rune cen %book exps)]
+                      ['^' (rune ket %bush expb)]
+                      ['-' (rune hep %lamb expb)]
+                      ['=' (rune tis %coat expg)]
+                      ['?' (rune wut %pick exps)]
+                      [';' (rune sem %grow expa)]
+                  ==
+                ==
+          ==
+        %-  stew
         ^.  stet  ^.  limo
         :~  :-  '|'
               ;~  pfix  bar
@@ -9561,8 +9635,9 @@
     ++  ulva  |*  zor/rule                              ::  closing -- and tall
               ?.(tol fail ;~(sfix zor ;~(plug gap dun)))
     ++  hank  (most muck loaf)                          ::  gapped twigs
-    ++  loaf  ?:(tol tall wide)                         ::  appropriate twig
-    ++  loan  ?:(tol till wyde)                         ::  appropriate 
+    ++  hunk  (most muck loan)                          ::  gapped roots
+    ++  loaf  ?:(tol tall wide)                         ::  tall/wide twig
+    ++  loan  ?:(tol till wyde)                         ::  tall/wide root
     ++  mash  ?:(tol gap ;~(plug com ace))              ::  list separator
     ++  muck  ?:(tol gap ace)                           ::  general separator
     ++  teak  %+  knee  *tiki  |.  ~+                   ::  wing or twig
@@ -9599,7 +9674,7 @@
     ++  rack  (most mash ;~(gunk loaf loaf))            ::  list [twig twig]
     ++  rick  (most mash ;~(gunk rope loaf))            ::  list [wing twig]
     ::
-    ::    rune contents
+    ::    twig contents
     ::
     ++  expa  |.(loaf)                                  ::  one twig
     ++  expb  |.(;~(gunk loaf loaf))                    ::  two twigs
@@ -9628,8 +9703,13 @@
     ::
     ::    root contents
     ::
-    ++  exqa  |.(loaf)                                  ::  one root
-
+    ++  exqb  |.(;~(gunk loan loan))                    ::  two roots
+    ++  exqs  |.((butt hunk))                           ::  closed gapped roots
+    ++  exqg  |.(;~(gunk sym loan))                     ::  term and root
+    ++  exqw  |.(;~(gunk loaf loan))                    ::  twig and root
+    ++  exqx  |.(;~(gunk loaf loan loan))               ::  twig, two roots
+    ++  exqy  |.(;~(gunk loaf loan loan loan))          ::  twig, three roots
+    ++  exqz  |.(;~(gunk loaf (butt hunk)))             ::  twig, n roots
     ::
     ::    tiki expansion for %wt runes
     ::
@@ -9701,7 +9781,7 @@
     --
   ::
   ++  lang                                              ::  lung sample
-    $:  ros/twig                                        ::  XX translation
+    $:  ros/twig
         $=  vil
         $%  {$tis p/twig}
             {$col p/twig}
@@ -9829,7 +9909,7 @@
   ++  wide  %+  knee  *twig                             ::  full wide form
             |.(~+((wart ;~(pose (norm | |) long ape:(sail |)))))
   ++  wyde  %+  knee  *root                             ::  full wide form
-            |.(~+((wart ;~(pose (norm & |) long ape:(sail |)))))
+            |.(~+((wart ;~(pose (norm & |) scad))))
   ++  wart
     |*  zor/rule
     %+  here
