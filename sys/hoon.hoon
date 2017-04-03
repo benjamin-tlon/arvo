@@ -9012,7 +9012,7 @@
         ==
       :-  '%'
         ;~  pose
-          ;~  pfix  buc
+          ;~  pfix  cen
             ;~  pose
               (stag %leaf (stag %tas (cold %$ buc)))
               (stag %leaf (stag %f (cold & pam)))

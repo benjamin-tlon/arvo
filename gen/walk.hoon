@@ -1,8 +1,3 @@
-::  "Hello world" sample generator
-::
-::::  /hoon/hello/gen
-  ::
-/?    310
 ::
 ::::
   ::
@@ -147,6 +142,8 @@
         $bush  (lead -.gen %.(+.gen dubs))
         $pick  (lead -.gen %.(+.gen moar))
         $coat  (lead -.gen %.(+.gen nexp))
+        $grow  (lead -.gen %.(+.gen expr))
+        $door  (lead -.gen %.(+.gen (trio noop expr arms)))
         $door  (lead -.gen %.(+.gen (trio noop expr arms)))
         $gasp  (lead -.gen %.(+.gen (twin noop dubs)))
         $corp  (lead -.gen %.(+.gen (twin noop arms)))
