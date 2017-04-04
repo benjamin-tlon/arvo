@@ -6322,7 +6322,7 @@
         {$door *}  [%pin [%bunt q.gen] [%corp p.gen r.gen]]
         {$gasp *}  [%pin [%burn q.gen] [%trap p.gen r.gen]]
         {$trap *}  :+  %corp  p.gen
-                   =-  [[0 ~ -] ~ ~]
+                   =-  [[0 [~ ~] -] ~ ~]
                    (~(put by *(map term (pair what foot))) %$ ~ [%ash q.gen])
         {$cork *}  :+  %per 
                       :+  %corp  p.gen
@@ -6334,10 +6334,10 @@
         {$port *}  [%iron [%gate p.gen q.gen r.gen]]
         {$gill *}  :+  %pin  [%bunt q.gen]
                    :+  %corp  p.gen
-                   =-  [[0 ~ -] ~ ~]
+                   =-  [[0 [~ ~] -] ~ ~]
                    (~(put by *(map term (pair what foot))) %$ ~ [%elm r.gen])
         {$gate *}  :^  %door  p.gen  q.gen 
-                   =-  [[0 ~ -] ~ ~]
+                   =-  [[0 [~ ~] -] ~ ~]
                    (~(put by *(map term (pair what foot))) %$ ~ [%ash r.gen])
         {$tray *}  [%lead %trap p.gen q.gen]
     ::
