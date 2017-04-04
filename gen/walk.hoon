@@ -12,10 +12,14 @@
     ~&  %test-parsing
     =+  compiler-twig=(ream compiler-source)
     ~&  %test-walking
-    =+  foo=~(test ap compiler-twig)
-    ~&  %walk-tested
-    ::  =+  gen=`twig`!,(*twig %hello)
-    foo
+    ~(test ap compiler-twig)
+=<  |%
+    ++  come                                            ::  parsed docline
+      $%  {$blank $~}
+          {$var p/term q/
+    ++  post                                            ::  print state
+    
+    --
 |%
 ::
 ++  ap                                                  ::  twig engine

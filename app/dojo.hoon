@@ -543,7 +543,7 @@
       |-  ^-  $?  $%  {$atom @tas (unit @)}
                       {$cell _$ _$}
                       {$cube * _$}
-                      {$face {wain $@(term tune)} _$}
+                      {$face {what $@(term tune)} _$}
                       {$fork (set _$)}
                       {$hold _$ twig}
                   ==

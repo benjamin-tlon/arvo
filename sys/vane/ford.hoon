@@ -1749,12 +1749,12 @@
             (flux |=(sel/_..wilt sel(boy [[%tow boy.sel] boy])))
           =+  [all=(lark (slat %tas) arc) sel=..wilt]
           %+  cope
-            |-  ^-  (bolt (pair (map term (pair wain foot)) _..wilt))
+            |-  ^-  (bolt (pair (map term (pair what foot)) _..wilt))
             ?~  all  (fine cof ~ ..wilt)
             %+  cope  $(all l.all)
-            |=  {cof/cafe lef/(map term (pair wain foot)) sel/_..wilt}
+            |=  {cof/cafe lef/(map term (pair what foot)) sel/_..wilt}
             %+  cope  ^$(all r.all, cof cof, sel sel)
-            |=  {cof/cafe rig/(map term (pair wain foot)) sel/_..wilt}
+            |=  {cof/cafe rig/(map term (pair what foot)) sel/_..wilt}
             %+  cope
               %=    ^^^^$
                   cof      cof
@@ -1764,9 +1764,9 @@
             |=  {cof/cafe sel/_..wilt}
             %+  fine  cof
             :_  sel
-            ^-  (map term (pair wain foot))
+            ^-  (map term (pair what foot))
             [[p.n.all [~ %ash [%tow boy.sel]]] lef rig]
-          |=  {cof/cafe mav/(map term (pair wain foot)) sel/_..wilt}
+          |=  {cof/cafe mav/(map term (pair what foot)) sel/_..wilt}
           ?~  mav
             (flaw cof [%leaf "source missing: {<(en-beam p.hop)>}"]~)
           (fine cof sel(boy [[%corp [~ ~] [[0 ~ mav] ~ ~]] boy]))

@@ -1,4 +1,4 @@
-::                                                      ::
+!:                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
 ~>  %slog.[0 leaf+"hoon-assembly"]
@@ -5332,7 +5332,7 @@
               {$d p/twig}                               ::  take $-(marl marl)
               {$e p/twig q/(list tuna)}                 ::  element literal
           ==                                            ::
-++  chap  (pair (list term) wain)                       ::
+++  chap  (pair (list term) what)                       ::  labeled help
 ++  chum  $?  lef/term                                  ::  jet name
               {std/term kel/@}                          ::  kelvin version
               {ven/term pro/term kel/@}                 ::  vendor and product
@@ -5376,17 +5376,17 @@
               {$herb p/twig}                            ::  assembly
               {$kelp p/{i/line t/(list line)}}          ::  tag selection
               {$leaf p/term q/@}                        ::  constant atom
-              {$plow p/wain q/tile}                     ::  apply help
+              {$plow p/what q/tile}                     ::  apply help
               {$reed p/tile q/tile}                     ::  atom+cell
               {$weed p/twig}                            ::  example
           ==                                            ::
 ++  toga                                                ::  face control
           $@  p/term                                    ::  two togas
           $%  {$0 $~}                                   ::  no toga
-              {$1 p/(pair wain term) q/toga}            ::  deep toga
+              {$1 p/(pair what term) q/toga}            ::  deep toga
               {$2 p/toga q/toga}                        ::  cell toga
           ==                                            ::
-++  tomb  (pair wain (map term (pair wain foot)))       ::  core chapter
+++  tomb  (pair chap (map term (pair what foot)))       ::  core chapter
 ++  tuna                                                ::  tagflow
           $%  {$a p/twig}                               ::  plain text
               {$b p/twig}                               ::  single tag
@@ -5405,8 +5405,8 @@
     {$bust p/base}                                      ::  bunt base
     {$dbug p/spot q/twig}                               ::  debug info in trace
     {$hand p/span q/nock}                               ::  premade result
-    {$help p/wain q/twig}                               ::  annotate image
-    {$halo p/wain q/root}                               ::  annotate model
+    {$help p/what q/twig}                               ::  annotate image
+    {$halo p/what q/root}                               ::  annotate model
     {$knit p/(list woof)}                               ::  assemble string
     {$leaf p/(pair term @)}                             ::  symbol
     {$limb p/term}                                      ::  pulls limb p
@@ -5414,7 +5414,7 @@
     {$rock p/term q/*}                                  ::  fixed constant
     {$sand p/term q/*}                                  ::  unfixed constant
     {$tell p/(list twig)}                               ::  render as tape
-    {$tune p/(pair wain $@(term tune))}                 ::  minimal face
+    {$tune p/(pair what $@(term tune))}                 ::  minimal face
     {$wing p/wing}                                      ::  pulls p
     {$yell p/(list twig)}                               ::  render as tank
   ::                                            ::::::  molds
@@ -5549,9 +5549,9 @@
           $%  {$atom p/term q/(unit @)}                 ::  atom / constant
               {$cell p/span q/span}                     ::  ordered pair
               {$core p/span q/coil}                     ::  object
-              {$face p/{p/wain q/$@(term tune)} q/span} ::  namespace (new)
+              {$face p/{p/what q/$@(term tune)} q/span} ::  namespace (new)
               {$fork p/(set span)}                      ::  union
-              {$help p/wain q/span}                     ::  documentation
+              {$help p/what q/span}                     ::  documentation
               {$hold p/span q/twig}                     ::  lazy evaluation
           ==                                            ::
 ++  tone  $%  {$0 p/*}                                  ::  success
@@ -5559,7 +5559,7 @@
               {$2 p/(list {@ta *})}                     ::  error ~_s
           ==                                            ::
 ++  tune                                                ::  complex
-          $:  p/(map term (pair wain (unit twig)))      ::  aliases
+          $:  p/(map term (pair what (unit twig)))      ::  aliases
               q/(list twig)                             ::  bridges
           ==                                            ::
 ++  typo  span                                          ::  old span
@@ -5568,6 +5568,7 @@
 ++  vial  ?($read $rite $both $free)                    ::  co/contra/in/bi
 ++  vair  ?($gold $iron $lead $zinc)                    ::  in/contra/bi/co
 ++  vein  (list (unit axis))                            ::  search trace
+++  what  (unit (pair cord (list wain)))                ::  help slogan/sections
 ++  wing  (list limb)                                   ::  search path
 ++  worm                                                ::  compiler cache
   $:  nes/(set ^)                                       ::  ++nest
@@ -5613,7 +5614,7 @@
 ::
 ++  help
   ~/  %help
-  |=  {p/wain q/span}
+  |=  {p/what q/span}
   ^-  span
   ?:  =(%void q)
     %void
@@ -5621,7 +5622,7 @@
 ::
 ++  face                                                ::  make %face span
   ~/  %face
-  |=  {giz/{wain $@(term tune)} der/span}
+  |=  {giz/{what $@(term tune)} der/span}
   ^-  span
   ?:  =(%void der)
     %void
@@ -5788,9 +5789,9 @@
 ::
 ++  look
   ~/  %look
-  |=  {cog/term dab/(map term (pair wain foot))}
+  |=  {cog/term dab/(map term (pair what foot))}
   =+  axe=1
-  |-  ^-  (unit {p/axis q/(pair wain foot)})
+  |-  ^-  (unit {p/axis q/(pair what foot)})
   ?-  dab
       $~  ~
   ::
@@ -5823,13 +5824,13 @@
   ~/  %loot
   |=  {cog/term dom/(map @ tomb)}
   =+  axe=1
-  |-  ^-  (unit {p/axis q/(pair wain foot)})
+  |-  ^-  (unit {p/axis q/(pair what foot)})
   ?-  dom
       $~  ~
   ::
       {* $~ $~}
     %+  bind  (look cog q.q.n.dom) 
-    |=((pair axis (pair wain foot)) [(peg axe p) q])
+    |=((pair axis (pair what foot)) [(peg axe p) q])
   ::
       {* $~ *}
     =+  yep=(look cog q.q.n.dom)
@@ -5898,14 +5899,14 @@
     ==
   =+  :*  nag=`*`& 
           gom=`axis`1
-          wan=*wain
+          wat=*what
       ==
   |_  sec/tile
   ::::
   ++  hail
     |=  gen/twig
     ^-  twig
-    ?~(wan gen [%help wan gen])
+    ?~(wat gen [%help wat gen])
   ::
   ++  home  |=(gen/twig ^-(twig ?:(=(1 gom) gen [%per [%$ gom] gen])))
   ::::
@@ -5914,12 +5915,12 @@
     ?-    sec
         {^ *}
       %-  hail
-      =.  wan  ~
+      =.  wat  ~
       (hail [$(sec p.sec) $(sec q.sec)])
     ::
         {$axil *}
       %-  hail
-      =.  wan  ~
+      =.  wat  ~
       ?-  p.sec
         {$atom *}  [%sand p.p.sec 0]
         $noun      [%nock [%rock %$ 0] [[%rock %$ 0] [%rock %$ 1]]]
@@ -5934,7 +5935,7 @@
     ::
         {$bush *}
       %-  hail
-      =.  wan  ~
+      =.  wat  ~
       [%if [%bust %bean] $(sec p.sec) $(sec q.sec)]
     ::
         {$deet *}
@@ -5942,7 +5943,7 @@
     ::
         {$fern *}
       %-  hail
-      =.  wan  ~
+      =.  wat  ~
       |-  ^-  twig
       ?~  t.p.sec
         ^$(sec i.p.sec)
@@ -5950,7 +5951,7 @@
     ::
         {$herb *}
       %-  hail
-      =.  wan  ~
+      =.  wat  ~
       =+  cys=~(boil ap p.sec)
       ?:  ?=($herb -.cys)
         (home [%rap [%limb %$] p.sec])
@@ -5958,7 +5959,7 @@
     ::
         {$kelp *}
       %-  hail
-      =.  wan  ~
+      =.  wat  ~
       |-  ^-  twig
       ?~  t.p.sec
         ^$(sec i.p.sec)
@@ -5968,11 +5969,11 @@
       (hail [%rock p.sec q.sec])
     ::
         {$plow *}
-      $(sec q.sec, wan (weld p.sec wan))
+      $(sec q.sec, wat p.sec)
     ::
         {$reed *}
       %-  hail
-      =.  wan  ~
+      =.  wat  ~
       [%if [%bust %bean] $(sec p.sec) $(sec q.sec)]
     ::
         {$weed *}
@@ -5995,14 +5996,14 @@
     ?-    sec
         {^ *}
       %-  hail
-      =.  wan  ~
+      =.  wat  ~
       %-  tun  |=  gon/*  =>  .(nag gon)  ^-  twig
       :-  ^$(sec -.sec, nag -.nag, axe (peg axe 2))
       ^$(sec +.sec, nag +.nag, axe (peg axe 3))
     ::
         {$axil *}
       %-  hail
-      =.  wan  ~
+      =.  wat  ~
       ?-    p.sec
           {$atom *}
         =+  buv=bunt
@@ -6039,7 +6040,7 @@
     ::
         {$bush *}
       %-  hail
-      =.  wan  ~
+      =.  wat  ~
       %-  tun  |=  gon/*  =>  .(nag gon)  ^-  twig
       ?@  -.nag
         ?:  =(& -.nag)
@@ -6052,7 +6053,7 @@
     ::
         {$fern *}
       %-  hail
-      =.  wan  ~
+      =.  wat  ~
       |-  ^-  twig
       ?~  t.p.sec
         ^$(sec i.p.sec)
@@ -6066,7 +6067,7 @@
     ::
         {$herb *}
       %-  hail
-      =.  wan  ~
+      =.  wat  ~
       =+  cys=~(boil ap p.sec)
       ?:  ?=($herb -.cys)
         [%call (home p.sec) [%$ axe] ~]
@@ -6074,7 +6075,7 @@
     ::
         {$kelp *}
       %-  hail
-      =.  wan  ~
+      =.  wat  ~
       %-  tun  |=  gon/*  =>  .(nag gon)
       |-  ^-  twig
       ?~  t.p.sec
@@ -6090,11 +6091,11 @@
       (hail [%rock p.sec q.sec])
     ::
         {$plow *}
-      $(sec q.sec, wan (weld p.sec wan))
+      $(sec q.sec, wat p.sec)
     ::
         {$reed *}
       %-  hail
-      =.  wan  ~
+      =.  wat  ~
       ?-  nag
         $&  [%ifat [[%& axe] ~] $(sec p.sec, nag |) $(sec q.sec, nag [& &])]
         $|  $(sec p.sec)
@@ -6126,7 +6127,7 @@
     ++  graf                                            ::  apply general doc
       |=  doc/cord
       ^-  (unit twig)
-      =-  ?^  q.dep  `[%help [doc ~] gen]
+      =-  ?^  q.dep  `[%help ~ gen]
           `p.dep
       ^=  dep
       ^-  (pair twig (unit cord))
@@ -6322,7 +6323,7 @@
         {$gasp *}  [%pin [%burn q.gen] [%trap p.gen r.gen]]
         {$trap *}  :+  %corp  p.gen
                    =-  [[0 ~ -] ~ ~]
-                   (~(put by *(map term (pair wain foot))) %$ ~ [%ash q.gen])
+                   (~(put by *(map term (pair what foot))) %$ ~ [%ash q.gen])
         {$cork *}  :+  %per 
                       :+  %corp  p.gen
                       =+  one=(~(got by r.gen) 0)
@@ -6334,10 +6335,10 @@
         {$gill *}  :+  %pin  [%bunt q.gen]
                    :+  %corp  p.gen
                    =-  [[0 ~ -] ~ ~]
-                   (~(put by *(map term (pair wain foot))) %$ ~ [%elm r.gen])
+                   (~(put by *(map term (pair what foot))) %$ ~ [%elm r.gen])
         {$gate *}  :^  %door  p.gen  q.gen 
                    =-  [[0 ~ -] ~ ~]
-                   (~(put by *(map term (pair wain foot))) %$ ~ [%ash r.gen])
+                   (~(put by *(map term (pair what foot))) %$ ~ [%ash r.gen])
         {$tray *}  [%lead %trap p.gen q.gen]
     ::
         {$conq *}  [p.gen q.gen r.gen s.gen]
@@ -7055,10 +7056,10 @@
         ++  pony                                        ::  raw match
                   $@  $~                                ::  void
                   %+  each                              ::  natural/abnormal
-                    (pair wain palo)                    ::  arm or leg
+                    (pair what palo)                    ::  arm or leg
                   %+  each                              ::  abnormal
                     @ud                                 ::  unmatched
-                  (pair wain (pair span nock))          ::  synthetic
+                  (pair what (pair span nock))          ::  synthetic
         --
     ^-  pony
     ?~  hyp
@@ -7087,9 +7088,7 @@
       |%  ++  here  ?:  =(0 p.heg)
                       [%& ~ [~ `axe lon] %& sut]
                     [%| %& (dec p.heg)]
-          ++  join  |=  {a/wain b/wain}
-                    ?:  =(a b)  a
-                    :(weld a `wain`['||' b])
+          ++  join  |=({a/what b/what} ?~(a b a))
           ++  lose  [%| %& p.heg]
           ++  stop  ?~(q.heg here lose)
           ++  twin  |=  {hax/pony yor/pony}
@@ -7182,12 +7181,12 @@
                 ?~  fid  ~
                 ?:  ?=({$| $& *} fid)
                   $(q.zot t.q.zot, p.heg p.p.fid)
-                =+  ^-  {wan/wain vat/(pair span nock)}
+                =+  ^-  {wat/what vat/(pair span nock)}
                     ?-    -.fid
                       $&  [p.p.fid (fine %& q.p.fid)]
                       $|  [p.p.p.fid (fine %| q.p.p.fid)]
                     ==
-                [%| %| wan p.vat (comb (comb [%0 axe] q.tiv) q.vat)]
+                [%| %| wat p.vat (comb (comb [%0 axe] q.tiv) q.vat)]
               --
             ::
                 {$fork *}
@@ -7341,7 +7340,7 @@
     (chip & gen)
   ::
   ++  harp
-    |=  dab/(map term (pair wain foot))
+    |=  dab/(map term (pair what foot))
     ^-  ?($~ ^)
     ?:  ?=($~ dab)
       ~
@@ -7711,7 +7710,7 @@
       (core q.dan [mel q.dan wad [[%0 0] dom]])
     ::
     ++  bake
-      |=  dab/(map term (pair wain foot))
+      |=  dab/(map term (pair what foot))
       ^-  *
       ?:  ?=($~ dab)
         ~
@@ -8969,8 +8968,8 @@
             :+  %new  [%base %cell]
             :+  %corp  [~ ~]
             ^-  (map @ tomb)
-            =-  [[0 ~ -] ~ ~]
-            ^-  (map term (pair wain foot))
+            =-  [[0 [~ ~] -] ~ ~]
+            ^-  (map term (pair what foot))
             :_  [~ ~]
             =+  sug=[[%& 12] ~]
             :^  %$  ~  %elm
@@ -9555,11 +9554,11 @@
         ==
     |%
     ++  boog                                            ::  core arms
-      %+  knee  [p=*term q=*(pair wain foot)]  |.  ~+
+      %+  knee  [p=*term q=*(pair what foot)]  |.  ~+
       ;~  pfix  lus
         ;~  pose
           %+  cook
-            |=({a/$ash b/term c/twig} [b *wain a c])
+            |=({a/$ash b/term c/twig} [b *what a c])
           ;~  gunk
             (cold %ash (just '+'))
             ;~(pose (cold %$ buc) sym)
@@ -9567,7 +9566,7 @@
           ==
         ::
           %+  cook
-            |=({a/$elm b/term c/twig} [b *wain a c])
+            |=({a/$elm b/term c/twig} [b *what a c])
           ;~  gunk
             (cold %elm (just '-'))
             ;~(pose (cold %$ buc) sym)
@@ -9575,7 +9574,7 @@
           ==
         ::
           %+  cook
-            |=({a/$ash b/term c/root} [b *wain a c])
+            |=({a/$ash b/term c/root} [b *what a c])
           ;~  gunk
             (cold %ash (just '='))
             sym
@@ -9590,13 +9589,13 @@
     ++  wisp                                            ::  core tail
       ?.  tol  fail
       %+  sear
-        |=  a/(list (list (pair term (pair wain foot))))
+        |=  a/(list (list (pair term (pair what foot))))
         =|  {b/(map @ tomb) c/@}
         |-  ^-  (unit (map @ tomb))
         ?~  a  `b
         =/  d
-          =|  e/(map term (pair wain foot))
-          |-  ^-  (unit (map term (pair wain foot)))
+          =|  e/(map term (pair what foot))
+          |-  ^-  (unit (map term (pair what foot)))
           ?~  i.a  `e
           ?:  ?|  (~(has by e) p.i.i.a)
                   |-  ^-  ?
@@ -9610,7 +9609,7 @@
             ~&(duplicate-arm+p.i.i.a ~)
           $(i.a t.i.a, e (~(put by e) p.i.i.a q.i.i.a))
         ?~  d  ~
-        $(a t.a, b (~(put by b) c [*wain u.d]), c +(c))
+        $(a t.a, b (~(put by b) c [*chap u.d]), c +(c))
       ;~  pose
         dun
         ;~  sfix
@@ -9886,7 +9885,7 @@
       ^-  twig
       =.  a  ?~(c a [u.c a])
       ?~  a  b
-      [%help a b]
+      [%help ~ b]
     ;~  plug
       (star (ifix [;~(plug col gar) (punt gap)] epic))
       ;~(pose (norm | &) long lute ape:(sail &))
@@ -9910,7 +9909,7 @@
       ^-  twig
       =.  a  ?~(c a [u.c a])
       ?~  a  b
-      [%help a b]
+      [%help ~ b]
     ;~  plug
       (star (ifix [;~(plug col gar) (punt gap)] epic))
       ;~(pose (norm & &) scad)
@@ -9942,21 +9941,6 @@
       |=  {a/pint b/twig}
       ?:(bug [%dbug [wer a] b] b)
     zor
-  ++  wqut                                                ::  cord as wain for ^:
-    =+  end=;~(plug (just '\0a') soz)
-    =*  mid  ;~(less end (just '\0a'))
-    ;~  simu  soq
-      ;~  pose
-        ;~  less  soz
-          (cook |=(a/@ [a ~]) (ifix [soq soq] (boss 256 (more gon qit))))
-        ==
-        =+  hed=;~(pose ;~(plug (plus ace) vul) (just '\0a'))
-        %-  iny  %+  ifix
-          :-  ;~(plug soz hed)
-          end
-        (more mid (boss 256 (star prn)))
-      ==
-    ==
   --
 ::
 ++  vest
