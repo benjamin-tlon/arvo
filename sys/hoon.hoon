@@ -1,4 +1,4 @@
-::                                                      ::
+!:                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
 ~>  %slog.[0 leaf+"hoon-assembly"]
@@ -5979,6 +5979,7 @@
       (hail [%rock p.sec q.sec])
     ::
         {$plow *}
+      ?>  =(*what wat)
       $(sec q.sec, wat p.sec)
     ::
         {$reed *}
@@ -5989,7 +5990,9 @@
         {$weed *}
       (hail (home p.sec))
     ==
-  ++  clam  ^-(twig [%gate [~ ~] [%base %noun] (whip(gom 7) 6)])
+  ++  clam  
+    ^-   twig  
+    [%gate [~ ~] [%base %noun] (whip(gom 7) 6)]
   ::
   ++  whip
     |=  axe/axis
@@ -6127,48 +6130,6 @@
       %rake  rake
     ==
   |_  gen/twig
-  ++  dock                                              ::  apply document
-    |=  doc/cord
-    |^  ^-  (unit twig)
-        =/  rah  ^-  (each (pair term cord) cord)
-                 (rash doc very)
-        ?-(-.rah $& (rave p.rah), $| (graf p.rah))
-    ::
-    ++  graf                                            ::  apply general doc
-      =*  life  (unit cord)
-      |=  doc/cord
-      ^-  (unit twig)
-      =-  ?^  q.dep  `[%help ~ gen]
-          `p.dep
-      ^=  dep
-      =/  foo/@tas  %foobar
-      ^-  (pair twig life)
-      %+  (walk life)
-        `doc
-      |=  {gen/twig vit/life aid/$-({? twig life} {twig life})}
-      ^-  (unit (pair twig life))
-      ~
-    ::
-    ++  rave                                            ::  apply variable doc
-      =*  life  (unit (pair term cord))
-      |=  {cog/term doc/cord}
-      ^-  (unit twig)
-      =-  ?^  q.dep  ~
-          `p.dep
-      ^=  dep
-      ^-  (pair twig life)
-      %+  (walk life)
-        `[cog doc]
-      |=  {gen/twig vit/life aid/$-({? twig life} {twig life})}
-      ^-  (unit (pair twig life))
-      ?~  vit  `[gen ~]
-      ~
-    ::
-    ++  very                                            ::  variable reparse
-      %+  pick
-        ;~(plug sym (cook crip ;~(pfix ;~(plug col ace) (star prn))))
-      (cook crip (star prn))
-    --
   ++  etch
     ~_  leaf+"etch"
     |-  ^-  term
@@ -6191,12 +6152,15 @@
     |%
     ++  gray
       ^-  ?
-      ?|  ?=(^ lab)
-          ?=(^ boy)
-          |-  ^-  ?
-          ?~  def  | 
-          |($(def l.def) $(def r.def) !(~(has in use) p.n.def))
-      ==
+      |
+      ::  on reflection, perhaps just obsessive linting
+      ::
+      ::  ?|  ?=(^ lab)
+      ::      ?=(^ boy)
+      ::      |-  ^-  ?
+      ::      ?~  def  | 
+      ::      |($(def l.def) $(def r.def) !(~(has in use) p.n.def))
+      ::  ==
     ::
     ++  grad
       |=  $:  gen/twig 
@@ -6207,13 +6171,125 @@
       =:  ^gen  gen
           ^wit  wit
         ==
-      ~
+      ?:  =([~ ~ ~ ~] wit)  `[gen wit]
+      =<  apex
+      |%
+      ++  apex
+        ^-  (unit (pair twig whit))
+        =^  one  wit  prim
+        =^  two  wit  senc(gen one)
+        ?:  =(gen two) 
+          ~
+        `(aid & two wit)
+      ::
+      ::  resolve body and label issues
+      ::
+      ++  prim
+        ^-  (pair twig whit)
+        ?:  ?=(^ -.gen)  flam
+        ?+  -.gen  flam
+          $halo   flam
+          $base   runk
+          $leaf   runk
+          $claw   runk
+          $shoe   runk
+          $bank   runk
+          $book   runk
+          $lamb   runk
+          $bush   runk
+          $pick   runk
+          $coat   flam 
+          $grow   runk
+          $door   ((doof -.gen +>.gen) p.gen)
+          $gasp   ((doof -.gen +>.gen) p.gen)
+          $corp   ((doof -.gen +>.gen) p.gen)
+          $trap   ((doof -.gen +>.gen) p.gen)
+          $cork   ((doof -.gen +>.gen) p.gen)
+          $loop   ((doof -.gen +>.gen) p.gen)
+          $port   ((doof -.gen +>.gen) p.gen)
+          $gill   ((doof -.gen +>.gen) p.gen)
+          $gate   ((doof -.gen +>.gen) p.gen)
+          $tray   ((doof -.gen +>.gen) p.gen)
+        ==
+      ::
+      ::  resolve variable issues
+      ::
+      ++  senc
+        ^-  (pair twig whit)
+        ?:  ?=(^ -.gen)  flam
+        ?+  -.gen  flam
+          $name  ((helk -.gen +>.gen) p.gen)
+          $coat  ((helk -.gen +>.gen) p.gen)
+          $var   ((hulp -.gen +>.gen) p.gen)
+          $rev   ((hulp -.gen +>.gen) p.gen)
+          $sip   ((hulp -.gen +>.gen) p.gen)
+          ::  XX missing %aka
+        ==
+      ::
+      ++  flam  [gen wit]
+      ++  grif
+        |=  {cog/term wat/what}
+        ^-  {what whit}
+        ?:  =(~ def)
+          ?~  boy  [wat wit]
+          [boy wit(boy ~)]
+        =+  yeb=(~(get by def) cog)
+        ?~  yeb  [wat wit]
+        [`u.yeb wit(use (~(put in use) cog))]
+      ::
+      ++  doof
+        |*  {pif/@tas suf/*}
+        |=  pac/chap
+        ^-  (pair twig whit)
+        :_  wit(lab ~, boy ~)
+        =-  [pif - suf]
+        ^-  chap
+        :-  ?~(lab p.pac [u.lab ~])
+            ?~(boy q.pac boy)
+      ::
+      ++  helk
+        |*  {pif/@tas suf/*}
+        |=  got/toga
+        ^-  (pair twig whit)
+        =^  gef  wit  (tong got)
+        [[pif gef suf] wit]
+      ::
+      ++  hulp
+        |*  {pif/@tas suf/*}
+        |=  hot/toro
+        ^-  (pair twig whit)
+        =^  tog  wit  (tong p.hot)
+        [[pif [tog q.hot] suf] wit] 
+      ::
+      ++  runk
+        ^-  (pair twig whit)
+        ?~  boy  flam
+        [[%halo boy gen] wit(boy ~)]
+      ::
+      ++  tong
+        |=  got/toga
+        ^-  {toga whit}
+        ?@  got
+          =^  wat  wit  (grif got ~)
+          ?~  wat  [got wit]
+          [[%1 [wat got] [%0 ~]] wit]
+        ?-  -.got
+          $0  [got wit]
+          $1  =^  wat  wit  (grif q.p.got p.p.got)
+              =^  sub  wit  $(got q.got)
+              [[%1 [wat q.p.got] sub] wit]
+          $2  =^  one  wit  $(got p.got)
+              =^  two  wit  $(got q.got)
+              [[%2 one two] wit]
+        ==
+      --
     ::
     ++  graf
       ^-  (unit twig)
       =^  nex  wit  ((walk whit) wit grad)
       ?:(gray ~ `nex)
     --
+  --
   ::
   ::  not used at present; see comment at $csng in ++open
 ::::
@@ -9988,8 +10064,7 @@
                   =.  c  (dec c)
                   |((~(has by q:(~(got by b) c)) p.i.i.a) $)
               ==
-            ::  XX we don't have a good way to annotate
-            ::  postparse construction "syntax" errors
+            ::  XX hokey, refactor this to produce %eror
             ::
             ~&(duplicate-arm+p.i.i.a ~)
           $(i.a t.i.a, e (~(put by e) p.i.i.a q.i.i.a))
