@@ -5406,6 +5406,7 @@
     {$bunt p/root}                                      ::  mold default value
     {$bust p/base}                                      ::  bunt base
     {$dbug p/spot q/twig}                               ::  debug info in trace
+    {$eror p/tape}                                      ::  assembly error
     {$hand p/span q/nock}                               ::  premade result
     {$help p/what q/twig}                               ::  annotate image
     {$halo p/what q/root}                               ::  annotate model
@@ -5571,6 +5572,12 @@
 ++  vair  ?($gold $iron $lead $zinc)                    ::  in/contra/bi/co
 ++  vein  (list (unit axis))                            ::  search trace
 ++  sect  (list pica)                                   ::  paragraph
+++  whit                                                ::  
+          $:  lab/(unit term)                           ::  label
+              boy/(unit (pair cord (list sect)))        ::  body
+              def/(map term (pair cord (list sect)))    ::  definitions
+              use/(set term)                            ::  defs used
+          ==                                            ::
 ++  what  (unit (pair cord (list sect)))                ::  help slogan/sections
 ++  wing  (list limb)                                   ::  search path
 ++  worm                                                ::  compiler cache
@@ -6178,6 +6185,36 @@
       *               ~
     ==
   ::
+  ++  gi
+    =|  whit
+    =*  wit  -
+    |%
+    ++  gray
+      ^-  ?
+      ?|  ?=(^ lab)
+          ?=(^ boy)
+          |-  ^-  ?
+          ?~  def  | 
+          |($(def l.def) $(def r.def) !(~(has in use) p.n.def))
+      ==
+    ::
+    ++  grad
+      |=  $:  gen/twig 
+              wit/whit 
+              aid/$-({? twig whit} {twig whit})
+          ==
+      ^-  (unit (pair twig whit))
+      =:  ^gen  gen
+          ^wit  wit
+        ==
+      ~
+    ::
+    ++  graf
+      ^-  (unit twig)
+      =^  nex  wit  ((walk whit) wit grad)
+      ?:(gray ~ `nex)
+    --
+  ::
   ::  not used at present; see comment at $csng in ++open
 ::::
 ::++  hail
@@ -6272,6 +6309,7 @@
         {$base *}  ~(clam al boil)
         {$bust *}  ~(bunt al %axil p.gen)
         {$dbug *}   q.gen
+        {$eror *}  ~|(p.gen !!)
     ::
         {$knit *}                                       ::
       :+  %per  [%name %v %$ 1]                         ::  =>  v=.
@@ -8879,9 +8917,106 @@
   ++  mota  %+  cook
               |=({a/tape b/tape} (rap 3 (weld a b)))
             ;~(plug (star low) (star hig))
-  ::
-  ++  epic                                              ::  to end of line 
-    (cook crip (ifix [;~(plug ace ace) (just `@`10)] (star prn)))
+  ++  docs
+    |%
+    ::  forward line
+    ::
+    ++  apex
+      %+  cook  beer
+      ;~  plug
+        (punt (into head))
+        (punt body)
+        (star fill)
+      ==
+    ::  backward line
+    ::
+    ++  apse
+      ;~  pose
+        %+  cook
+          |=  a/(each (pair term cord) cord)
+          ^-  whit
+          ?-  -.a
+            $&  [~ ~ [[p.p.a [q.p.a ~]] ~ ~] ~]
+            $|  [~ `[p.a ~] ~ ~]
+          ==
+        (exit (pick fine line))
+        (easy *whit)
+      ==
+    ::
+    ::
+    ++  beer
+      |=  $:  a/(unit term)
+              b/(unit (pair cord (list sect)))
+              c/(list (pair (pair term cord) (list sect)))
+          ==
+      ^-  (each whit term)
+      =/  d
+        |-  ^-  (each (map term (pair cord (list sect))) term)
+        ?~  c  [%& ~]
+        =/  e  $(c t.c)
+        ?:  ?=(%| -.e)  e
+        ?:  (~(has by p.e) p.p.i.c)
+          [%| p.p.i.c]
+        [%& (~(put by p.e) p.p.i.c [q.p.i.c q.i.c])]
+      ?:  ?=(%| -.d)  d
+      [%& [a b p.d ~]]
+    ::
+    ::
+    ++  body
+      ;~  plug
+        (into line)
+        (rant text)
+      ==
+    ::
+    ::  null: blank line
+    ::  line: prose line
+    ::  code: code line
+    ::  text: text line
+    ::  fine: definition line
+    ::
+    ++  line  (cook crip ;~(plug prz (star prn)))
+    ++  head  ;~(pfix ;~(plug tar tar ace ace cen) sym)
+    ++  text  (cook |=(a/pica a) (pick line code))
+    ++  code  (cook crip ;~(pfix ;~(plug ace ace ace ace) (star prn)))
+    ++  null  (star ace)
+    ++  fine  ;~(plug sym (cook crip ;~(pfix ;~(plug col ace) (star prn))))
+    ::
+    ::  lean: line delimited
+    ::
+    ++  lean
+      |*  gyf/rule
+      |*  bod/rule
+      (ifix [;~(plug col gyf ace ace) (just `@`10)] bod)
+    ::
+    ::  into: :> to end of line, consuming following space.
+    ::
+    ++  into  
+      |*  bod/rule
+      ;~(sfix ((lean gar) bod) (punt gap))
+    ::
+    ::  exit: :< to end of line, not consuming following space.
+    ::
+    ++  exit
+      |*  bod/rule
+      ;~(pfix (star ace) ((lean gal) bod))
+    ::
+    ::  fill: full definition
+    ::
+    ++  fill
+      ;~(plug fine (rant ;~(pfix ;~(plug ace ace) text)))
+    ::
+    ::  rant: series of sections.
+    ::
+    ++  rant
+      |*  sec/rule
+      ;~  pose
+        ;~  pfix 
+          (into null) 
+          (star ;~(sfix (plus (into sec)) (into null)))
+        ==
+        (easy ~)
+      ==
+    --
   ::
   ++  plex
     |=  gen/twig  ^-  (unit path)
@@ -10129,58 +10264,33 @@
     ==
   ::
   ++  wise  ;~(plug sym (punt ;~(pfix ;~(pose fas tis) wyde)))
-  ++  wack
+  ++  wrap
+    |*  fel/rule
     %+  cook
-      |=  {a/wain b/twig c/(unit cord)}
+      |=  {a/(each whit term) b/twig c/whit}
       ^-  twig
-      =.  a  ?~(c a [u.c a])
-      ?~  a  b
-      [%help ~ b]
+      b
+    ::
+    ::  XX performance: this makes the parser about 50% slower.
+    ::  because we double-parse most of the spaces in the file.
+    ::  just so we can do a postfix doc-comment.
+    ::  
+    ::  the correct solution to this problem is to unify the
+    ::  parsing of docs with the parsing of comments/spaces.
+    ::  but at this point we're pretty much in parser rewrite.
+    ::
+    ::  it should go without saying that ++vast needs a rewrite.
+    ::  it dates to 2011.
+    ::
     ;~  plug
-      (star (ifix [;~(plug col gar) (punt gap)] epic))
+      apex:docs
       ;~(pose (norm | &) long lute ape:(sail &))
-      ::
-      ::  XX performance: this makes the parser about 50% slower.
-      ::  because we double-parse most of the spaces in the file.
-      ::  just so we can do a postfix doc-comment.
-      ::  
-      ::  the correct solution to this problem is to unify the
-      ::  parsing of docs with the parsing of comments/spaces.
-      ::  but at this point we're pretty much in parser rewrite.
-      ::
-      ::  it should go without saying that ++vast needs a rewrite.
-      ::  it dates to 2011.
-      ::
-      (punt ;~(pfix ;~(plug (star ace) col gal) epic))
-    ==
-  ++  wock
-    %+  cook
-      |=  {a/wain b/twig c/(unit cord)}
-      ^-  twig
-      =.  a  ?~(c a [u.c a])
-      ?~  a  b
-      [%help ~ b]
-    ;~  plug
-      (star (ifix [;~(plug col gar) (punt gap)] epic))
-      ;~(pose (norm & &) scad)
-      ::
-      ::  XX performance: this makes the parser about 50% slower.
-      ::  because we double-parse most of the spaces in the file.
-      ::  just so we can do a postfix doc-comment.
-      ::  
-      ::  the correct solution to this problem is to unify the
-      ::  parsing of docs with the parsing of comments/spaces.
-      ::  but at this point we're pretty much in parser rewrite.
-      ::
-      ::  it should go without saying that ++vast needs a rewrite.
-      ::  it dates to 2011.
-      ::
-      (punt ;~(pfix ;~(plug (star ace) col gal) epic))
+      apse:docs
     ==
   ++  tall  %+  knee  *twig                             ::  full tall form
-            |.(~+((wart wack)))
+            |.(~+((wart (wrap ;~(pose (norm | &) long lute ape:(sail &))))))
   ++  till  %+  knee  *root                             ::  full tall form
-            |.(~+((wart wock)))
+            |.(~+((wart (wrap ;~(pose (norm & &) scad)))))
   ++  wide  %+  knee  *twig                             ::  full wide form
             |.(~+((wart ;~(pose (norm | |) long ape:(sail |)))))
   ++  wyde  %+  knee  *root                             ::  full wide form
