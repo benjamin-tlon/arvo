@@ -1,4 +1,4 @@
-::                                                      ::
+!:                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
 ~>  %slog.[0 leaf+"hoon-assembly"]
@@ -5503,7 +5503,7 @@
     {$sip p/toro q/wing r/twig s/twig}                  ::  =^  state machine
     {$pin p/twig q/twig}                                ::  =+  q w/[p subject]
     {$tow p/(list twig)}                                ::  =~  twig stack
-    {$aka p/term q/twig r/twig}                         ::  =*  r w/alias p/q
+    {$aka p/(pair what term) q/twig r/twig}             ::  =*  r w/alias p/q
     {$use p/twig q/twig}                                ::  =,  overload p in q
   ::                                            ::::::  conditionals
     {$or p/(list twig)}                                 ::  ?|  loobean or
@@ -5877,7 +5877,7 @@
     |=  gen/twig
     ^-  twig
     ?-  -.tik
-      $&  ?~(p.tik gen [%aka u.p.tik [%wing q.tik] gen])
+      $&  ?~(p.tik gen [%aka [~ u.p.tik] [%wing q.tik] gen])
       $|  [%pin ?~(p.tik q.tik [%name u.p.tik q.tik]) gen]
     ==
   ::
@@ -6223,7 +6223,7 @@
           $var   ((hulp -.gen +>.gen) p.gen)
           $rev   ((hulp -.gen +>.gen) p.gen)
           $sip   ((hulp -.gen +>.gen) p.gen)
-          ::  XX missing %aka
+          $aka   ((humm -.gen +>.gen) p.gen)
         ==
       ::
       ++  flam  [gen wit]
@@ -6260,6 +6260,13 @@
         ^-  (pair twig whit)
         =^  tog  wit  (tong p.hot)
         [[pif [tog q.hot] suf] wit] 
+      ::
+      ++  humm
+        |*  {pif/@tas suf/*}
+        |=  {wat/what cog/term}
+        ^-  (pair twig whit)
+        =^  taw  wit  (grif cog wat)
+        [[pif [taw cog] suf] wit] 
       ::
       ++  runk
         ^-  (pair twig whit)
@@ -7034,9 +7041,9 @@
   ::
   ++  buss
     ~/  %buss
-    |=  {cog/term gen/twig}
+    |=  {{wat/what cog/term} gen/twig}
     ^-  span
-    [%face [~ [[cog ~ ~ gen] ~ ~] ~] sut]
+    [%face [wat [[cog ~ ~ gen] ~ ~] ~] sut]
   ::
   ++  conk
     |=  got/toga
@@ -10166,9 +10173,8 @@
     ++  expg  |.(;~(gunk sym loaf))                     ::  term and twig
     ++  exph  |.((butt ;~(gunk rope rick)))             ::  wing, [tile twig]s
     ++  expi  |.((butt ;~(gunk loaf hank)))             ::  one or more twigs
-    ++  expj  |.(;~(gunk sym rope loaf))                ::  term, wing, and twig
     ++  expk  |.(;~(gunk loaf ;~(plug loaf (easy ~))))  ::  list of two twigs
-    ++  expl  |.(;~(gunk sym loaf loaf))                ::  term, two twigs
+    ++  expl  |.(;~(gunk ;~(plug (easy ~) sym) loaf loaf))  ::  term, two twigs
     ++  expm  |.((butt ;~(gunk rope loaf rick)))        ::  several [tile twig]s
     ++  expo  |.(;~(gunk wise loaf loaf))               ::  =;
     ++  expp  |.(;~(gunk (butt rick) loaf))             ::  [wing twig]s, twig

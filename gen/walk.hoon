@@ -88,7 +88,7 @@
           $var   ((hulp -.gen +>.gen) p.gen)
           $rev   ((hulp -.gen +>.gen) p.gen)
           $sip   ((hulp -.gen +>.gen) p.gen)
-          ::  XX missing %aka
+          $aka   ((humm -.gen +>.gen) p.gen)
         ==
       ::
       ++  flam  [gen wit]
@@ -125,6 +125,13 @@
         ^-  (pair twig whit)
         =^  tog  wit  (tong p.hot)
         [[pif [tog q.hot] suf] wit] 
+      ::
+      ++  humm
+        |*  {pif/@tas suf/*}
+        |=  {cog/term wat/what)
+        ^-  (pair twig whit)
+        =^  taw  wit  (grif cog wat)
+        [[pif [cog taw] suf] wit] 
       ::
       ++  runk
         ^-  (pair twig whit)
