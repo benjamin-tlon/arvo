@@ -17,8 +17,6 @@
     ++  come                                            ::  parsed docline
       $%  {$blank $~}
           {$var p/term q/
-    ++  post                                            ::  print state
-    
     --
 |%
 ::
@@ -92,6 +90,8 @@
       ^-  (unit (pair twig life))
       ?~  vit  `[gen ~]
       ~
+    ::
+    ++  
     ::
     ++  very                                            ::  variable reparse
       %+  pick
@@ -334,7 +334,7 @@
       (twin noop twee)
     ::
     ++  tung
-      |=  bud/{p/wain q/$@(term tune)}
+      |=  bud/{p/what q/$@(term tune)}
       ?@  q.bud  [bud vit]
       (lead p.bud %.(q.bud (twin (raid (twin noop twee)) (moto expr))))
     ::
@@ -349,6 +349,87 @@
       =^  yal  vit  (one -.bud)
       =^  ves  vit  (two +.bud)
       [[yal ves] vit]
+    --
+  ::
+  ++  docs
+    |%
+    ::  forward line
+    ::
+    ++  apex
+      ;~  plug
+        (punt (into head))
+        (punt body)
+        (star fill)
+      ==
+    ::
+    ::
+    ++  body
+      ;~  plug
+        (into line)
+        (rant text)
+      ==
+    ::  backward line
+    ::
+    ++  apse
+      (exit ;~(pose fine line))
+    ::
+    ::  null: blank line
+    ::  line: prose line
+    ::  code: code line
+    ::  text: text line
+    ::  fine: definition line
+    ::
+    ++  line  (cook crip ;~(plug prz (star prn))))
+    ++  head  ;~(pfix ;~(plug tar tar ace ace cen) sym)
+    ++  text  (pick line code)
+    ++  code  (cook crip ;~(pfix ;~(plug ace ace ace ace) (star prn)))
+    ++  null  (star ace)
+    ++  fine  ;~(plug sym (cook crip ;~(pfix ;~(plug col ace) (star prn))))
+    ::
+    ::  lean: line delimited
+    ::
+    ++  lean
+      |*  gyf/rule
+      |*  bod/rule
+      (ifix [;~(plug col gyf ace ace) ;~(plug (just `@`10)] bod)
+    ::
+    ::  into: :> to end of line, consuming following space.
+    ::
+    ++  into  
+      |*  rule
+      ;~(sfix ((lean gar) +<) (punt gap))
+    ::
+    ::  exit: :< to end of line, not consuming following space.
+    ::
+    ++  exit
+      |*  rule
+      ;~(sfix ((lean gal) +<) (punt gap))
+    ::
+    ::  fill: full definition
+    ::
+    ++  fill
+      ;~(plug fine (rant ;~(pfix ;~(plug ace ace) text)))
+    ::
+    ::  rant: series of sections.
+    ::
+    ++  rant
+      |*  rule
+      ;~  pose
+        ;~  pfix 
+          (into null) 
+          (star ;~(sfix (into +<) (into null)))
+        ==
+        (easy ~)
+      ==
+    ::
+    ::  text: 
+    ::
+    ++  text
+      %+  cook  crip
+      ;~  pose
+        (stag %& line)
+        (stag %| code)
+      ==
     --
   --
 --
