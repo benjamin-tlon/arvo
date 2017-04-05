@@ -1,4 +1,4 @@
-!:                                                      ::
+::                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
 ~>  %slog.[0 leaf+"hoon-assembly"]
@@ -6289,7 +6289,6 @@
       =^  nex  wit  ((walk whit) wit grad)
       ?:(gray ~ `nex)
     --
-  --
   ::
   ::  not used at present; see comment at $csng in ++open
 ::::
