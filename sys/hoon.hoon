@@ -1,4 +1,4 @@
-!:                                                      ::
+::                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
 ~>  %slog.[0 leaf+"hoon-assembly"]
@@ -6292,9 +6292,11 @@
       --
     ::
     ++  graf
-      ^-  (unit twig)
+      ::  ^-  (unit twig)
+      ::  =^  nex  wit  ((walk whit) wit grad)
+      ::  ?:(gray ~ `nex)
       =^  nex  wit  ((walk whit) wit grad)
-      ?:(gray ~ `nex)
+      nex
     --
   ::
   ::  not used at present; see comment at $csng in ++open
@@ -8999,6 +9001,14 @@
   ++  mota  %+  cook
               |=({a/tape b/tape} (rap 3 (weld a b)))
             ;~(plug (star low) (star hig))
+  ++  glom
+    |=  {wit/whit taw/whit}
+    ^-  whit
+    :*  ?~(lab.wit lab.taw lab.wit)
+        ?~(boy.wit boy.taw boy.wit)
+        (~(uni by def.wit) def.taw)
+        (~(uni in use.wit) use.taw)
+    ==
   ++  docs
     |%
     ::  forward line
@@ -9031,17 +9041,13 @@
               b/(unit (pair cord (list sect)))
               c/(list (pair (pair term cord) (list sect)))
           ==
-      ^-  (each whit term)
+      ^-  whit
       =/  d
-        |-  ^-  (each (map term (pair cord (list sect))) term)
-        ?~  c  [%& ~]
+        |-  ^-  (map term (pair cord (list sect)))
+        ?~  c  ~
         =/  e  $(c t.c)
-        ?:  ?=(%| -.e)  e
-        ?:  (~(has by p.e) p.p.i.c)
-          [%| p.p.i.c]
-        [%& (~(put by p.e) p.p.i.c [q.p.i.c q.i.c])]
-      ?:  ?=(%| -.d)  d
-      [%& [a b p.d ~]]
+        (~(put by e) p.p.i.c [q.p.i.c q.i.c])
+      [a b d ~]
     ::
     ::
     ++  body
@@ -10022,30 +10028,40 @@
     |%
     ++  boog                                            ::  core arms
       %+  knee  [p=*term q=*(pair what foot)]  |.  ~+
-      ;~  pfix  lus
-        ;~  pose
-          %+  cook
-            |=({a/$ash b/term c/twig} [b *what a c])
-          ;~  gunk
-            (cold %ash (just '+'))
-            ;~(pose (cold %$ buc) sym)
-            loaf
-          ==
-        ::
-          %+  cook
-            |=({a/$elm b/term c/twig} [b *what a c])
-          ;~  gunk
-            (cold %elm (just '-'))
-            ;~(pose (cold %$ buc) sym)
-            loaf
-          ==
-        ::
-          %+  cook
-            |=({a/$ash b/term c/root} [b *what a c])
-          ;~  gunk
-            (cold %ash (just '='))
-            sym
-            loan
+      %+  cook
+        |=  {a/whit b/term c/whit d/foot}
+        =+  e=(glom a c)
+        [b boy.e d]
+      ;~  plug
+        apex:docs
+        ;~  pfix  lus
+          ;~  pose
+            %+  cook
+              |=({a/$ash b/term c/whit d/twig} [b c a d])
+            ;~  plug
+              (cold %ash (just '+'))
+              ;~(pfix gap ;~(pose (cold %$ buc) sym))
+              apse:docs
+              ;~(pfix gap loaf)
+            ==
+          ::
+            %+  cook
+              |=({a/$elm b/term c/whit d/twig} [b c a d])
+            ;~  plug
+              (cold %elm (just '-'))
+              ;~(pfix gap ;~(pose (cold %$ buc) sym))
+              apse:docs
+              ;~(pfix gap loaf)
+            ==
+          ::
+            %+  cook
+              |=({a/$ash b/term c/whit d/root} [b c a d])
+            ;~  plug
+              (cold %ash (just '='))
+              ;~(pfix gap sym)
+              apse:docs
+              ;~(pfix gap loan)
+            ==
           ==
         ==
       ==
@@ -10056,32 +10072,33 @@
     ++  wisp                                            ::  core tail
       ?.  tol  fail
       %+  sear
-        |=  a/(list (list (pair term (pair what foot))))
+        |=  a/(list (pair whit (list (pair term (pair what foot)))))
         =|  {b/(map @ tomb) c/@}
         |-  ^-  (unit (map @ tomb))
         ?~  a  `b
         =/  d
           =|  e/(map term (pair what foot))
           |-  ^-  (unit (map term (pair what foot)))
-          ?~  i.a  `e
-          ?:  ?|  (~(has by e) p.i.i.a)
+          ?~  q.i.a  `e
+          ?:  ?|  (~(has by e) p.i.q.i.a)
                   |-  ^-  ?
                   ?:  =(0 c)  |
                   =.  c  (dec c)
-                  |((~(has by q:(~(got by b) c)) p.i.i.a) $)
+                  |((~(has by q:(~(got by b) c)) p.i.q.i.a) $)
               ==
             ::  XX hokey, refactor this to produce %eror
             ::
-            ~&(duplicate-arm+p.i.i.a ~)
-          $(i.a t.i.a, e (~(put by e) p.i.i.a q.i.i.a))
+            ~&(duplicate-arm+p.i.q.i.a ~)
+          $(q.i.a t.q.i.a, e (~(put by e) p.i.q.i.a q.i.q.i.a))
         ?~  d  ~
-        $(a t.a, b (~(put by b) c [*chap u.d]), c +(c))
+        =*  hap  `chap`[?~(lab.p.i.a ~ [u.lab.p.i.a ~]) boy.p.i.a]
+        $(a t.a, b (~(put by b) c [hap u.d]), c +(c))
       ;~  pose
         dun
         ;~  sfix
           ;~  pose
-            (most muck ;~(pfix ;~(plug lus bar gap) whap))
-            ;~(plug whap (easy ~))
+            (most muck ;~(plug apex:docs ;~(pfix ;~(plug lus bar gap) whap)))
+            ;~(plug ;~(plug (easy *whit) whap) (easy ~))
           ==
           ;~(plug gap dun)
         ==
@@ -10347,9 +10364,9 @@
   ++  wrap
     |*  fel/rule
     %+  cook
-      |=  {a/(each whit term) b/twig c/whit}
+      |=  {a/whit b/twig c/whit}
       ^-  twig
-      b
+      ~(graf ~(gi ap b) (glom a c))
     ::
     ::  XX performance: this makes the parser about 50% slower.
     ::  because we double-parse most of the spaces in the file.
@@ -10364,7 +10381,7 @@
     ::
     ;~  plug
       apex:docs
-      ;~(pose (norm | &) long lute ape:(sail &))
+      fel
       apse:docs
     ==
   ++  tall  %+  knee  *twig                             ::  full tall form
