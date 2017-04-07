@@ -13,16 +13,16 @@
 ::  the next expression; {:<} decorates the previous one.
 ::
 ::  there are two places to put decorations: in line with the 
-::  code, and on the right margin 
+::  code, and on the right margin.
 ::
 ::  in comments and decorations, use *phrase* for emphasis
 ::  and {braces} to surround code literals.  (documentation will 
 ::  eventually be automatically generated from formal comments.)
-::  %literal, ++literal, =literal need no braces.
-::  
+::  %literal, ++literal, ~ship need no braces.  for a valid 
+::  hoon expression, `exp.
 ::
 ::  there are three conventions for naming: *ultralapidary*,
-::  *lapidary*, and *natural*.  this file is lapidary.
+::  *lapidary*, and *natural*.  this file is mostly natural.
 ::
 ::  when in doubt, use the *natural* naming convention.  for 
 ::  both arms and faces, natural naming means long, legible,
@@ -39,13 +39,49 @@
 ::  a typical two-core structure.  the cores are labeled {%arch}
 ::  (structures) and {%work} (productions).  this is canonical.
 ::
+::  this code is written to display the variety of formatting
+::  options the parser allows.  a specific convention should pick
+::  one of these styles and stick to it.
+::
+::  a forward decoration block {:>} is either a *document block* or
+::  a *definition block*.
+
+::  a document block has two parts, each of which is optional: 
+::  the *title* and the *body*, 
+::
+::  the title is a ++term preceded by {:>  ||  %}.  only cores
+::  and core chapters (preceded by {+|}) can use titles.  titles
+::  are optionally surrounded by blank or semi-blank decorations, 
+::  {:>} or {:>  ||}.
+::
+::  the body is either short or long.  a short body is a *single line* 
+::  preceded by {:>  } - ie, not indented.  a long body starts with
+::  a *single line* indented by two extra spaces, {:>    }, then a
+::  blank line, then a series of paragraphs.
+::
+::  a definition block is a list of name definitions.  the twig below
+::  the block is traversed for bindings on these names.
+::
+::  a name definition can be short or long.  a short definition is
+::  a *single line* of the form {:>  name: value}.
+::
+::  a long definition is a short definition, followed by a blank
+::  decoration {:>}, followed by a series of paragraphs each
+::  indented by an extra two spaces.
+::
+::  a paragraph is a series of lines, not indented for text,
+::  indented by four extra spaces, {:>      }, for code.
+::
+::  a backward decoration {:<} is only one line, always parsed
+::  as a short body.
+::
 :-  %say
 |=  *
-=<  (hello %world)
+=<  [%noun (say-hello %world)]
 =>  :>  ||
     :>  ||  %arch
     :>  ||
-    :>  structures for our imaginary hello, world generator.
+    :>    structures for our imaginary hello, world generator.
     :>
     :>  nothing forces us to put structures in a separate core.
     :>  but compile-time evaluation doesn't work in the current
@@ -61,7 +97,7 @@
     :>  ||
     :>  ||  %model
     :>  ||
-    :>  models (molds) are functions that normalize nouns.
+    :>    models (molds) are functions that normalize nouns.
     :> 
     :>  arms producing molds are introduced with {+=}.  for molds,
     :>  we decorate the mold rather than the arm.  the compiler
@@ -72,18 +108,16 @@
       {p/@ q/@}
     +=  goof                                            :>  a simple tuple
       $:  foo/@                                         :<  something mysterious
-          bar/@                                         :<  go here for a drink
+          bar/@                                         :<  go here for drink
           moo/(binary-tree juice)                       :<  cows do this
       ==
     +=  juice                                           :>  fruity beverage
-      $%  {%plum p/@}                                   :<  fresh prune
-          {%pear p/@ q/@q}                              :<  good for cider
-          {%acai p/@}                                   :<  aztec superfood
+      $%  {$plum p/@}                                   :<  fresh prune
+          {$pear p/@ q/@}                               :<  good for cider
+          {$acai p/@}                                   :<  aztec superfood
       ==
-    :>  ||
     :>  ||  %pattern
-    :>  ||
-    :>  patterns are functions that build models.
+    :>    patterns are functions that build models.
     :>
     :>  other languages might call these "type constructors"
     :>  or "higher-kinded types".
@@ -94,15 +128,13 @@
     :>  ||
     :>  ||  %constant
     :>  ||
-    :>  if you have constants, put them in their own chapter.
+    :>    if you have constants, put them in their own chapter.
     +|
     ++  answer                                          :<  answer to everything
       42
     --
-:>  ||
 :>  ||  %work
-:>  ||
-:>  engines for our imaginary hello, world app. 
+:>    engines for our imaginary hello, world app. 
 :>
 :>  note that ++say-goodbye is the correct notation, even though
 :>  it's a {+-} arm.
@@ -116,24 +148,26 @@
       txt/term
   ^-  tape
   "hello, {(rip 3 txt)}"
-:>
 :>    ++say-goodbye: say a really proper goodbye
 :>
-:>  some paragraphs about the goodbye algorithm
-:>                                                      :>  ++say-goodbye
-+-  say-goodbye                                         :<
+:>  some paragraphs about the goodbye algorithm, possibly
+:>  including code indented by four extra spaces:
+:>  
+:>      ?:  =(%hello %world)
+:>        %hello
+:>      %world
+:>                                                      ::  ++say-goodbye
++-  say-goodbye                                         ::
   :>  describe product of function
   :>
   |=  :>  txt: departing friend
       :>  num: number of friends
-      :>
       $:  txt/term
-          eye/@
+          num/@
       ==
   ^-  tape
   :>  foo: four
   :>  bar: forty-two
-  :>
   =/  foo  (add 2 2)
   =/  bar  (add (mul num foo) 2)
   =/  moo  (mul num bar)                                :<  for all the cows

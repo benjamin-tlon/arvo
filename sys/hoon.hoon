@@ -6337,6 +6337,8 @@
   ++  bile
     =+  sec=boil
     |-  ^-  (each line tile)
+    ?:  ?=({$plow *} sec)
+      $(sec q.sec)
     ?:  ?=({$deet *} sec)
       $(sec q.sec)
     ?:  ?=({{$deet *} *} sec)
@@ -9011,13 +9013,14 @@
     ==
   ++  docs
     |%
-    ::  forward line
+    ::  above core
     ::
     ++  apex
       %+  cook  beer
       ;~  plug
-        (punt (into head))
-        (punt body)
+        =/  ron  (punt (into noel))
+        (punt (ifix [ron ron] (into (step head))))
+        ;~(pfix (punt (into null)) (punt body))
         (star fill)
       ==
     ::  backward line
@@ -9031,7 +9034,7 @@
             $&  [~ ~ [[p.p.a [q.p.a ~]] ~ ~] ~]
             $|  [~ `[p.a ~] ~ ~]
           ==
-        (exit (pick fine line))
+        (exit (step (pick fine line)))
         (easy *whit)
       ==
     ::
@@ -9051,9 +9054,18 @@
     ::
     ::
     ++  body
-      ;~  plug
-        (into line)
-        (rant text)
+      ;~  sfix
+        ;~  pose
+          ;~  plug
+            (into ;~(pfix (punt ;~(plug (star ace) col gar)) (step line)))
+            (easy ~)
+          ==
+          ;~  plug
+            (into (dubs line))
+            (rant text)
+          ==
+        ==
+        (punt (into null))
       ==
     ::
     ::  null: blank line
@@ -9063,10 +9075,11 @@
     ::  fine: definition line
     ::
     ++  line  (cook crip ;~(plug prz (star prn)))
-    ++  head  ;~(pfix ;~(plug tar tar ace ace cen) sym)
-    ++  text  (cook |=(a/pica a) (pick line code))
-    ++  code  (cook crip ;~(pfix ;~(plug ace ace ace ace) (star prn)))
+    ++  head  ;~(pfix ;~(plug bar bar ace ace cen) sym)
+    ++  text  (pick line code)
+    ++  code  (cook crip (dubs (star prn)))
     ++  null  (star ace)
+    ++  noel  ;~(pose (step ;~(sfix ;~(plug bar bar) (star ace))) null)
     ++  fine  ;~(plug sym (cook crip ;~(pfix ;~(plug col ace) (star prn))))
     ::
     ::  lean: line delimited
@@ -9074,13 +9087,25 @@
     ++  lean
       |*  gyf/rule
       |*  bod/rule
-      (ifix [;~(plug col gyf ace ace) (just `@`10)] bod)
+      ;~(pfix ;~(plug col gyf) bod)
+    ::
+    ::  step: indent
+    ::
+    ++  step
+      |*  fel/rule
+      ;~(pfix ;~(plug ace ace) fel)
+    ::
+    ::  dubs: double-indent
+    ::
+    ++  dubs
+      |*  fel/rule
+      ;~(pfix ;~(plug ace ace ace ace) fel)
     ::
     ::  into: :> to end of line, consuming following space.
     ::
     ++  into  
       |*  bod/rule
-      ;~(sfix ((lean gar) bod) (punt gap))
+      ;~(sfix ((lean gar) bod) ;~(plug (just `@`10) (punt gap)))
     ::
     ::  exit: :< to end of line, not consuming following space.
     ::
@@ -9091,18 +9116,19 @@
     ::  fill: full definition
     ::
     ++  fill
-      ;~(plug fine (rant ;~(pfix ;~(plug ace ace) text)))
+      ;~  sfix 
+        ;~(plug (into (step fine)) (rant (step text))) 
+        (punt (into null))
+      ==
     ::
     ::  rant: series of sections.
     ::
     ++  rant
       |*  sec/rule
-      ;~  pose
-        ;~  pfix 
-          (into null) 
-          (star ;~(sfix (plus (into sec)) (into null)))
-        ==
-        (easy ~)
+      %-  star
+      ;~  pfix  
+        (into null)
+        (plus (into (step sec)))
       ==
     --
   ::
