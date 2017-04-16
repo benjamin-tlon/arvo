@@ -5524,6 +5524,7 @@
     {$fail $~}                                          ::  !!
   ==                                                    ::
 ++  toro  (pair toga (unit root))                       ::
+++  twit  twig                                          ::  last-gen twig
 ++  tyre  (list {p/term q/twig})                        ::
 ++  tyke  (list (unit twig))                            ::
 ::                                                      ::::::  virtual nock
@@ -10492,6 +10493,37 @@
       [| +>+<.$]
     [& +>+<(nes (~(put in nes) [sut ref]))]
   ::
+  ++  call                                              ::  call gate
+    |=  {vax/vase nam/term som/(each vase ^)}
+    ^-  {vase worm}
+    =^  duf  +>+<.$  (open vax nam som)
+    (slap duf [%limb %$])
+  ::
+  ++  open                                              ::  assemble door
+    |=  {vax/vase nam/term som/(each vase ^)}
+    ^-  {vase worm}
+    =*  key  [%keep [[%& 2] ~] [[[%& 6] ~] [%$ 3]] ~]
+    =^  dor  +>+<.$  (slap vax [%limb nam])
+    =^  mes  +>+<.$  (slot 6 dor)
+    =^  hip  +>+<.$
+      ?-  -.som
+         $&  (nest p.mes p.p.som)
+         $|  (nets p.mes -.p.som)
+      ==
+    ?>  hip
+    [[p.dor q.dor(+6 +7.som)] +>+<.$] 
+  ::
+  ++  neat                                              ::  type compliance
+    |=  {typ/span som/(each vase ^)}
+    ^-  worm
+    =^  hip  +>+<.$
+      ?-  -.som
+        $&  (nest typ p.p.som)
+        $|  (nets typ -.p.som)
+      ==
+    ?>  hip
+    +>+<.$
+  ::
   ++  nets                                              ::  spanless nest
     |=  {sut/* ref/*}
     ^-  {? worm}
@@ -10642,7 +10674,7 @@
 ++  slyd  $-  {* (unit (set monk)) term beam}           ::  super advanced
           (unit (unit (cask)))                          ::
 ++  slyt  $-({* *} (unit (unit)))                       ::  old namespace
-++  sack  {p/ship q/ship}                               ::  incoming [our his}
+++  sack  {p/ship q/ship}                               ::  incoming [our his]
 ++  scar                                                ::  opaque duct
   $:  p/@ud                                             ::  bone sequence
       q/(map duct bone)                                 ::  by duct
