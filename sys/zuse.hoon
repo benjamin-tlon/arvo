@@ -283,12 +283,6 @@
   ::::                  ++able:clay                     ::  (1c1) arvo moves
     ::                                                  ::::
   ++  able  ^?
-<<<<<<< HEAD
-=======
-    ::                                                  ::
-    ::::                  ++able:^clay                  ::  (1c1) arvo moves
-      ::                                                ::::
->>>>>>> revere-ivory
     |%
     ++  gift                                            ::  out result <-$
       $%  {$dirk p/@tas}                                ::  mark mount dirty
@@ -4456,11 +4450,7 @@
       [p.one [%& (weld p.q.one p.q.two)]]
     --  ::space
   ::                                                    ::
-<<<<<<< HEAD
-  ::::                    ++unix:userlib                ::  (2uD) unix line-lists
-=======
   ::::                  ++unix:userlib                  ::  (2uD) unix line-list
->>>>>>> revere-ivory
     ::                                                  ::::
   ++  unix  ^?
     |%
@@ -4602,16 +4592,16 @@
   ==
 ::
 ++  unix-task                                           ::  input from unix
-  $%  {$belt p/belt:dill}                              ::  dill: keyboard
-      {$blew p/blew:dill}                              ::  dill: configure
+  $%  {$belt p/belt:dill}                               ::  dill: keyboard
+      {$blew p/blew:dill}                               ::  dill: configure
       {$boat $~}                                        ::  clay: reboot
       {$born $~}                                        ::  eyre: new process
       {$hail $~}                                        ::  dill: refresh
-      {$hear p/lane:^ames q/@}                          ::  ames: input packet
+      {$hear p/lane:ames q/@}                           ::  ames: input packet
       {$hook $~}                                        ::  dill: hangup
-      {$into p/desk q/? r/mode:^clay}                   ::  clay: external edit
-      {$they p/@ud q/httr:^eyre}                        ::  eyre: in response
-      {$this p/? q/clip:^eyre r/httq:^eyre}             ::  eyre: in request
+      {$into p/desk q/? r/mode:clay}                    ::  clay: external edit
+      {$they p/@ud q/httr:eyre}                         ::  eyre: in response
+      {$this p/? q/clip:eyre r/httq:eyre}               ::  eyre: in request
       {$thud $~}                                        ::  eyre: in cancel
       {$wake $~}                                        ::  behn: wakeup
   == 

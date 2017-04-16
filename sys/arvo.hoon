@@ -605,7 +605,7 @@
     ~&  [%tang pax.fav `@p`(mug txt.fav)]
     =+  gen=(rain pax.fav txt.fav)
     =+  vax=(slap pit gen)
-    =+  orb=`@p`?~(urb 0xffff.ffff.ffff.ffff.ffff.ffff.ffff.ffff u.urb)
+    =+  orb=~zod
     +>.^$(bod `[[%cell [%face [~ %our] [%atom %p ~]] p.vax] [orb q.vax]])
   %_    +>.^$
       q.niz
