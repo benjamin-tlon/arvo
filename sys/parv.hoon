@@ -120,7 +120,7 @@
         ==                                              ::
         $=  mal                                         ::  mammal brain
         $:  off/?                                       ::  not yet booted
-            lac/?                                       ::  not verbose
+            lac/_|                                      ::  not verbose
             eny/@uvJ                                    ::  512-bit entropy
             yor/vase                                    ::  %york, vane models
             zus/vase                                    ::  %zuse, user lib
@@ -420,6 +420,7 @@
             ovo/ovum
         ==
     ^+  +>
+    ~&  [%poke -.ovo]
     ~|  [%poke -.ovo]
     ?+    -.q.ovo  !!
     ::
