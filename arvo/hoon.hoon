@@ -9211,6 +9211,133 @@
                    ~|(%play-open !!)
                  $(gen doz)
     ==
+  ::                                                    ::
+  ++  redo                                              ::  resurface
+    |=  ::  ref: true sample type
+        ::
+        ref/span
+    ::  gil: reference repetitions
+    ::  wad: unmatched faces
+    ::  out: outer mode (before argument names)
+    ::
+    =|  gil/(set (pair span span))
+    =|  wad/(list term)
+    =|  out/?
+    =<  dext
+    |%                                                  ::
+    ++  dext                                            ::  by subject
+      ^-  span
+      ?:  =(sut ref)  ref
+      ?-    sut
+          ?($noun $void {?($atom $cell $core) *})
+        ::  no useful surface on the subject
+        ::
+        sint
+      ::
+          {$face *} 
+        ::  ignore namespace warp
+        ::
+        ?^  p.sut  dext(sut q.sut)
+        ::  if in outer mode
+        ::
+        ?:  out
+          ::  just apply the face, caller should not match
+          ::
+          [%face p.sut dext(sut q.sut, out |)]
+        ::  push on face stack
+        ::
+        dext(wad [p.sut wad], sut q.sut)
+      ::
+          {$fork *}
+        %-  fork
+        %-  ~(gas in *(set span))
+        %+  turn
+          ::  skip mismatches
+          ::
+          %+  skim  
+            |=  span
+            ::  mismatch if ref does not fit sut
+            ::
+            (nest(sut +<) | ref)
+          (~(tap by p.sut))
+        ::  descend into each branch
+        ::
+        |=(span dext(sut +<))
+      ::
+          {$help *}
+        ::  propagate help
+        ::
+        [%help p.sut dext(sut q.sut)]
+      ::
+          {$hold *}
+        ::  loop control on reference only
+        ::
+        dext(sut repo)
+      ==
+    ::                                                ::
+    ++  sint                                          ::  by reference
+      ^-  span
+      ?-    ref
+          $void
+        %void
+      ::
+          ?($noun {?($atom $core) *})
+        ::  flush face stack
+        ::
+        tang
+      ::
+          {$cell *}
+        ::  apply face stack to cell halves
+        ::
+        %=    tang
+            ref
+          %+  cell
+            dext(wad ~, sut (peek %free 2))
+          dext(wad ~, sut (peek %free 3))
+        == 
+          {$face *}
+        ::  ignore namespace warp
+        ::
+        ?^  p.sut  dext(sut q.sut)
+        ::  dow: inverted stack
+        ::
+        =/  dow  (flop wad)
+        ?~  dow  ref
+        ::  if the topmost face matches
+        ::
+        ?:  =(p.sut i.dow)
+          ::  share the face
+          ::
+          [%face p.sut dext(wad (flop t.dow), sut q.sut)
+        ::  spill 
+        ::
+        tang(ref [%face p.sut dext(sut q.sut)])
+      ::
+          {$fork *}
+        ::  skip mismatched forks
+        ::
+        %-  fork
+        %-  ~(gas in *(set span))
+        %+  turn
+          (skim |=(span (nest | +<)) (~(tap by p.ref)))
+        |=(span dext(ref +<))
+      ::
+          {$help *}
+        ::  propagate help
+        ::
+        [%help p.ref $(ref q.ref)]
+      ::
+          {$hold *}
+        ::  no resurfacing after sample repeats
+        ::
+        ?:  (~(has in gil) ref)  ref
+        $(ref repo(sut ref), gil (~(put in gil) ref))
+      ==
+    ::                                              ::  
+    ++  tang                                        ::  flush face stack
+      ?~  wad  ref
+      tang(wad t.wad, ref [%face i.wad ref]) 
+    --
   ::
   ++  repo
     ^-  span
