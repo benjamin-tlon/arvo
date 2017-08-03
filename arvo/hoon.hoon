@@ -8572,7 +8572,7 @@
     :-  %hold
     ?.  ?=({$core *} p)
       ~_  (dunk %fire-span)
-      ~|(%fire-core !!)
+      ~|(%fire-core !!)  
     =+  dox=[%core q.q.p q.p]
     ?:  ?=($ash -.q)
       ::  ~_  (dunk(sut [%cell q.q.p p.p]) %fire-dry)
@@ -8580,6 +8580,7 @@
       [dox p.q]
     ?>  ?=($elm -.q)
     ::  ~_  (dunk(sut [%cell q.q.p p.p]) %fire-wet)
+    ::  =.  p.p  (redo(sut q.q.p) p.p)
     ?>  ?|  !vet
             (~(has in rib) [sut dox p.q])
             !=(** (mull(sut p, rib (~(put in rib) sut dox p.q)) %noun dox p.q))
@@ -9212,7 +9213,7 @@
                  $(gen doz)
     ==
   ::                                                    ::
-  ++  redo                                              ::  resurface
+  ++  redo  !:                                          ::  refinish
     |=  ::  ref: true sample type
         ::
         ref/span
@@ -9220,12 +9221,13 @@
     ::  wad: unmatched faces
     ::  out: outer mode (before argument names)
     ::
-    =|  gil/(set (pair span span))
+    =|  gil/(set span)
     =|  wad/(list term)
-    =|  out/?
+    =|  out/_|
     =<  dext
     |%                                                  ::
     ++  dext                                            ::  by subject
+      ~&  wad+wad
       ^-  span
       ?:  =(sut ref)  ref
       ?-    sut
@@ -9250,24 +9252,13 @@
       ::
           {$fork *}
         %-  fork
-        %-  ~(gas in *(set span))
         %+  turn
           ::  skip mismatches
           ::
-          %+  skim  
-            |=  span
-            ::  mismatch if ref does not fit sut
-            ::
-            (nest(sut +<) | ref)
-          (~(tap by p.sut))
+          (skim (~(tap by p.sut)) |=(span (nest(sut +<) | ref)))
         ::  descend into each branch
         ::
         |=(span dext(sut +<))
-      ::
-          {$help *}
-        ::  propagate help
-        ::
-        [%help p.sut dext(sut q.sut)]
       ::
           {$hold *}
         ::  loop control on reference only
@@ -9292,46 +9283,42 @@
         %=    tang
             ref
           %+  cell
-            dext(wad ~, sut (peek %free 2))
-          dext(wad ~, sut (peek %free 3))
+            dext(wad ~, ref p.ref, sut (peek %free 2))
+          dext(wad ~, ref q.ref, sut (peek %free 3))
         == 
           {$face *}
         ::  ignore namespace warp
         ::
-        ?^  p.sut  dext(sut q.sut)
+        ?^  p.ref  dext(ref q.ref)
         ::  dow: inverted stack
         ::
         =/  dow  (flop wad)
         ?~  dow  ref
         ::  if the topmost face matches
         ::
-        ?:  =(p.sut i.dow)
+        ?:  =(p.ref i.dow)
           ::  share the face
           ::
-          [%face p.sut dext(wad (flop t.dow), sut q.sut)
+          [%face p.ref dext(wad (flop t.dow), ref q.ref)]
         ::  spill 
         ::
-        tang(ref [%face p.sut dext(sut q.sut)])
+        tang(ref [%face p.ref dext(ref q.ref)])
       ::
           {$fork *}
-        ::  skip mismatched forks
-        ::
         %-  fork
-        %-  ~(gas in *(set span))
         %+  turn
-          (skim |=(span (nest | +<)) (~(tap by p.ref)))
-        |=(span dext(ref +<))
-      ::
-          {$help *}
-        ::  propagate help
+          ::  skip mismatches
+          ::
+          (skim (~(tap by p.ref)) |=(span (nest | +<)))
+        ::  descend into each branch
         ::
-        [%help p.ref $(ref q.ref)]
+        |=(span dext(ref +<))
       ::
           {$hold *}
         ::  no resurfacing after sample repeats
         ::
         ?:  (~(has in gil) ref)  ref
-        $(ref repo(sut ref), gil (~(put in gil) ref))
+        sint(ref repo(sut ref), gil (~(put in gil) ref))
       ==
     ::                                              ::  
     ++  tang                                        ::  flush face stack
