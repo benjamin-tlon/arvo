@@ -9213,117 +9213,100 @@
                  $(gen doz)
     ==
   ::                                                    ::
-  ++  redo  !:                                          ::  refinish
-    |=  ::  ref: true sample type
+  ++  redo  !:                                          ::  refinish faces
+    |=  ::  ref: reference surface to apply names from
         ::
         ref/span
-    ::  gil: reference repetitions
-    ::  wad: unmatched faces
-    ::  out: outer mode (before argument names)
+    ::  gil: subject repetitions
     ::
     =|  gil/(set span)
-    =|  wad/(list term)
-    =|  out/_|
     =<  dext
     |%                                                  ::
-    ++  dext                                            ::  by subject
-      ~&  wad+wad
+    ++  dext                                            ::  traverse subject
       ^-  span
-      ?:  =(sut ref)  ref
+      ::  =-  ~>  %slog.[0 (dunk %dext-sut)]
+      ::  ~>  %slog.[0 (dunk(sut ref) %dext-ref)]
+      ::  ~>  %slog.[0 (dunk(sut -) %dext-pro)]
+      ::  -
       ?-    sut
           ?($noun $void {?($atom $cell $core) *})
-        ::  no useful surface on the subject
+        ::  vol: face stack at this hard point
         ::
-        sint
+        =^  vol  ref  sint
+        ::  iterate into cell only
+        ::
+        =.  sut  ?.  ?=({$cell *} sut)  sut
+          :+  %cell
+            dext(sut p.sut, ref (peek(sut ref) %free 2))
+          dext(sut q.sut, ref (peek(sut ref) %free 3))
+        ::  apply face stack
+        ::
+        =/  nex  `span`sut
+        |-  ^-  span
+        ?~  vol  nex
+        $(vol t.vol, nex (face `$@(term tomb)`i.vol nex))
       ::
-          {$face *} 
-        ::  ignore namespace warp
+          {$face *}
+        ::  ruthlessly strip subject face
         ::
-        ?^  p.sut  dext(sut q.sut)
-        ::  if in outer mode
-        ::
-        ?:  out
-          ::  just apply the face, caller should not match
-          ::
-          [%face p.sut dext(sut q.sut, out |)]
-        ::  push on face stack
-        ::
-        dext(wad [p.sut wad], sut q.sut)
+        dext(sut q.sut)
       ::
           {$fork *}
-        %-  fork
-        %+  turn
-          ::  skip mismatches
-          ::
-          (skim (~(tap by p.sut)) |=(span (nest(sut +<) | ref)))
-        ::  descend into each branch
+        ::  apply across fork
         ::
-        |=(span dext(sut +<))
+        (fork (turn (~(tap by p.sut)) |=(span dext(sut +<))))
       ::
           {$hold *}
-        ::  loop control on reference only
+        ::  default to subject if recursion detected
         ::
+        ?:  (~(has in gil) sut)  sut
         dext(sut repo)
       ==
-    ::                                                ::
-    ++  sint                                          ::  by reference
-      ^-  span
+    ::                                                  ::
+    ++  sint                                            ::  reduce reference
+      ::  vol: stack of faces to apply
+      ::
+      =|  vol/(list $@(term tomb))
+      |-  ^+  [vol ref]
       ?-    ref
-          $void
-        %void
-      ::
-          ?($noun {?($atom $core) *})
-        ::  flush face stack
+          ?($noun $void {?($atom $cell $core) *})
+        ::  terminate the face stack
         ::
-        tang
+        [vol ref]
       ::
-          {$cell *}
-        ::  apply face stack to cell halves
-        ::
-        %=    tang
-            ref
-          %+  cell
-            dext(wad ~, ref p.ref, sut (peek %free 2))
-          dext(wad ~, ref q.ref, sut (peek %free 3))
-        == 
           {$face *}
-        ::  ignore namespace warp
+        ::  expand the face stack
         ::
-        ?^  p.ref  dext(ref q.ref)
-        ::  dow: inverted stack
-        ::
-        =/  dow  (flop wad)
-        ?~  dow  ref
-        ::  if the topmost face matches
-        ::
-        ?:  =(p.ref i.dow)
-          ::  share the face
-          ::
-          [%face p.ref dext(wad (flop t.dow), ref q.ref)]
-        ::  spill 
-        ::
-        tang(ref [%face p.ref dext(ref q.ref)])
-      ::
-          {$fork *}
-        %-  fork
-        %+  turn
-          ::  skip mismatches
-          ::
-          (skim (~(tap by p.ref)) |=(span (nest | +<)))
-        ::  descend into each branch
-        ::
-        |=(span dext(ref +<))
+        $(vol [p.ref vol], ref q.ref)
       ::
           {$hold *}
-        ::  no resurfacing after sample repeats
+        ::  subject must control recursion
         ::
-        ?:  (~(has in gil) ref)  ref
-        sint(ref repo(sut ref), gil (~(put in gil) ref))
+        $(ref repo(sut ref))
+      ::
+          {$fork *}
+        ::  hef: list of all forks
+        ::  vul: candidate face stack
+        ::  yal: candidate reference spans
+        ::
+        ~|  %redo-fork
+        =/  hef/(list span)  (~(tap by p.ref))
+        =|  vul/(unit (list $@(term tomb)))
+        =|  yal/(list span)
+        =-  [(need -<) (fork ->)]
+        |-  ^+  [vul yal]
+        ?~  hef  [vul yal]
+        ::  filter out subject mismatches
+        ::
+        ?.  (nest | i.hef)  $(hef t.hef) 
+        ::  fet: result for this fork case
+        ::
+        =/  fet  ^$(ref i.hef)
+        :_  [+.fet yal]
+        ::  face stack on all forks must match
+        ::
+        ?~(vul `-.fet ?>(=(vul `-.fet) vul))
       ==
-    ::                                              ::  
-    ++  tang                                        ::  flush face stack
-      ?~  wad  ref
-      tang(wad t.wad, ref [%face i.wad ref]) 
     --
   ::
   ++  repo
