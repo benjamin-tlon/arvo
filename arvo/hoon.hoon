@@ -8582,8 +8582,8 @@
     ::  ~_  (dunk(sut [%cell q.q.p p.p]) %fire-wet)
     ::  =.  p.p  (redo(sut q.q.p) p.p)
     ?>  ?|  !vet
-            (~(has in rib) [sut dox p.q])
-            !=(** (mull(sut p, rib (~(put in rib) sut dox p.q)) %noun dox p.q))
+            (~(has in rib) [p dox p.q])
+            !=(** (mull(sut p, rib (~(put in rib) p dox p.q)) %noun dox p.q))
         ==
     [p p.q]
   ::
@@ -9260,7 +9260,7 @@
         ::  default to subject if recursion detected
         ::
         ?:  (~(has in gil) sut)  sut
-        dext(sut repo)
+        dext(gil (~(put in gil) sut), sut repo)
       ==
     ::                                                  ::
     ++  sint                                            ::  reduce reference
@@ -9270,7 +9270,7 @@
       |-  ^+  [vol ref]
       ?-    ref
           ?($noun $void {?($atom $cell $core) *})
-        ::  terminate the face stack
+        ::  terminate the reduction
         ::
         [vol ref]
       ::
@@ -9296,9 +9296,9 @@
         =-  [(need -<) (fork ->)]
         |-  ^+  [vul yal]
         ?~  hef  [vul yal]
-        ::  filter out subject mismatches
+        ::  filter out irrelevant cases
         ::
-        ?.  (nest | i.hef)  $(hef t.hef) 
+        ?.  (nest(sut i.hef) | sut)  $(hef t.hef)
         ::  fet: result for this fork case
         ::
         =/  fet  ^$(ref i.hef)
