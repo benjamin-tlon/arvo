@@ -209,6 +209,7 @@
     {$tell p/(list twig)}                               ::  render as tape
     {$wing p/wing}                                      ::  pulls p
     {$yell p/(list twig)}                               ::  render as tank
+    {$cool p/twig}                                      ::  for testing
   ::                                            ::::::  molds
     {$claw p/twig q/twig}                               ::  $@ depth fork
     {$shoe p/twig}                                      ::  $_ example
@@ -8579,8 +8580,9 @@
       ?>  ?|(!vet (nest(sut q.q.p) & p.p))
       [dox p.q]
     ?>  ?=($elm -.q)
-    ::  ~_  (dunk(sut [%cell q.q.p p.p]) %fire-wet)
-    ::  =.  p.p  (redo(sut q.q.p) p.p)
+    ::  ~_  (dunk(sut [%cell q.q.p p.p]) %fire-wet)  
+    =.  p.p  ?:(fab p.p (redo(sut p.p) q.q.p))
+    ::  =.  p.p  (redo(sut p.p) q.q.p)
     ?>  ?|  !vet
             (~(has in rib) [p dox p.q])
             !=(** (mull(sut p, rib (~(put in rib) p dox p.q)) %noun dox p.q))
@@ -8711,6 +8713,7 @@
       [(nice (cell p.hed p.tal)) (cons q.hed q.tal)]
     ::
         {$core *}  (grow %gold [%$ 1] p.gen)
+        {$cool *}  $(fab |, gen p.gen)
     ::
         {$make *}  (~(mint et p.gen q.gen) gol)
         {$wish *}
@@ -8873,6 +8876,7 @@
       [(nice (cell p.hed p.tal)) (cell q.hed q.tal)]
     ::
         {$core *}  (grow %gold [%$ 1] p.gen)
+        {$cool *}  $(fab |, gen p.gen)
         {$make *}  (~(mull et p.gen q.gen) gol dox)
         {$wish *}  =+($(gen q.gen, gol %noun) $(gen [%bunt p.gen]))
         {$bump *}  =+($(gen p.gen, gol [%atom %$ ~]) (beth [%atom %$ ~]))
@@ -9165,6 +9169,7 @@
     ?-  gen
       {^ *}      (cell $(gen p.gen) $(gen q.gen))
       {$core *}  (core sut %gold sut [[%0 0] p.gen])
+      {$cool *}  $(fab |, gen p.gen)
       {$make *}  ~(play et p.gen q.gen)
       {$wish *}  $(gen [%bunt p.gen])
       {$bump *}  [%atom %$ ~]
@@ -9217,25 +9222,31 @@
     |=  ::  ref: reference surface to apply names from
         ::
         ref/span
-    ::  gil: subject repetitions
+    ::  gil: construct repetitions
     ::
     =|  gil/(set span)
+    ~|  %redo-entry
+    =-  ~>  %slog.[0 (dunk %redo-sut)]
+        ~>  %slog.[0 (dunk(sut ref) %redo-ref)]
+        ~>  %slog.[0 (dunk(sut -) %redo-pro)]
+        -
     =<  dext
     |%                                                  ::
     ++  dext                                            ::  traverse subject
       ^-  span
-      ::  =-  ~>  %slog.[0 (dunk %dext-sut)]
-      ::  ~>  %slog.[0 (dunk(sut ref) %dext-ref)]
-      ::  ~>  %slog.[0 (dunk(sut -) %dext-pro)]
-      ::  -
       ?-    sut
           ?($noun $void {?($atom $cell $core) *})
-        ::  vol: face stack at this hard point
+        ::  vol: face stack at this hardpoint
         ::
         =^  vol  ref  sint
-        ::  iterate into cell only
+        ::  descend into unblocked cell
         ::
-        =.  sut  ?.  ?=({$cell *} sut)  sut
+        =.  sut
+          ?.  &(?=({$cell *} sut) !(~(has in gil) sut))  
+            sut
+          ::  update recursion block
+          ::
+          =.  gil  (~(put in gil) sut)
           :+  %cell
             dext(sut p.sut, ref (peek(sut ref) %free 2))
           dext(sut q.sut, ref (peek(sut ref) %free 3))
@@ -9257,10 +9268,9 @@
         (fork (turn (~(tap by p.sut)) |=(span dext(sut +<))))
       ::
           {$hold *}
-        ::  default to subject if recursion detected
+        ::  recursion control is now in cell
         ::
-        ?:  (~(has in gil) sut)  sut
-        dext(gil (~(put in gil) sut), sut repo)
+        dext(sut repo)
       ==
     ::                                                  ::
     ++  sint                                            ::  reduce reference
@@ -10176,6 +10186,7 @@
                     ['~' (rune sig %burn expa)]
                     ['=' (rune tis %name expg)]
                     ['?' (rune wut %lead expa)]
+                    ['%' (rune cen %cool expa)]
                 ==
               ==
             :-  '~'
