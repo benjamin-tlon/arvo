@@ -9218,6 +9218,21 @@
                  $(gen doz)
     ==
   ::                                                    ::
+  ++  rekt  !:                                          ::  reduce to hard
+    =|  gil/(set span)
+    |-  ^-  span
+    ?-    sut
+      $noun      %noun
+      $void      %void
+      {$atom *}  sut
+      {$cell *}  [%cell $(sut p.sut) $(sut q.sut)]
+      {$core *}  [%core $(sut p.sut) q.sut(q $(sut q.q.sut))]
+      {$face *}  (face p.sut $(sut q.sut))
+      {$fork *}  (fork (turn (~(tap by p.sut)) |=(span ^$(sut +<))))
+      {$hold *}  ?:  (~(has in gil) sut)  sut
+                 $(gil (~(put in gil) sut), sut repo)
+    ==
+  ::                                                    ::
   ++  redo  !:                                          ::  refinish faces
     |=  ::  ref: reference surface to apply names from
         ::
@@ -9225,10 +9240,17 @@
     ::  gil: construct repetitions
     ::
     =|  gil/(set span)
+    ?:  =(sut ref)  sut
     ~|  %redo-entry
-    =-  ~>  %slog.[0 (dunk %redo-sut)]
-        ~>  %slog.[0 (dunk(sut ref) %redo-ref)]
-        ~>  %slog.[0 (dunk(sut -) %redo-pro)]
+    ::  =-  ~>  %slog.[0 (dunk %redo-sut)]
+    ::      ~>  %slog.[0 (dunk(sut ref) %redo-ref)]
+    ::      ~>  %slog.[0 (dunk(sut -) %redo-pro)]
+    ::      -
+    ~&  %redo-entry
+    ~>  %slog.[0 (dunk(sut rekt) %redo-sut)]
+    ~>  %slog.[0 (dunk(sut rekt(sut ref)) %redo-ref)]
+    =-  ~&  %redo-exit
+        ~>  %slog.[0 (dunk(sut rekt(sut -)) %redo-pro)]
         -
     =<  dext
     |%                                                  ::
