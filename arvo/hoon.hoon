@@ -870,6 +870,14 @@
       +<
     (welp +<- $(+< +<+))
   --
+::                                                      ::
+++  zang                                                ::  new promote
+  |*  a/(list (list))
+  =>  .(a ^.(homo a))
+  |-  ^+  i:-.a
+  ?~  a
+    ~
+  (weld i.a $(a t.a))
   ::::::::::::::::::::::::::::::::::::::::::::::::::::::  ::
 ::::              chapter 2c, simple noun surgery       ::::
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -9234,66 +9242,95 @@
     ==
   ::                                                    ::
   ++  redo  !:                                          ::  refinish faces
-    |=  ::  ref: reference surface to apply names from
+    |=  ::  ref: reference surface to rename from
         ::
         ref/span
+    ::  equal reference tells us nothing
+    ::
+    ?:  =(sut ref)  sut
     ::  gil: construct repetitions
+    ::  liv: live face stack 
     ::
     =|  gil/(set span)
-    ?:  =(sut ref)  sut
-    ~|  %redo-entry
-    ::  =-  ~>  %slog.[0 (dunk %redo-sut)]
-    ::      ~>  %slog.[0 (dunk(sut ref) %redo-ref)]
-    ::      ~>  %slog.[0 (dunk(sut -) %redo-pro)]
-    ::      -
-    ~&  %redo-entry
-    ~>  %slog.[0 (dunk(sut rekt) %redo-sut)]
-    ~>  %slog.[0 (dunk(sut rekt(sut ref)) %redo-ref)]
-    =-  ~&  %redo-exit
-        ~>  %slog.[0 (dunk(sut rekt(sut -)) %redo-pro)]
-        -
+    =|  liv/(list $@(term tomb))
+    ::  ~|  [%in-redo-sut `@p`(mug sut)]
+    ~>  %slog.[0 (dunk %in-redo-sut)]
+    ~>  %slog.[0 (dunk(sut rekt(sut ref)) %in-redo-ref)]
+    ::  if subject is clean, return unchanged
+    ::
+    =-  ?:  p.-
+          ::  ~&  %redo-clean
+          sut 
+        ::  ~&  [%redo-sut `@p`(mug sut)]
+        ::  ~>  %slog.[0 (dunk %redo-sut)]
+        ::  ~>  %slog.[0 (dunk(sut rekt(sut ref)) %redo-ref)]
+        ::  ~&  [%redo-pro `@p`(mug sut) `@p`(mug q.-)]  
+        ::  ~>  %slog.[0 (dunk(sut rekt(sut q.-)) %redo-pro)]
+        q.-
     =<  dext
-    |%                                                  ::
-    ++  dext                                            ::  traverse subject
-      ^-  span
+    |%
+    ::                                                  ::
+    ++  dext                                            ::  general reduction
+      ^-  (pair ? span)
+      ::  ~>  %slog.[0 (dunk %dext-sut)]
+      ::  ~&  [%live liv]  
       ?-    sut
-          ?($noun $void {?($atom $cell $core) *})
+          ?($noun $void {?($atom $core) *})
+        ::  these spans are treated as opaque
+        ::
+        hard
+      ::
+          {$cell *}
+        ::  on recursion, treat as opaque
+        ::
+        ?:  (~(has in gil) sut)  hard
+        =.  gil  (~(put in gil) sut)
         ::  vol: face stack at this hardpoint
+        ::  lef: head reduction
+        ::  ryt: tail reduction
         ::
         =^  vol  ref  sint
-        ::  descend into unblocked cell
+        =/  lef  dext(sut p.sut, liv ~, ref (peek(sut ref) %free 2))
+        =/  ryt  dext(sut q.sut, liv ~, ref (peek(sut ref) %free 3))
+        ::  apply face, propagate cleanness
         ::
-        =.  sut
-          ?.  &(?=({$cell *} sut) !(~(has in gil) sut))  
-            sut
-          ::  update recursion block
-          ::
-          =.  gil  (~(put in gil) sut)
-          :+  %cell
-            dext(sut p.sut, ref (peek(sut ref) %free 2))
-          dext(sut q.sut, ref (peek(sut ref) %free 3))
-        ::  apply face stack
-        ::
-        =/  nex  `span`sut
-        |-  ^-  span
-        ?~  vol  nex
-        $(vol t.vol, nex (face `$@(term tomb)`i.vol nex))
+        :-  &(=(vol liv) p.lef p.ryt)
+        (mask(sut [%cell ?:(p.lef p.sut q.lef) ?:(p.ryt q.sut q.ryt)]) vol)
       ::
           {$face *}
-        ::  ruthlessly strip subject face
+        ::  push face on live stack
         ::
-        dext(sut q.sut)
+        dext(liv [p.sut liv], sut q.sut)
       ::
           {$fork *}
-        ::  apply across fork
+        ::  vip: all solutions
         ::
-        (fork (turn (~(tap by p.sut)) |=(span dext(sut +<))))
+        =/  vip/(list (pair ? span))
+          (turn (~(tap by p.sut)) |=(span dext(sut +<)))
+        :-  (levy vip |=((pair ? span) p))
+        (fork (turn vip |=((pair ? span) q)))
       ::
           {$hold *}
         ::  recursion control is now in cell
         ::
         dext(sut repo)
       ==
+    ::
+    ++  hard                                            ::  opaque reduction
+      ^-  (pair ? span) 
+      ::  vol: face stack at this hardpoint
+      ::
+      =/  vol  -:sint
+      ::  clean if face stacks match; apply faces
+      ::
+      [=(vol liv) (mask vol)]
+    ::                                                  ::  
+    ++  mask                                            ::  apply faces
+      |=  vol/(list $@(term tomb))
+      ^-  span
+      ?~  vol  sut
+      $(vol t.vol, sut (face `$@(term tomb)`i.vol sut))
+    ::                                                  ::
     ::                                                  ::
     ++  sint                                            ::  reduce reference
       ::  vol: stack of faces to apply

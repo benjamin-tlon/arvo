@@ -2,7 +2,7 @@
 ::  zuse (3), standard library (tang)   
 ::
 ~%  %zuse  +  ~
-!:
+!:  
 |%
   ::::::::::::::::::::::::::::::::::::::::::::::::::::::  ::
 ::::              chapter 3b, Arvo libraries            ::::
@@ -1858,9 +1858,11 @@
 ++  urle                                                ::  URL encode
   |=  tep/tape
   ^-  tape
-  %-  zing
+  %-  zang
+  ^-  (list tape)
   %+  turn  tep
   |=  tap/char
+  ^-  tape
   =+  xen=|=(tig/@ ?:((gte tig 10) (add tig 55) (add tig '0')))
   ?:  ?|  &((gte tap 'a') (lte tap 'z'))
           &((gte tap 'A') (lte tap 'Z'))
@@ -1907,13 +1909,14 @@
     ==
   ::
   ++  body
+    ^%
     |=  pok/pork  ^-  tape
     ?~  q.pok  ~
-    |-
+    |-  ^-  tape
     =+  seg=(urle (trip i.q.pok))
     ?~  t.q.pok
-      ?~(p.pok seg (welp seg '.' (trip u.p.pok)))
-    (welp seg '/' $(q.pok t.q.pok))
+      ?~(p.pok seg (weld seg '.' (trip u.p.pok)))
+    (weld seg '/' $(q.pok t.q.pok))
   ::
   ++  head
     |=  har/hart
@@ -2081,7 +2084,7 @@
     ;:  weld
       "~"
       ?:  =(park %duke)
-        (swag [(sub (lent name) 13) 6] name)
+        (swag [(sub (lent name) 13) 6] name)  
       ~
       "^"
       (swag [(sub (lent name) 6) 6] name)
