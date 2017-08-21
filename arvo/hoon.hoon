@@ -656,6 +656,14 @@
     --
   a
 ::
+++  hymo                                                ::  homogenize
+  ^%
+  |*  a/(list)
+  ^+  =<  $
+    |%  +-  $  ?:(*? ~ [i=(snyg 0 a) t=$])
+    --
+  a
+::
 ++  limo                                                ::  listify
   |*  a/*
   ^+  =<  $
@@ -805,6 +813,16 @@
   ?:  =(0 a)  i.b
   $(b t.b, a (dec a))
 ::
+++  snyg                                                ::  index
+  ^%
+  ~/  %snag
+  |*  {a/@ b/(list)}
+  |-  ^+  ?>(?=(^ b) i.b)
+  ?~  b
+    ~|('snag-fail' !!)
+  ?:  =(0 a)  i.b
+  $(b t.b, a (dec a))
+::
 ++  sort   !.                                           ::  quicksort
   ~/  %sort
   |*  {a/(list) b/$-([* *] ?)}
@@ -852,6 +870,16 @@
   |-  ^+  b
   ?~  a  b
   [i.a $(a t.a)]
+::
+++  wele                                                ::  concatenate
+  ~/  %weld
+  ^%
+  |*  {a/(list) b/(list)}
+  =>  .(a ^.(homo a), b ^.(homo b))
+  =-  ^.(homo -)
+  |-
+  ?~  a  b
+  [i=i.a t=$(a t.a)]
 ::
 ++  welp                                                ::  perfect weld
   =|  {* *}
@@ -2968,6 +2996,13 @@
 ::
 ++  molt                                                ::  map from pair list
   |*  a/(list (pair))
+  (~(gas by `(map _p.i.-.a _q.i.-.a)`~) a)
+::
+++  mylt                                                ::  map from pair list
+  ::  ^%
+  |*  a/(list (pair))
+  =>  .(a ^.(hymo a))
+  ~!  a
   (~(gas by `(map _p.i.-.a _q.i.-.a)`~) a)
 ::
 ++  sy                                                  ::  set from raw noun
@@ -9254,18 +9289,20 @@
     =|  gil/(set span)
     =|  liv/(list $@(term tomb))
     ::  ~|  [%in-redo-sut `@p`(mug sut)]
-    ~>  %slog.[0 (dunk %in-redo-sut)]
-    ~>  %slog.[0 (dunk(sut rekt(sut ref)) %in-redo-ref)]
+    ::  ~>  %slog.[0 (dunk(fab |) %in-redo-sut)]
+    ::  ~>  %slog.[0 (dunk(fab |, sut rekt(sut ref)) %in-redo-ref)]
+    ::  ~>  %slog.[0 (dunk(fab |) %in-redo-sut)]
+    ::  ~>  %slog.[0 (dunk(fab |) sut rekt(sut ref)) %in-redo-ref)]
     ::  if subject is clean, return unchanged
     ::
     =-  ?:  p.-
           ::  ~&  %redo-clean
           sut 
         ::  ~&  [%redo-sut `@p`(mug sut)]
-        ::  ~>  %slog.[0 (dunk %redo-sut)]
-        ::  ~>  %slog.[0 (dunk(sut rekt(sut ref)) %redo-ref)]
+        ::  ~>  %slog.[0 (dunk(fab |) %redo-sut)]
+        ::  ~>  %slog.[0 (dunk(fab |, sut rekt(sut ref)) %redo-ref)]
         ::  ~&  [%redo-pro `@p`(mug sut) `@p`(mug q.-)]  
-        ::  ~>  %slog.[0 (dunk(sut rekt(sut q.-)) %redo-pro)]
+        ::  ~>  %slog.[0 (dunk(fab |, sut rekt(sut q.-)) %redo-pro)]
         q.-
     =<  dext
     |%
