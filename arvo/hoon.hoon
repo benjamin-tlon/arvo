@@ -9306,6 +9306,11 @@
         q.-
     =<  dext
     |%
+    ::                                                  ::  
+    ++  beef                                            ::  apply faces
+      |-  ^-  span
+      ?~  liv  sut
+      $(liv t.liv, sut (face i.liv sut))
     ::                                                  ::
     ++  dext                                            ::  general reduction
       ^-  (pair ? span)
@@ -9331,7 +9336,7 @@
         =/  ryt  dext(sut q.sut, liv ~, ref (peek(sut ref) %free 3))
         ::  apply face, propagate cleanness
         ::
-        :-  &(=(vol liv) p.lef p.ryt)
+        =-  [&(p.- p.lef p.ryt) q.-]
         (mask(sut [%cell ?:(p.lef p.sut q.lef) ?:(p.ryt q.sut q.ryt)]) vol)
       ::
           {$face *}
@@ -9350,6 +9355,12 @@
           {$hold *}
         ::  recursion control is now in cell
         ::
+        ?:  (~(has in fan) [p.sut q.sut])
+          ::
+          ::  this case is a rare repo loop, in which
+          ::  we recurse back into ++redo.
+          ::
+          sut
         dext(sut repo)
       ==
     ::
@@ -9363,8 +9374,14 @@
       [=(vol liv) (mask vol)]
     ::                                                  ::  
     ++  mask                                            ::  apply faces
-      |=  vol/(list $@(term tomb))
-      ^-  span
+      |=  ::  vol: reference face stack
+          ::
+          vol/(list $@(term tomb))
+      ::
+      ::  vol is a string AB, like 
+      ::
+      (
+      ^-  {? span}
       ?~  vol  sut
       $(vol t.vol, sut (face `$@(term tomb)`i.vol sut))
     ::                                                  ::
