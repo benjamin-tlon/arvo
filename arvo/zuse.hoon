@@ -9,13 +9,7 @@
 ::  ::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::                section 3bA, lite number theory       ::
 ::
-++  dope
-  ~/  %dope
-  |=  a/@
-  ~&  [%dope-zuse (mug +>)]
-  :(mul a a a)
-::
-++  fu                                                  ::  modulo (mul p q)
+++  fu  ^%                                              ::  modulo (mul p q)
   |=  a/{p/@ q/@}
   =+  b=?:(=([0 0] a) 0 (~(inv fo p.a) (~(sit fo p.a) q.a)))
   |%
@@ -49,7 +43,7 @@
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::                section 3bB, crypto                   ::
 ::
-++  aes  !.
+++  aes  !.  ^%
   ~%  %aes  ..is  ~
   |%
   ++  ahem                                              ::  AES engine
@@ -722,7 +716,7 @@
       `pln
     --
   --
-++  crua  !:                                            ::  cryptosuite A (RSA)
+++  crua  !:  ^%                                        ::  cryptosuite A (RSA)
   ^-  acru
   =|  {mos/@ pon/(unit {p/@ q/@ r/{p/@ q/@} s/_*fu})}
   =>  |%
@@ -1208,7 +1202,7 @@
   ::  JSON objects
   ++  pair  ;~(plug ;~(sfix (ws stri) (ws col)) apex)
   ++  obje  (ifix [(ws kel) (ws ker)] (more (ws com) pair))
-  ++  obox  (stag %o (cook |=((list {cord json}) ^%((malt +<))) obje))
+  ++  obox  (stag %o (cook malt obje))
   ::  JSON booleans
   ++  bool  ;~(pose (cold & (jest 'true')) (cold | (jest 'false')))
   ::  JSON strings
@@ -1295,7 +1289,7 @@
 ::
 ++  poxo                                                ::  node to tape
   =<  |=(a/manx `tape`(apex a ~))
-  |_  _[unq=`?`| cot=`?`|]                              ::  self-close all tags
+  |_  _[unq=`?`| cot=`?`|]                           ::  self-close all tags
   ++  apex                                              ::  top level
     |=  {mex/manx rez/tape}
     ^-  tape
@@ -1306,8 +1300,7 @@
     =+  tam=(name man)
     =+  att=`mart`a.g.mex
     :-  '<'
-    ^%
-    %+  wele  tam
+    %+  welp  tam
     =-  ?~(att rez [' ' (attr att rez)])
     ^-  rez/tape
     ?:  &(?=($~ c.mex) |(cot (clot man)))
@@ -1788,7 +1781,7 @@
   |=  {bem/beam ced/noun:cred quy/|-($@($~ {p/@t q/@t t/$}))}
   ^-  epic
   =+  qix=|-(`quay`?~(quy quy [[p q]:quy $(quy t.quy)]))
-  [^%((malt qix)) ((hard cred) ced) bem /]
+  [(malt qix) ((hard cred) ced) bem /]
 ::
 ++  sifo                                                ::  64-bit encode
   |=  tig/@
@@ -1808,10 +1801,7 @@
 ++  ofis  ::  XX broken
   =-  |=(a/cord (rash a fel))
   =<  fel=(cook |~(a/@ `@t`(swap 3 a)) (bass 64 .))
-  ^%
-  =-  %+  cook 
-        |=({a/(list @) b/(list @)} (wele a b))
-      ;~(plug (plus siw) (stun 0^2 (cold %0 tis)))
+  =-  (cook welp ;~(plug (plus siw) (stun 0^2 (cold %0 tis))))
   ^=  siw
   ;~  pose
      (cook |=(a/@ (sub a 'A')) (shim 'A' 'Z'))
@@ -1913,7 +1903,6 @@
     ==
   ::
   ++  body
-    ^%
     |=  pok/pork  ^-  tape
     ?~  q.pok  ~
     |-  ^-  tape
@@ -1945,8 +1934,7 @@
     :-  '?'
     |-  ^-  tape
     ?~  kay  ~
-    ^%
-    ;:  wele
+    ;:  welp
       (urle (trip p.i.kay))
       ?~(q.i.kay ~ ['=' (urle (trip q.i.kay))])
       ?~(t.kay ~ `tape`['&' $(kay t.kay)])
@@ -1954,6 +1942,7 @@
   --
 ::
 ++  urlp                                                ::  url+header parser
+  ^%
   |%
   ++  apat                                              ::  2396 abs_path
     %+  cook  deft
@@ -1982,7 +1971,6 @@
       ;~(plug ;~(pose apat (easy *pork)) yque)
     ==
   ++  htts  
-    ^%
     %+  sear  ~(get by (malt `(list (pair term ?))`[http+| https+& ~]))
     ;~(sfix scem ;~(plug col fas fas))
   ::

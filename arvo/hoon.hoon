@@ -817,7 +817,6 @@
   ^%
   ~/  %snag
   |*  {a/@ b/(list)}
-  |-  ^+  ?>(?=(^ b) i.b)
   ?~  b
     ~|('snag-fail' !!)
   ?:  =(0 a)  i.b
@@ -7958,6 +7957,8 @@
       ?~  yed
         [dex ~]
       =+  mor=$(yed t.yed)
+      ?:  (~(nest ut %void) | i.yed)
+        mor
       =+  dis=^$(dex p.mor, sut i.yed)
       [p.dis q.dis q.mor]
     ::
@@ -8495,7 +8496,7 @@
           ++  $
             ^-  pony
             ?-    sut
-                $void       stop
+                $void       ~
                 $noun       stop
                 {$atom *}   stop
                 {$cell *} 
@@ -9283,6 +9284,8 @@
     ::  equal reference tells us nothing
     ::
     ?:  =(sut ref)  sut
+    ~_  (dunk(sut (peek %free 2)) 'redo: sut')  
+    ~_  (dunk(sut (peek(sut ref) %free 2)) 'redo: ref')
     ::  gil: construct repetitions
     ::  liv: live face stack 
     ::
@@ -9312,8 +9315,16 @@
       ?~  liv  sut
       $(liv t.liv, sut (face i.liv sut))
     ::                                                  ::
+    ++  chad                                            ::
+      
+    ::                                                  ::
     ++  dext                                            ::  general reduction
       ^-  (pair ? span)
+      ::  switch on subject
+      ::
+      ::  ~|  [%mugs sut=`@p`(mug sut) ref=`@p`(mug ref)]
+      ::  ~_  (dunk 'dext: sut')  
+      ::  ~_  (dunk 'dext: ref')
       ::  ~>  %slog.[0 (dunk %dext-sut)]
       ::  ~&  [%live liv]  
       ?-    sut
@@ -9323,7 +9334,7 @@
         hard
       ::
           {$cell *}
-        ::  on recursion, treat as opaque
+        ::  repetition must pass through cell or fork
         ::
         ?:  (~(has in gil) sut)  hard
         =.  gil  (~(put in gil) sut)
@@ -9337,7 +9348,7 @@
         ::  apply face, propagate cleanness
         ::
         =-  [&(p.- p.lef p.ryt) q.-]
-        (mask(sut [%cell ?:(p.lef p.sut q.lef) ?:(p.ryt q.sut q.ryt)]) vol)
+        (make(sut [%cell ?:(p.lef p.sut q.lef) ?:(p.ryt q.sut q.ryt)]) vol)
       ::
           {$face *}
         ::  push face on live stack
@@ -9353,38 +9364,57 @@
         (fork (turn vip |=((pair ? span) q)))
       ::
           {$hold *}
-        ::  recursion control is now in cell
-        ::
         ?:  (~(has in fan) [p.sut q.sut])
+          ::  repo loop: redo depends on its own results
           ::
-          ::  this case is a rare repo loop, in which
-          ::  we recurse back into ++redo.
+          ::    can happen when we use the 
           ::
-          sut
+          hard
         dext(sut repo)
       ==
-    ::
-    ++  hard                                            ::  opaque reduction
-      ^-  (pair ? span) 
-      ::  vol: face stack at this hardpoint
-      ::
-      =/  vol  -:sint
-      ::  clean if face stacks match; apply faces
-      ::
-      [=(vol liv) (mask vol)]
-    ::                                                  ::  
-    ++  mask                                            ::  apply faces
-      |=  ::  vol: reference face stack
-          ::
-          vol/(list $@(term tomb))
-      ::
-      ::  vol is a string AB, like 
-      ::
-      (
-      ^-  {? span}
-      ?~  vol  sut
-      $(vol t.vol, sut (face `$@(term tomb)`i.vol sut))
     ::                                                  ::
+    ++  hard                                            ::  opaque reduction
+      (make -:sint)
+    ::                                                  ::  
+    ++  make                                            ::  apply faces
+      |=  $:  ::  vol: reference face stack
+              ::
+              vol/(list $@(term tomb))
+          ==
+      ^-  (pair ? span)
+      ::  len: lengths of [sut ref] face stacks
+      ::
+      =/  len  [p q]=[(lent liv) (lent vol)]
+      ::  lip: length of sut-ref face stack overlap
+      ::
+      ::    +lip is (lent B), where +vol is a string AB
+      ::    and +liv is a string BC (stack BA and CB).
+      ::
+      ::    overlap is a weird corner case.  +lip is
+      ::    almost always 0.  brute force is fine.
+      :: 
+      =/  lip
+        =|  lup/(unit @ud)
+        =|  lip/@ud
+        |-  ^-  @ud
+        ~|  [%lip lip %len len]
+        ?:  |((gth lip p.len) (gth lip q.len))
+          (fall lup 0)
+        ::  lap: overlap candidate suffix of subject face stack
+        ::
+        =/  lap  (slag (sub p.len lip) liv)
+        ::  lep: overlap candidate suffix of reference face stack
+        ::
+        =/  lep  (scag lip vol) 
+        ::  save any match and continue
+        ::
+        $(lip +(lip), lup ?.(=(lap lep) lup `lip))
+      ::  lov: integrated face stack (string ABC, stack CBA)
+      ::
+      =/  lov  (weld liv (slag lip vol))
+      ::  apply faces
+      ::
+      [=(lov liv) beef(liv lov)]
     ::                                                  ::
     ++  sint                                            ::  reduce reference
       ::  vol: stack of faces to apply
