@@ -656,14 +656,6 @@
     --
   a
 ::
-++  hymo                                                ::  homogenize
-  ^%
-  |*  a/(list)
-  ^+  =<  $
-    |%  +-  $  ?:(*? ~ [i=(snyg 0 a) t=$])
-    --
-  a
-::
 ++  limo                                                ::  listify
   |*  a/*
   ^+  =<  $
@@ -813,15 +805,6 @@
   ?:  =(0 a)  i.b
   $(b t.b, a (dec a))
 ::
-++  snyg                                                ::  index
-  ^%
-  ~/  %snag
-  |*  {a/@ b/(list)}
-  ?~  b
-    ~|('snag-fail' !!)
-  ?:  =(0 a)  i.b
-  $(b t.b, a (dec a))
-::
 ++  sort   !.                                           ::  quicksort
   ~/  %sort
   |*  {a/(list) b/$-([* *] ?)}
@@ -869,16 +852,6 @@
   |-  ^+  b
   ?~  a  b
   [i.a $(a t.a)]
-::
-++  wele                                                ::  concatenate
-  ~/  %weld
-  ^%
-  |*  {a/(list) b/(list)}
-  =>  .(a ^.(homo a), b ^.(homo b))
-  =-  ^.(homo -)
-  |-
-  ?~  a  b
-  [i=i.a t=$(a t.a)]
 ::
 ++  welp                                                ::  perfect weld
   =|  {* *}
@@ -2995,13 +2968,6 @@
 ::
 ++  molt                                                ::  map from pair list
   |*  a/(list (pair))
-  (~(gas by `(map _p.i.-.a _q.i.-.a)`~) a)
-::
-++  mylt                                                ::  map from pair list
-  ::  ^%
-  |*  a/(list (pair))
-  =>  .(a ^.(hymo a))
-  ~!  a
   (~(gas by `(map _p.i.-.a _q.i.-.a)`~) a)
 ::
 ++  sy                                                  ::  set from raw noun
@@ -9158,6 +9124,41 @@
                       gil  (~(put in gil) [sut ref])
       ==            ==
     --
+  ::                                                    ::  
+  ++  omni                                              ::  clean span set
+    ~/  %omni
+    |=  $:  ::  yed: raw spans 
+            ::
+            yed/(list span)
+        ==
+    ^-  ::  span representing the union of yed
+        ::
+        span
+    ::  gil: repetition control set
+    ::
+    =|  gil/(set span)
+    ::  simplify product to span
+    ::
+    =-  ?~(- %void ?:(?=({* $~ $~} -) n.- fork+-))
+    ::  loop over raw span list, producing product set
+    ::
+    |-  ^-  (set span)
+    ?~  yed  ~
+    ::  mor: head recursion
+    ::
+    =/  mor  $(yed t.yed)
+    ?+  i.yed
+      (~(put in mor) i.yed)
+    ::
+      $void      mor
+      {$fork *}  (~(uni in mor) $(yed (~(tap in p.i.yed))))
+      {$hold *}  ?:  (~(has in gil) i.yed)  
+                   mor
+                 %-  ~(uni in mor)
+                 %=  $
+                   yed  [repo(sut i.yed) ~]
+                   gil  (~(put in gil) i.yed)
+    ==           ==
   ::
   ++  perk
     |=  {way/vial met/?($gold $iron $lead $zinc)}
@@ -9315,9 +9316,6 @@
       ?~  liv  sut
       $(liv t.liv, sut (face i.liv sut))
     ::                                                  ::
-    ++  chad                                            ::
-      
-    ::                                                  ::
     ++  dext                                            ::  general reduction
       ^-  (pair ? span)
       ::  switch on subject
@@ -9334,7 +9332,7 @@
         hard
       ::
           {$cell *}
-        ::  repetition must pass through cell or fork
+        ::  clean repetition must pass through cell
         ::
         ?:  (~(has in gil) sut)  hard
         =.  gil  (~(put in gil) sut)
@@ -9358,8 +9356,12 @@
           {$fork *}
         ::  vip: all solutions
         ::
+        =/  tus  (omni (~(tap in p.sut)))
+        ?.  ?=({$fork *} tus)  dext(sut tus)
+        ::  ~_  (dunk 'fork: omni: sut')
+        ::  ~_  (dunk(sut tus) 'fork: omni: tus')
         =/  vip/(list (pair ? span))
-          (turn (~(tap by p.sut)) |=(span dext(sut +<)))
+          (turn (~(tap in p.tus)) |=(span dext(sut +<)))
         :-  (levy vip |=((pair ? span) p))
         (fork (turn vip |=((pair ? span) q)))
       ::
