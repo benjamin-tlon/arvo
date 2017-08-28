@@ -2978,6 +2978,47 @@
   |*  a/(list)
   =+  b=*(set _?>(?=(^ a) i.a))
   (~(gas in b) a)
+::
+++  nl
+  ^%
+  |%
+  ::                                                      ::
+  ++  le                                                  ::  construct list
+    |*  a/(list)
+    ^+  =<  $
+      |%  +-  $  ?:(*? ~ [i=(snag 0 a) t=$])
+      --
+    a
+  ::                                                      ::
+  ++  my                                                  ::  construct map
+    |*  a/(list (pair))
+    =>  .(a ^+((le a) a))
+    (~(gas by `(map _p.i.-.a _q.i.-.a)`~) a)
+  ::                                                      ::
+  ++  mz                                                  ::  construct map
+    |*  a/(list (pair))
+    =>  .(a ^+((le a) a))
+    (~(gas by ~) a)
+  ::                                                      ::
+  ++  si                                                  ::  construct set
+    |*  a/(list)
+    =>  .(a ^+((le a) a))
+    (~(gas in `(set _i.-.a)`~) a)
+  ::                                                      ::
+  ++  snag                                                ::  index
+    |*  {a/@ b/(list)}
+    ?~  b
+      ~|('snag-fail' !!)
+    ?:  =(0 a)  i.b
+    $(b t.b, a (dec a))
+  ::                                                      ::
+  ++  weld                                                ::  concatenate
+    |*  {a/(list) b/(list)}
+    =>  .(a ^+((le a) a), b ^+((le b) b))
+    |-
+    ?~  a  b
+    [i=i.a t=$(a t.a)]
+  --
   ::::::::::::::::::::::::::::::::::::::::::::::::::::::  ::
 ::::              chapter 2e, miscellaneous libs        ::::
 ::  ::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -9285,8 +9326,16 @@
     ::  equal reference tells us nothing
     ::
     ?:  =(sut ref)  sut
-    ~_  (dunk(sut (peek %free 2)) 'redo: sut')  
-    ~_  (dunk(sut (peek(sut ref) %free 2)) 'redo: ref')
+    ::  subject must fit reference
+    ::
+    ~|  %redo-match  
+    ::  we can make everything follow this rule, though
+    ::  parsers probably have trouble
+    ::
+    ::  ?>  (~(nest ut ref) & sut)
+    ::
+    ::  ~_  (dunk(sut (peek %free 2)) 'redo: sut')  
+    ::  ~_  (dunk(sut (peek(sut ref) %free 2)) 'redo: ref')
     ::  gil: construct repetitions
     ::  liv: live face stack 
     ::
@@ -9361,7 +9410,7 @@
         ::  ~_  (dunk 'fork: omni: sut')
         ::  ~_  (dunk(sut tus) 'fork: omni: tus')
         =/  vip/(list (pair ? span))
-          (turn (~(tap in p.tus)) |=(span dext(sut +<)))
+          (turn (~(tap in p.sut)) |=(span dext(sut +<)))
         :-  (levy vip |=((pair ? span) p))
         (fork (turn vip |=((pair ? span) q)))
       ::
@@ -9444,7 +9493,6 @@
         ::  vul: candidate face stack
         ::  yal: candidate reference spans
         ::
-        ~|  %redo-fork
         =/  hef/(list span)  (~(tap by p.ref))
         =|  vul/(unit (list $@(term tomb)))
         =|  yal/(list span)

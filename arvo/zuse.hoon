@@ -1183,6 +1183,7 @@
   ==
 ::
 ++  poja                                                ::  parse JSON
+  ^%
   =<  |=(a/cord `(unit json)`(rush a apex))
   |%
   ++  apex                                              ::  JSON value
@@ -1212,7 +1213,7 @@
     ;~  pfix  bas
       ;~  pose
         doq  fas  soq  bas
-        (sear ~(get by `(map @t @)`(my b+8 t+9 n+10 f+12 r+13 ~)) low)
+        (sear ~(get by `(map @t @)`(my:nl b+8 t+9 n+10 f+12 r+13 ~)) low)
         ;~(pfix (just 'u') (cook tuft qix:ab))           :: 4-digit hex to UTF-8
       ==
     ==
@@ -1358,9 +1359,8 @@
     ==  ==
   --
 ::
-++  foo
-    ;~(plug fas fas fas)
 ++  poxa                                                ::  xml parser
+  ^%
   =<  |=(a/cord (rush a apex))
   |_  ent/_`(map term @t)`[[%apos '\''] ~ ~]
   ++  apex
@@ -1401,7 +1401,7 @@
   ++  enty                                              ::  entity
     %+  ifix  pam^sem
     ;~  pose
-      =+  def=^+(ent (my [%gt '>'] [%lt '<'] [%amp '&'] [%quot '"'] ~))
+      =+  def=^+(ent (my:nl [%gt '>'] [%lt '<'] [%amp '&'] [%quot '"'] ~))
       %+  sear  ~(get by (~(uni by def) ent))
       (cook crip ;~(plug alf (stun 1^31 aln)))
       %+  cook  |=(a/@c ?:((gth a 0x10.ffff) '�' (tuft a)))
@@ -1434,6 +1434,7 @@
   --
 ::
 ++  jo                                                  ::  json reparser
+  ^%
   =>  |%  ++  grub  (unit *) 
           ++  fist  $-(json grub)
       --
@@ -1544,8 +1545,9 @@
     %-  ci  :_  (om wit)
     |=  a/(map cord _(need *wit))
     ^-  (unit (list _[(wonk *fel) (need *wit)]))
-    =-  (zl (turn (~(tap by a)) -))
-    |*  {a/cord b/*}
+    %-  zl
+    %+  turn  (~(tap by a))
+    |=  {a/cord b/_(need *wit)}
     =+  nit=(rush a fel) 
     ?~  nit  ~
     (some [u.nit b])
@@ -1711,13 +1713,14 @@
   [i.t.pax [%& [[[t.t.t.pax [%del ~]] ~]]]]
 ::
 ++  furl                                                ::  unify changes
+  ^%
   |=  {one/toro two/toro}
   ^-  toro
   ~|  %furl
   ?>  ?&  =(p.one p.two)                                ::  same path
           &(?=($& -.q.one) ?=($& -.q.two))              ::  both deltas
       ==
-  [p.one [%& (weld p.q.one p.q.two)]]
+  [p.one [%& (weld:nl p.q.one p.q.two)]]
 ::
 ++  tame                                                ::  parse kite path
   |=  hap/path
