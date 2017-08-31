@@ -59,7 +59,7 @@
 ++  cafe                                                ::  live cache
   $:  p/(set calx)                                      ::  used
       q/(map * calx)                                    ::  cache
-      r/(map @uvH deps)                                 ::  dependss
+      r/(map @uvH deps)                                 ::  depends
   ==                                                    ::
 ::                                                      ::
 ++  calm                                                ::  cache metadata
@@ -79,7 +79,7 @@
 ++  deps                                                ::  depend state
   $%  {$init p/(set beam)}                              ::  given out
       {$sent p/(set duct) q/(set beam)}                 ::  listener exists
-      {$done $~}                                         ::  change seen
+      {$done $~}                                        ::  change seen
   ==                                                    ::
 ++  task                                                ::  problem in progress
   $:  nah/duct                                          ::  cause
@@ -92,7 +92,7 @@
 --                                                      ::
 |%                                                      ::
 ++  calf                                                ::  reduce calx
-  |*  sem/*                                             ::  a spansystem hack
+  |*  sem/*                                             ::  a typesystem hack
   |=  cax/calx
   ?+  sem  !!
     $hood  ?>(?=($hood -.cax) r.cax)

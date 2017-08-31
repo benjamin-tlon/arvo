@@ -12,26 +12,8 @@
 ^%
 =-  %hello
 |%
-++  qx
-  |%
-  ++  toro  {p/@ta q/nori}                                ::  general change
-  ++  nori                                                ::  repository action
-            $%  {$& p/soba}                               ::  delta
-                {$| p/@tas}                               ::  label
-            ==                                            ::
-  ++  soba  (list {p/path q/miso})                        ::  delta
-  ++  mojo                                                ::  ankh delta
-            $%  {$mut p/cage}                             ::  mutate from raw
-            ==                                            ::
-  ++  naps  $%  {$atom p/term q/(unit @)}                 ::  atom / constant
-                {$core p/naps q/*}                     ::  object
-                {$face p/$@(term ^) q/naps}            ::  namespace (new)
-                {$hold p/naps q/*}                     ::  lazy evaluation
-            ==                                            ::
-
-  ++  test
-    (weld *(list twig) *(list twig))
-  --
+++  test
+  (le:nx 3 4 5 ~)
 ::
 ++  nx
   |%
@@ -63,9 +45,13 @@
   ++  weld                                                ::  concatenate
     |*  {a/(list) b/(list)}
     =>  .(a ^+((le a) a), b ^+((le b) b))
-    |-
+    |-  ^+  b
     ?~  a  b
     [i=i.a t=$(a t.a)]
+  ::
+  ++  nop
+    |*  a/*
+    a
   --
 ::
 ++  jo                                                  ::  json reparser

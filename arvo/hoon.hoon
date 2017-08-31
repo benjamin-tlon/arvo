@@ -2979,46 +2979,46 @@
   =+  b=*(set _?>(?=(^ a) i.a))
   (~(gas in b) a)
 ::
-++  nl
-  ^%
-  |%
-  ::                                                      ::
-  ++  le                                                  ::  construct list
-    |*  a/(list)
-    ^+  =<  $
-      |%  +-  $  ?:(*? ~ [i=(snag 0 a) t=$])
-      --
-    a
-  ::                                                      ::
-  ++  my                                                  ::  construct map
-    |*  a/(list (pair))
-    =>  .(a ^+((le a) a))
-    (~(gas by `(map _p.i.-.a _q.i.-.a)`~) a)
-  ::                                                      ::
-  ++  mz                                                  ::  construct map
-    |*  a/(list (pair))
-    =>  .(a ^+((le a) a))
-    (~(gas by ~) a)
-  ::                                                      ::
-  ++  si                                                  ::  construct set
-    |*  a/(list)
-    =>  .(a ^+((le a) a))
-    (~(gas in `(set _i.-.a)`~) a)
-  ::                                                      ::
-  ++  snag                                                ::  index
-    |*  {a/@ b/(list)}
-    ?~  b
-      ~|('snag-fail' !!)
-    ?:  =(0 a)  i.b
-    $(b t.b, a (dec a))
-  ::                                                      ::
-  ++  weld                                                ::  concatenate
-    |*  {a/(list) b/(list)}
-    =>  .(a ^+((le a) a), b ^+((le b) b))
-    |-
-    ?~  a  b
-    [i=i.a t=$(a t.a)]
-  --
+::++  nl
+::  ^%
+::  |%
+::  ::                                                      ::
+::  ++  le                                                  ::  construct list
+::    |*  a/(list)
+::    ^+  =<  $
+::      |%  +-  $  ?:(*? ~ [i=(snag 0 a) t=$])
+::      --
+::    a
+::  ::                                                      ::
+::  ++  my                                                  ::  construct map
+::    |*  a/(list (pair))
+::    =>  .(a ^+((le a) a))
+::    (~(gas by `(map _p.i.-.a _q.i.-.a)`~) a)
+::  ::                                                      ::
+::  ++  mz                                                  ::  construct map
+::    |*  a/(list (pair))
+::    =>  .(a ^+((le a) a))
+::    (~(gas by ~) a)
+::  ::                                                      ::
+::  ++  si                                                  ::  construct set
+::    |*  a/(list)
+::    =>  .(a ^+((le a) a))
+::    (~(gas in `(set _i.-.a)`~) a)
+::  ::                                                      ::
+::  ++  snag                                                ::  index
+::    |*  {a/@ b/(list)}
+::    ?~  b
+::      ~|('snag-fail' !!)
+::    ?:  =(0 a)  i.b
+::    $(b t.b, a (dec a))
+::  ::                                                      ::
+::  ++  weld                                                ::  concatenate
+::    |*  {a/(list) b/(list)}
+::    =>  .(a ^+((le a) a), b ^+((le b) b))
+::    |-
+::    ?~  a  b
+::    [i=i.a t=$(a t.a)]
+::  --
   ::::::::::::::::::::::::::::::::::::::::::::::::::::::  ::
 ::::              chapter 2e, miscellaneous libs        ::::
 ::  ::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -9337,9 +9337,11 @@
     ::  ~_  (dunk(sut (peek %free 2)) 'redo: sut')  
     ::  ~_  (dunk(sut (peek(sut ref) %free 2)) 'redo: ref')
     ::  gil: construct repetitions
+    ::  rep: within repetition
     ::  liv: live face stack 
     ::
     =|  gil/(set span)
+    =|  rep/_|
     =|  liv/(list $@(term tomb))
     ::  ~|  [%in-redo-sut `@p`(mug sut)]
     ::  ~>  %slog.[0 (dunk(fab |) %in-redo-sut)]
@@ -9369,10 +9371,11 @@
       ^-  (pair ? span)
       ::  switch on subject
       ::
+      ~_  (dunk 'dext: sut')  
+      ~_  (dunk(sut ref) 'dext: ref')
       ::  ~|  [%mugs sut=`@p`(mug sut) ref=`@p`(mug ref)]
-      ::  ~_  (dunk 'dext: sut')  
-      ::  ~_  (dunk 'dext: ref')
-      ::  ~>  %slog.[0 (dunk %dext-sut)]
+      ~>  %slog.[0 (dunk %dext-sut)]
+      ~>  %slog.[0 (dunk(sut ref) %dext-ref)]
       ::  ~&  [%live liv]  
       ?-    sut
           ?($noun $void {?($atom $core) *})
@@ -9381,15 +9384,18 @@
         hard
       ::
           {$cell *}
-        ::  clean repetition must pass through cell
+        ::  if we are within repetition, don't descend into cell
         ::
-        ?:  (~(has in gil) sut)  hard
-        =.  gil  (~(put in gil) sut)
+        ?:  rep  hard
         ::  vol: face stack at this hardpoint
+        ::
+        =^  vol  ref  sint
+        ::  don't descend into %noun, it's a giant waste of time
+        ::
+        ?:  =(%noun ref)  (make vol)
         ::  lef: head reduction
         ::  ryt: tail reduction
         ::
-        =^  vol  ref  sint
         =/  lef  dext(sut p.sut, liv ~, ref (peek(sut ref) %free 2))
         =/  ryt  dext(sut q.sut, liv ~, ref (peek(sut ref) %free 3))
         ::  apply face, propagate cleanness
@@ -9418,10 +9424,12 @@
         ?:  (~(has in fan) [p.sut q.sut])
           ::  repo loop: redo depends on its own results
           ::
-          ::    can happen when we use the 
-          ::
           hard
-        dext(sut repo)
+        %=  dext
+          sut  repo
+          gil  (~(put in gil) sut)
+          rep  (~(has in gil) sut)
+        ==
       ==
     ::                                                  ::
     ++  hard                                            ::  opaque reduction
@@ -9463,9 +9471,9 @@
       ::  lov: integrated face stack (string ABC, stack CBA)
       ::
       =/  lov  (weld liv (slag lip vol))
-      ::  apply faces
+      ::  apply faces to ref
       ::
-      [=(lov liv) beef(liv lov)]
+      [=(lov liv) beef(sut ref, liv lov)]
     ::                                                  ::
     ++  sint                                            ::  reduce reference
       ::  vol: stack of faces to apply
@@ -9493,15 +9501,17 @@
         ::  vul: candidate face stack
         ::  yal: candidate reference spans
         ::
+        ::  ~_  (dunk 'sint-fork: sut')
+        ::  ~_  (dunk(sut ref) 'sint-fork: ref')
         =/  hef/(list span)  (~(tap by p.ref))
         =|  vul/(unit (list $@(term tomb)))
         =|  yal/(list span)
-        =-  [(need -<) (fork ->)]
+        =-  ?~  [(need -<) (fork ->)]
         |-  ^+  [vul yal]
         ?~  hef  [vul yal]
         ::  filter out irrelevant cases
         ::
-        ?.  (nest(sut i.hef) | sut)  $(hef t.hef)
+        ?.  (nest | i.hef)  $(hef t.hef)
         ::  fet: result for this fork case
         ::
         =/  fet  ^$(ref i.hef)
@@ -9510,6 +9520,162 @@
         ::
         ?~(vul `-.fet ?>(=(vul `-.fet) vul))
       ==
+    --
+  ::
+  ++  robo                                              ::  new reverse redo
+    ::  customize ref to fit the faces of sut
+    ::
+    |=  $:  ::  ref: raw payload
+            ::
+            ref/span
+        ==
+    ::  equal reference tells us nothing
+    ::
+    ?:  =(sut ref)  sut
+    ::  errors here imply subject/reference mismatch
+    ::
+    ~|  %redo-match 
+    ::  hay: subject face stack
+    ::  wec: reference face stack
+    ::  gil: repetition set
+    ::  rep: within repetition
+    ::
+    =|  hay/(list $@(term tomb))
+    =|  wec/(list $@(term tomb))
+    =|  gil/(set (pair span span))
+    =|  rep/_|
+    =<  dext
+    |%
+    ::                                                  ::
+    ++  beef                                            ::  apply faces
+      |-  ^-  span
+      ?~  liv  ref
+      $(liv t.liv, ref (face i.liv ref))
+    ::
+    ++  dext
+      ^-  span
+      ?-    sut
+          ?($noun $void {?($atom $core) *})
+        ::  reduce reference to match subject
+        ::
+        =>  sint
+        ::  insert 
+        ::
+        done
+      ::
+          {$cell *}
+        ::  reduce reference to match subject
+        ::
+        =>  sint
+        ::  if we are within repetition, don't descend into cell
+        ::
+        ?:  rep  done
+        ::  
+        ::
+        %=  done
+          p.sut  dext(sut p.sut,  
+        ::  vol: face stack at this hardpoint
+        ::
+        =^  vol  ref  sint
+        ::  lef: head reduction
+        ::  ryt: tail reduction
+        ::
+
+        =/  lef  dext(sut p.sut, liv ~, ref (peek(sut ref) %free 2))
+        =/  ryt  dext(sut q.sut, liv ~, ref (peek(sut ref) %free 3))
+        ::  apply face, propagate cleanness
+        ::
+        =-  [&(p.- p.lef p.ryt) q.-]
+        (make(sut [%cell ?:(p.lef p.sut q.lef) ?:(p.ryt q.sut q.ryt)]) vol)
+      ::
+          {$face *}
+        ::  push face on subject stack
+        ::
+        dext(hay [p.sut hay], sut q.sut)
+      ::
+          {$fork *}
+        (fork (~(tap in p.sut) |=(span dext(sut +<))))
+      ::
+          {$hold *}
+        ?:  (~(has in fan) [p.sut q.sut])
+          ::  repo loop: redo depends on its own result (rare)
+          ::
+          done:sint
+        %=  dext
+          sut  repo
+          gil  (~(put in gil) [sut ref])
+          rep  (~(has in gil) [sut ref])
+        ==
+      ==
+    ::                                                 ::
+    ++  fine                                           ::  ref faces match sut
+      ^-  ?
+      =<  dext
+      |%
+      ::                                               ::
+      ++  dext                                         ::  reduce subject
+        ?-  sut
+          $noun      done
+          $void      &
+          {$atom *}  done
+          {$core *}  done
+          {$cell *}  =^  god  .  sint
+                     ?.  god  |
+                     ?.  =(hay wec)  |
+                     ?&  dext(sut p.sut, ref (peek(sut ref) %free 2))
+                         dext(sut q.sut, ref (peek(sut ref) %free 3))
+                     ==
+          {$face *}  dext(hay [p.sut hay], sut q.sut)
+          {$fork *}  (levy (~(tap in p.sut)) |=(span dext(sut +<)))
+          {$hold *}  ?|  (~(has in gil) [sut ref])
+                         dext(sut repo, gil (~(put in gil) [sut ref]))
+        ==           ==
+      ::                                                ::  
+      ++  done                                          ::  fine leaf node
+        ::  reduce reference, propagate failure
+        ::
+        =^  god  .  sint
+        ?.  god  |
+        ::  reference prefix matches subject prefix
+        ::
+        =(hay (scag (lent hay) wec))
+      ::
+      ++  sint
+        ^+  [& .]
+        ?+    ref  [& .]
+            {$face *}  sint(wec [p.ref wec], ref q.ref)
+            {$hold *}  $(ref repo(sut ref))
+            {$fork *}  
+          =/  vab  
+            %+  turn  (~(tap in p.sut))
+               
+          =|  wuc/(unit (list $@(term tomb)))
+          |-  ^+  ..sint
+          ?~  vab
+            ..sint(wec ?~(wuc wec u.wuc), ref 
+              wec  ?~(wuc 
+          (levy (~(tap in p.sut)) |=(span dext(sut +<)))
+        ==
+
+      ::
+      ::  lop: set 
+      ::
+      =|  lop/(set (pair span span))
+      
+      =<  dext
+      |%
+      ++  cold  &(= 
+      ++  dext
+        ?-  
+    ::                                                  ::  
+    ++  done
+      |-  ^-  span
+      ?~  liv  ref
+      $(liv t.liv, ref (face i.liv ref))
+
+    ++  sint
+      ^+  .
+       
     --
   ::
   ++  repo
