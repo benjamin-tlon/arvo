@@ -9536,92 +9536,43 @@
     ::
     ~|  %redo-match 
     ::  hay: subject face stack
-    ::  wec: reference face stack
+    ::  wec: reference face stack set
     ::  gil: repetition set
     ::  rep: within repetition
     ::
     =|  hay/(list $@(term tomb))
-    =|  wec/(list $@(term tomb))
+    =/  wec/(set (list $@(term tomb)))  [~ ~ ~]
     =|  gil/(set (pair span span))
     =|  rep/_|
-    =<  dext
+    =<  ?:  bono 
+          ::  natural match, use result directly
+          ::
+          ref 
+        ::  synthetic reconstruction; test validity
+        ::
+        ~|  %redo-synthetic
+        =+(dext ?>((nest(sut ref) & -) -))
     |%
     ::                                                  ::
-    ++  beef                                            ::  apply faces
-      |-  ^-  span
-      ?~  liv  ref
-      $(liv t.liv, ref (face i.liv ref))
-    ::
-    ++  dext
-      ^-  span
-      ?-    sut
-          ?($noun $void {?($atom $core) *})
-        ::  reduce reference to match subject
-        ::
-        =>  sint
-        ::  insert 
-        ::
-        done
-      ::
-          {$cell *}
-        ::  reduce reference to match subject
-        ::
-        =>  sint
-        ::  if we are within repetition, don't descend into cell
-        ::
-        ?:  rep  done
-        ::  
-        ::
-        %=  done
-          p.sut  dext(sut p.sut,  
-        ::  vol: face stack at this hardpoint
-        ::
-        =^  vol  ref  sint
-        ::  lef: head reduction
-        ::  ryt: tail reduction
-        ::
-
-        =/  lef  dext(sut p.sut, liv ~, ref (peek(sut ref) %free 2))
-        =/  ryt  dext(sut q.sut, liv ~, ref (peek(sut ref) %free 3))
-        ::  apply face, propagate cleanness
-        ::
-        =-  [&(p.- p.lef p.ryt) q.-]
-        (make(sut [%cell ?:(p.lef p.sut q.lef) ?:(p.ryt q.sut q.ryt)]) vol)
-      ::
-          {$face *}
-        ::  push face on subject stack
-        ::
-        dext(hay [p.sut hay], sut q.sut)
-      ::
-          {$fork *}
-        (fork (~(tap in p.sut) |=(span dext(sut +<))))
-      ::
-          {$hold *}
-        ?:  (~(has in fan) [p.sut q.sut])
-          ::  repo loop: redo depends on its own result (rare)
-          ::
-          done:sint
-        %=  dext
-          sut  repo
-          gil  (~(put in gil) [sut ref])
-          rep  (~(has in gil) [sut ref])
-        ==
-      ==
-    ::                                                 ::
-    ++  fine                                           ::  ref faces match sut
+    ++  bono                                            ::  natural face match
       ^-  ?
       =<  dext
       |%
-      ::                                               ::
-      ++  dext                                         ::  reduce subject
+      ::                                                ::
+      ++  dext                                          ::  reduce subject
         ?-  sut
           $noun      done
           $void      &
           {$atom *}  done
           {$core *}  done
-          {$cell *}  =^  god  .  sint
-                     ?.  god  |
-                     ?.  =(hay wec)  |
+          {$cell *}  ::  reduce reference
+                     ::
+                     =>  sint
+                     ::  require exact face matches
+                     ::
+                     ?.  =(wec [hay ~ ~])  |
+                     ::  descend into subject
+                     ::
                      ?&  dext(sut p.sut, ref (peek(sut ref) %free 2))
                          dext(sut q.sut, ref (peek(sut ref) %free 3))
                      ==
@@ -9631,51 +9582,153 @@
                          dext(sut repo, gil (~(put in gil) [sut ref]))
         ==           ==
       ::                                                ::  
-      ++  done                                          ::  fine leaf node
-        ::  reduce reference, propagate failure
+      ++  done                                          ::  finish leaf
+        ::  reduce reference
         ::
-        =^  god  .  sint
-        ?.  god  |
+        =>  sint
+        ::  reference faces must be clear
+        ::
+        ?.  ?=({* $~ $~} wec)  |
         ::  reference prefix matches subject prefix
         ::
-        =(hay (scag (lent hay) wec))
+        =((flop hay) (scag (lent hay) (flop n.wec)))
+      ::                                                ::
+      ++  sint                                          ::  reduce reference
+        .(..bono ^sint)
+      --
+    ::                                                  ::
+    ++  dear                                            ::  resolve face stack
+      ^-  (unit (list $@(term tomb)))
+      ::  reference faces must be clear
       ::
-      ++  sint
-        ^+  [& .]
-        ?+    ref  [& .]
-            {$face *}  sint(wec [p.ref wec], ref q.ref)
-            {$hold *}  $(ref repo(sut ref))
-            {$fork *}  
-          =/  vab  
-            %+  turn  (~(tap in p.sut))
-               
-          =|  wuc/(unit (list $@(term tomb)))
-          |-  ^+  ..sint
-          ?~  vab
-            ..sint(wec ?~(wuc wec u.wuc), ref 
-              wec  ?~(wuc 
-          (levy (~(tap in p.sut)) |=(span dext(sut +<)))
+      ?.  ?=({* $~ $~} wec)  ~
+      :-  ~
+      ::  liv: 
+      ::
+      =/  liv  n.wec
+      ::  len: lengths of [ref sut] face stacks
+      ::
+      =/  len  [p q]=[(lent liv) (lent hay)]
+      ::  lip: length of sut-ref face stack overlap
+      ::
+      ::    +lip is (lent B), where +hay is a string AB
+      ::    and +liv is a string BC (stack BA and CB).
+      ::
+      ::    overlap is a weird corner case.  +lip is
+      ::    almost always 0.  brute force is fine.
+      :: 
+      =/  lip
+        =|  lup/(unit @ud)
+        =|  lip/@ud
+        |-  ^-  @ud
+        ?:  |((gth lip p.len) (gth lip q.len))
+          (fall lup 0)
+        ::  lap: overlap candidate suffix of subject face stack
+        ::
+        =/  lap  (slag (sub p.len lip) liv)
+        ::  lep: overlap candidate suffix of reference face stack
+        ::
+        =/  lep  (scag lip hay) 
+        ::  save any match and continue
+        ::
+        $(lip +(lip), lup ?.(=(lap lep) lup `lip))
+      ::  produce combined face stack (string ABC, stack CBA)
+      ::
+      (weld liv (slag lip hay))
+    ::                                                  ::
+    ++  dext                                            ::  subject traverse
+      ^-  span
+      ?-    sut
+          ?($noun $void {?($atom $core) *})
+        ::  reduce reference and reassemble leaf
+        ::
+        done:sint
+      ::
+          {$cell *}
+        ::  reduce reference to match subject
+        ::
+        =>  sint
+        ::  leaf with possible recursive descent
+        ::
+        %=    done
+            ref 
+          ::  clear face stacks for descent
+          ::
+          =:  hay  ~
+              wec  [~ ~ ~]
+            ==
+          ?:  rep
+            ::  in repetitive state, require clean match
+            ::
+            ?>(bono ref)
+          ::  descend into cell
+          ::
+          :+  %cell
+            dext(sut p.sut, ref (peek(sut ref) %free 2))
+          dext(sut q.sut, ref (peek(sut ref) %free 3))
         ==
-
       ::
-      ::  lop: set 
+          {$face *}
+        ::  push face on subject stack
+        ::
+        dext(hay [p.sut hay], sut q.sut)
       ::
-      =|  lop/(set (pair span span))
-      
-      =<  dext
-      |%
-      ++  cold  &(= 
-      ++  dext
-        ?-  
-    ::                                                  ::  
-    ++  done
+          {$fork *}
+        ::  reconstruct each span in fork 
+        ::
+        (fork (~(tap in p.sut) |=(span dext(sut +<))))
+      ::
+          {$hold *}
+        ?:  (~(has in fan) [p.sut q.sut])
+          ::  repo loop; redo depends on its own product
+          ::
+          done:sint
+        %=  dext
+          sut  repo
+          gil  (~(put in gil) [sut ref])
+          rep  (~(has in gil) [sut ref])
+        ==
+      ==
+    ::                                                  ::
+    ++  done                                            ::  complete assembly
+      ::  lov: combined face stack
+      ::
+      =/  lov  (need dear)
+      ::  recompose faces
+      ::
       |-  ^-  span
-      ?~  liv  ref
-      $(liv t.liv, ref (face i.liv ref))
-
-    ++  sint
+      ?~  lov  ref
+      $(lov t.lov, ref (face i.lov ref))
+    ::                                                  ::
+    ++  sint                                            ::  reference traverse
       ^+  .
-       
+      ?+    ref  .
+          {$face *}
+        ::  extend all stacks in set
+        ::
+        %=  sint
+          ref  q.ref
+          wec  (~(run in wec) |=((list $@(term tomb)) [p.ref -]))
+        ==
+      ::
+          {$fork *}  
+        ::  reconstruct all relevant cases
+        ::
+        =-  +(wec -<, ref (fork ->))
+        =/  moy  (~(tap in p.ref))
+        |-  ^-  (pair (set (list $@(term tomb))) (list span))
+        ?~  moy  [~ ~]
+        =/  mor  $(moy t.moy)
+        =/  dis  sint(sut i.moy)
+        [(~(uni in p.mor) wec.dis) [ref.dis q.mor]]
+      ::
+          {$hold *}  
+        ?:  (~(has in fan) [p.sut q.sut])
+          ::  repo loop; redo depends on its own product
+          ::
+          ref
+        $(ref repo(sut ref))
+      ==
     --
   ::
   ++  repo
