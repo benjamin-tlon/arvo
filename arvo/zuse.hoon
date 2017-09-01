@@ -1909,7 +1909,7 @@
     ==
   ::
   ++  body
-    |=  poreduce reference to match subject
+    |=  pok/pork  ^-  tape
     ?~  q.pok  ~
     |-  ^-  tape
     =+  seg=(urle (trip i.q.pok))
