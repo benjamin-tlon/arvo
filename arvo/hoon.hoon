@@ -8077,7 +8077,7 @@
             $(got p.got, sut (peek %both 2))
           $(got q.got, sut (peek %both 3))
     ==
-  ::
+  ::  
   ++  crop
     ~/  %crop
     |=  ref/span
@@ -8632,7 +8632,7 @@
       [dox p.q]
     ?>  ?=($elm -.q)
     ::  ~_  (dunk(sut [%cell q.q.p p.p]) %fire-wet)  
-    =.  p.p  ?:(fab p.p (redo(sut p.p) q.q.p))
+    =.  p.p  ?:(fab p.p (redo(sut q.q.p) p.p))
     ::  =.  p.p  (redo(sut p.p) q.q.p)
     ?>  ?|  !vet
             (~(has in rib) [p dox p.q])
@@ -9348,7 +9348,12 @@
         ::  synthetic reconstruction; test validity
         ::
         ~|  %redo-synthetic
-        =+(dext ?>((nest(sut ref) & -) -))
+        ~_  (dunk 'redo: sut')
+        ~_  (dunk(sut ref) 'redo: ref')
+        =+  pro=dext
+        ~_  (dunk(sut pro) 'redo: pro')
+        ?>  (nest(sut ref) & pro)
+        pro
     |%
     ::                                                  ::
     ++  bono                                            ::  natural face match
@@ -9436,6 +9441,8 @@
     ::                                                  ::
     ++  dext                                            ::  subject traverse
       ^-  span
+      ~_  (dunk 'redo: dext: sut')
+      ~_  (dunk(sut ref) 'redo: dext: ref')
       ?-    sut
           ?($noun $void {?($atom $core) *})
         ::  reduce reference and reassemble leaf
@@ -9459,7 +9466,15 @@
           ?:  rep
             ::  in repetitive state, require clean match
             ::
-            ?>(bono ref)
+            ~_  (dunk 'redo: rep: sut')
+            ~_  (dunk(sut ref) 'redo: rep: ref')
+            ?.  bono 
+              !!
+            ref
+          ?:  |(=(%void ref) =(%noun ref))
+            ::  termination case
+            ::
+            ref
           ::  descend into cell
           ::
           :+  %cell
@@ -9473,9 +9488,12 @@
         dext(hay [p.sut hay], sut q.sut)
       ::
           {$fork *}
-        ::  reconstruct each span in fork 
+        ::  reconstruct each relevant case in fork 
         ::
-        (fork (turn (~(tap in p.sut)) |=(span dext(sut +<))))
+        %-  fork
+        %+  turn
+          (skim (~(tap in p.sut)) |=(span (nest(sut +<) | ref)))
+        |=(span dext(sut +<))
       ::
           {$hold *}
         ?:  (~(has in fan) [p.sut q.sut])
@@ -9501,6 +9519,10 @@
     ::                                                  ::
     ++  sint                                            ::  reference traverse
       ^+  .
+      =-  ~>  %slog.[0 (dunk 'sint: sut')]
+          ~>  %slog.[0 (dunk(sut ref) 'sint: ref')]
+          ~>  %slog.[0 (dunk(sut =>(- ref)) 'sint: pro')]
+          -
       ?+    ref  .
           {$face *}
         ::  extend all stacks in set
@@ -9513,11 +9535,21 @@
           {$fork *}  
         ::  reconstruct all relevant cases
         ::
-        =-  +(wec -<, ref (fork ->))
+        =-  ~>  %slog.[0 (dunk 'fork: sut')]
+            ~>  %slog.[0 (dunk(sut ref) 'fork: ref')]
+            ~>  %slog.[0 (dunk(sut (fork ->)) 'fork: pro')]
+            +(wec -<, ref (fork ->))
         =/  moy  (~(tap in p.ref))
         |-  ^-  (pair (set (list $@(term tomb))) (list span))
         ?~  moy  [~ ~]
+        ::  head recurse
+        ::
         =/  mor  $(moy t.moy)
+        ::  prune reference cases outside subject
+        ::
+        ?.  (nest | i.moy)  mor
+        ::  unify all cases
+        ::
         =/  dis  sint(ref i.moy)
         [(~(uni in p.mor) wec.dis) [ref.dis q.mor]]
       ::

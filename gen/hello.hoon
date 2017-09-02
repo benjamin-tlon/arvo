@@ -10,20 +10,24 @@
 |=  *
 :-  %noun
 ^%
-=-  %hello
+=-  [%hello test]
 |%
 ++  test
-  (nop:nx 3 4 5 ~)
+  :*  (snag:nx 2 3 4 5 ~)
+      (le:nx 1 2 3 4 ~)
+      (nop:nx [1 2 3 4 ~])
+      ::  (weld:nx [1 2 3 ~] [4 5 6 ~])
+  ==
 ::
 ++  nx
   |%
   ::                                                      ::
-::  ++  le                                                  ::  construct list
-::    |*  a/(list)
-::    ^+  =<  $
-::      |%  +-  $  ?:(*? ~ [i=(snag 0 a) t=$])
-::      --
-::    a
+  ++  le                                                  ::  construct list
+    |*  a/(list)
+    ^+  =<  $
+      |%  +-  $  ?:(*? ~ [i=(snag 0 a) t=$])
+      --
+    a
 ::  ::                                                      ::
 ::  ++  my                                                  ::  construct map
 ::    |*  a/(list (pair))
@@ -35,23 +39,25 @@
 ::    =>  .(a ^+((le a) a))
 ::    (~(gas in `(set _i.-.a)`~) a)
   ::                                                      ::
-::  ++  snag                                                ::  index
-::    |*  {a/@ b/(list)}
-::    ?~  b
-::      ~|('snag-fail' !!)
-::    ?:  =(0 a)  i.b
-::    $(b t.b, a (dec a))
-::  ::                                                      ::
+  ++  snag                                                ::  index
+    |*  {a/@ b/(list)}
+    ~!  b
+    ?~  b
+      ~|('snag-fail' !!)
+    ?:  =(0 a)  i.b
+    $(b t.b, a (dec a))
+  ::                                                      ::
 ::  ++  weld                                                ::  concatenate
-::    |*  {a/(list) b/(list)}
-::    =>  .(a ^+((le a) a), b ^+((le b) b))
-::    |-  ^+  b
-::    ?~  a  b
-::    [i=i.a t=$(a t.a)]
+::  |*  {a/(list) b/(list)}
+::  =>  .(a ^+((le a) a), b ^+((le b) b))
+::  |-  ^+  b
+::  ?~  a  b
+::  [i=i.a t=$(a t.a)]
   ::
   ++  nop
-    |*  a/(list *)
-    a
+    |*  {a/(list *)}
+    ~!  a
+    (le a)
   --
 ::::
 ::++  jo                                                  ::  json reparser
