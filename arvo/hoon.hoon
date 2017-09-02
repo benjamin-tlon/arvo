@@ -8632,8 +8632,9 @@
       [dox p.q]
     ?>  ?=($elm -.q)
     ::  ~_  (dunk(sut [%cell q.q.p p.p]) %fire-wet)  
-    =.  p.p  ?:(fab p.p (redo(sut q.q.p) p.p))
-    ::  =.  p.p  (redo(sut p.p) q.q.p)
+    =.  p.p  ?:(fab p.p (redo(sut p.p) q.q.p))
+    ::  =.  p.p  ?:(fab p.p (rydo(sut q.q.p) p.p))
+    ::  =.  p.p  (rydo(sut p.p) q.q.p)
     ?>  ?|  !vet
             (~(has in rib) [p dox p.q])
             !=(** (mull(sut p, rib (~(put in rib) p dox p.q)) %noun dox p.q))
@@ -9319,7 +9320,7 @@
                  $(gil (~(put in gil) sut), sut repo)
     ==
   ::                                                    ::
-  ++  rydo  !:                                          ::  refinish faces
+  ++  redo  !:                                          ::  refinish faces
     |=  ::  ref: reference surface to rename from
         ::
         ref/span
@@ -9351,13 +9352,14 @@
     ::  if subject is clean, return unchanged
     ::
     =-  ?:  p.-
-          ::  ~&  %redo-clean
+          ::  ~>  %slog.[0 (dunk(fab |) %redo-clean-sut)]
+          ::  ~>  %slog.[0 (dunk(fab |, sut rekt(sut ref)) %redo-clean-ref)]
           sut 
-        ::  ~&  [%redo-sut `@p`(mug sut)]
-        ::  ~>  %slog.[0 (dunk(fab |) %redo-sut)]
-        ::  ~>  %slog.[0 (dunk(fab |, sut rekt(sut ref)) %redo-ref)]
-        ::  ~&  [%redo-pro `@p`(mug sut) `@p`(mug q.-)]  
-        ::  ~>  %slog.[0 (dunk(fab |, sut rekt(sut q.-)) %redo-pro)]
+        ~&  [%redo-sut `@p`(mug sut)]
+        ~>  %slog.[0 (dunk(fab |) %redo-sut)]
+        ~>  %slog.[0 (dunk(fab |, sut rekt(sut ref)) %redo-ref)]
+        ~&  [%redo-pro `@p`(mug sut) `@p`(mug q.-)]  
+        ~>  %slog.[0 (dunk(fab |, sut rekt(sut q.-)) %redo-pro)]
         q.-
     =<  dext
     |%
@@ -9367,15 +9369,21 @@
       ?~  liv  sut
       $(liv t.liv, sut (face i.liv sut))
     ::                                                  ::
-    ++  dext                                            ::  general reduction
+    ++  dext                                            ::  subject reduction
       ^-  (pair ? span)
+      ::  prune trivial references, not gaining type
+      ::
+      ?:  =(& ?=(?($noun $void {?($atom $core) *}) ref))
+        ::  ref has nothing further to give us
+        ::
+        hard
       ::  switch on subject
       ::
       ~_  (dunk 'dext: sut')  
       ~_  (dunk(sut ref) 'dext: ref')
       ::  ~|  [%mugs sut=`@p`(mug sut) ref=`@p`(mug ref)]
-      ~>  %slog.[0 (dunk %dext-sut)]
-      ~>  %slog.[0 (dunk(sut ref) %dext-ref)]
+      ::  ~>  %slog.[0 (dunk %dext-sut)]
+      ::  ~>  %slog.[0 (dunk(sut ref) %dext-ref)]
       ::  ~&  [%live liv]  
       ?-    sut
           ?($noun $void {?($atom $core) *})
@@ -9390,9 +9398,6 @@
         ::  vol: face stack at this hardpoint
         ::
         =^  vol  ref  sint
-        ::  don't descend into %noun, it's a giant waste of time
-        ::
-        ?:  =(%noun ref)  (make vol)
         ::  lef: head reduction
         ::  ryt: tail reduction
         ::
@@ -9424,6 +9429,7 @@
         ?:  (~(has in fan) [p.sut q.sut])
           ::  repo loop: redo depends on its own results
           ::
+          ~&  %
           hard
         %=  dext
           sut  repo
@@ -9511,7 +9517,7 @@
         ?~  hef  [vul yal]
         ::  filter out irrelevant cases
         ::
-        ?.  (nest | i.hef)  $(hef t.hef)
+        ?.  (nest(sut i.hef) | sut)  $(hef t.hef)
         ::  fet: result for this fork case
         ::
         =/  fet  ^$(ref i.hef)
@@ -9522,7 +9528,7 @@
       ==
     --
   ::                                                    ::  
-  ++  redo  !:                                          ::  new reverse redo
+  ++  rydo  !:                                          ::  new reverse redo
     ::  customize ref to fit the faces of sut
     ::
     |=  $:  ::  ref: raw payload

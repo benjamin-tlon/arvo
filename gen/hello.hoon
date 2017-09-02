@@ -12,11 +12,34 @@
 ^%
 =-  [%hello test]
 |%
+
+  ::
+  ++  redo  !:
+  |=  ::  ref: naming reference 
+      ::
+      ref/span
+
+  ::                                                    ::  
+  ++  redo  !:                                          ::  refurbish
+    |=  $:  ::  ref: raw payload
+            ::
+            ref/span
+        ==
+        ::  sut reformatted 
+        ::
+    ^-  span
+    ::  equal reference tells us nothing
+    ::
+    ?:  =(sut ref)  sut
+    ::  errors here imply subject/reference mismatch
+    ::
+    ~|  %redo-match 
+
 ++  test
   :*  (snag:nx 2 3 4 5 ~)
       (le:nx 1 2 3 4 ~)
-      (nop:nx [1 2 3 4 ~])
-      ::  (weld:nx [1 2 3 ~] [4 5 6 ~])
+      (nop:nx 1 2 3 4 ~)
+      `(list (weld:nx [[1 2 3 3 ~] [4 5 6 ~]])
   ==
 ::
 ++  nx
@@ -28,16 +51,16 @@
       |%  +-  $  ?:(*? ~ [i=(snag 0 a) t=$])
       --
     a
-::  ::                                                      ::
-::  ++  my                                                  ::  construct map
-::    |*  a/(list (pair))
-::    =>  .(a ^+((le a) a))
-::    (~(gas by `(map _p.i.-.a _q.i.-.a)`~) a)
-::  ::                                                      ::
-::  ++  si                                                  ::  construct set
-::    |*  a/(list)
-::    =>  .(a ^+((le a) a))
-::    (~(gas in `(set _i.-.a)`~) a)
+  ::                                                      ::
+  ++  my                                                  ::  construct map
+    |*  a/(list (pair))
+    =>  .(a ^+((le a) a))
+    (~(gas by `(map _p.i.-.a _q.i.-.a)`~) a)
+  ::                                                      ::
+  ++  si                                                  ::  construct set
+    |*  a/(list)
+    =>  .(a ^+((le a) a))
+    (~(gas in `(set _i.-.a)`~) a)
   ::                                                      ::
   ++  snag                                                ::  index
     |*  {a/@ b/(list)}
@@ -47,17 +70,17 @@
     ?:  =(0 a)  i.b
     $(b t.b, a (dec a))
   ::                                                      ::
-::  ++  weld                                                ::  concatenate
-::  |*  {a/(list) b/(list)}
-::  =>  .(a ^+((le a) a), b ^+((le b) b))
-::  |-  ^+  b
-::  ?~  a  b
-::  [i=i.a t=$(a t.a)]
+  ++  weld                                                ::  concatenate
+    |*  {x/(list) y/(list)}
+    ~!  .
+    ::  =>  .(x (le x))
+    [x y]
   ::
   ++  nop
     |*  {a/(list *)}
     ~!  a
-    (le a)
+    =>  .(a ^+((le a) a))
+    a
   --
 ::::
 ::++  jo                                                  ::  json reparser
