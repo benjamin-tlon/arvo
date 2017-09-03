@@ -13,28 +13,6 @@
 =-  [%hello test]
 |%
 
-  ::
-  ++  redo  !:
-  |=  ::  ref: naming reference 
-      ::
-      ref/span
-
-  ::                                                    ::  
-  ++  redo  !:                                          ::  refurbish
-    |=  $:  ::  ref: raw payload
-            ::
-            ref/span
-        ==
-        ::  sut reformatted 
-        ::
-    ^-  span
-    ::  equal reference tells us nothing
-    ::
-    ?:  =(sut ref)  sut
-    ::  errors here imply subject/reference mismatch
-    ::
-    ~|  %redo-match 
-
 ++  test
   :*  (snag:nx 2 3 4 5 ~)
       (le:nx 1 2 3 4 ~)

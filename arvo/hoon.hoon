@@ -9320,6 +9320,51 @@
                  $(gil (~(put in gil) sut), sut repo)
     ==
   ::                                                    ::
+  ++  miss  !:                                          ::  nonintersection
+    |=  $:  ::  ref: symmetric span
+            ::
+            ref/span
+        ==
+    ::  intersection of sut and ref is empty
+    ::
+    ^-  ?
+    =|  gil/(set (set span))
+    =<  dext
+    |%
+    ++  dext
+      ^-  ?
+      ::  
+      ?:  =(ref sut)
+        (nest(sut %void) | sut)
+      ?-  sut
+        $void      &
+        $noun      (nest(sut %void) | ref)
+        {$atom *}  sint
+        {$cell *}  sint
+        {$core *}  sint(sut [%cell p.sut %noun])
+        {$fork *}  %+  levy  (~(tap in p.sut))
+                   |=(span dext(sut +<))
+        {$face *}  dext(sut q.sut) 
+        {$hold *}  =+  (~(gas in *(set span)) `(list span)`[sut ref ~])
+                   ?:  (~(has in gil) -)
+                      &
+                   %=  dext
+                     sut  repo
+                     gil  (~(put in gil) -)
+      ==           ==
+    ++  sint
+      ?+  ref      dext(sut ref, ref sut)
+        {$atom *}  ?.  ?=({$atom *} sut)  &
+                   ?&  ?=(^ q.ref)
+                       ?=(^ q.sut)
+                       !=(q.ref q.sut)
+                   ==
+        {$cell *}  ?.  ?=({$cell *} sut)  &
+                   ?&  dext(sut p.sut, ref p.ref)
+                       dext(sut q.sut, ref q.ref)
+      ==           ==
+    --
+  ::                                                    ::
   ++  redo  !:                                          ::  refinish faces
     |=  ::  ref: reference surface to rename from
         ::
