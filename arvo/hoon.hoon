@@ -9,6 +9,7 @@
     (make:all cud)                                      ::  else simple compile
 ^=  all                                                 ::  assemble engine
   =~                                                    ::  volume stack
+^%
 %151                                                    ::  version constant
 ::::::  ::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::::::  ::::::    volume 0, version stub                ::::::
@@ -2350,13 +2351,11 @@
   =|  pri/@                                             ::  priority level
   |=  a/tang  ^+  same                                  ::  .=  ~&(%a 1)
   ?~(a same ~>(%slog.[pri i.a] $(a t.a)))               ::  ((slog ~[>%a<]) 1)
-::
-++  mean  |=(a/tang (fear (flop a) |.(!!)))             ::  deify stack trace
-++  fear                                                ::  insert user mean
-  |*  {a/tang _|?(**)}
-  ^+  (+<+)
-  =>  .(a `tang`a)
-  ?~  a  (+<+)
+::                                                      ::  
+++  mean                                                ::  crash with trace
+  |=  a/tang
+  ^+  !!
+  ?~  a  !!
   ~_(i.a $(a t.a))
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::                section 2cJ, extra math               ::
@@ -2976,8 +2975,8 @@
   |*  a/(list)
   =+  b=*(set _?>(?=(^ a) i.a))
   (~(gas in b) a)
+::
 ++  nl
-  ^%
   |%
   ::                                                      ::
   ++  le                                                  ::  construct list
@@ -4849,7 +4848,7 @@
     [%2 ~]
   (mock [[-.gat [sam +>.gat]] -.gat] gul)
 ::
-++  mule                                                ::  typed virtual
+++  mule  !:                                            ::  typed virtual
   ~/  %mule
   |*  taq/_|.(**)
   =+  mud=(mute taq)
@@ -4858,7 +4857,7 @@
     $|  [%| p=p.mud]
   ==
 ::
-++  mute                                                ::  untyped virtual
+++  mute  !:                                            ::  untyped virtual
   |=  taq/_^?(|.(**))
   ^-  (each * (list tank))
   =+  ton=(mock [taq 9 2 0 1] |=({* *} ~))
@@ -9358,7 +9357,7 @@
                        !=(q.ref q.sut)
                    ==
         {$cell *}  ?.  ?=({$cell *} sut)  &
-                   ?&  dext(sut p.sut, ref p.ref)
+                   ?|  dext(sut p.sut, ref p.ref)
                        dext(sut q.sut, ref q.ref)
       ==           ==
     --
@@ -9397,9 +9396,9 @@
       ::  har: single reference tool stack
       ::
       =/  har  n.wec
-      ::  len: lengths of [ref sut] face stacks
+      ::  len: lengths of [sut ref] face stacks
       ::
-      =/  len  [p q]=[(lent har) (lent hos)]
+      =/  len  [p q]=[(lent hos) (lent har)]
       ::  lip: length of sut-ref face stack overlap
       ::
       ::      AB
@@ -9417,18 +9416,19 @@
         |-  ^-  @ud
         ?:  |((gth lip p.len) (gth lip q.len))
           (fall lup 0)
-        ::  lap: overlap candidate suffix of reference face stack
+        ::  lep: overlap candidate: suffix of subject face stack
         ::
-        =/  lap  (slag (sub p.len lip) har)
-        ::  lep: overlap candidate suffix of subject face stack
+        =/  lep  (slag (sub p.len lip) hos) 
+        ::  lap: overlap candidate: prefix of reference face stack
         ::
-        =/  lep  (scag lip hos) 
+        =/  lap  (scag lip har)
         ::  save any match and continue
         ::
-        $(lip +(lip), lup ?.(=(lap lep) lup `lip))
+        $(lip +(lip), lup ?.(=(lep lap) lup `lip))
+      ::  ~&  [har+har hos+hos len+len lip+lip]
       ::  produce combined face stack (forward ABC, stack CBA)
       ::
-      (weld har (slag lip hos))
+      (weld hos (slag lip har))
     ::                                                  ::
     ++  dext                                            ::  subject traverse
       ::  :span: refurbished subject
@@ -9440,8 +9440,8 @@
               ?=(?($noun $void {?($atom $core) *}) ref)
           ==
         done
-      ::  ~_  (dunk 'redo: dext: sut')
-      ::  ~_  (dunk(sut ref) 'redo: dext: ref')
+      ~_  (dunk 'redo: dext: sut')
+      ~_  (dunk(sut ref) 'redo: dext: ref')  
       ?-    sut
           ?($noun $void {?($atom $core) *})
         ::  reduce reference and reassemble leaf
@@ -9505,7 +9505,14 @@
       ::
       ::  lov: combined face stack
       ::
-      =/  lov  (need dear)
+      =/  lov  
+          =/  lov  dear
+          ?~  lov
+            ~_  (dunk 'redo: dear: sut')
+            ~_  (dunk(sut ref) 'redo: dear: ref')
+            ~&  [%wec wec]
+            !!
+          (need lov)
       ::  recompose faces
       ::
       |-  ^-  span

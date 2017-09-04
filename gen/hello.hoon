@@ -17,21 +17,26 @@
       (le:nl 1 2 3 4 ~)
       (nop:nl 1 2 3 4 ~)
       `(list ?(@ $foo))`(weld:nl [1 2 3 ~] [4 5 6 %foo ~])
-      =+  ruf=*raft
-      =+  dog=(~(get by *(map ship rung)) ~zod)
-      ~!  dog
-      =+  cat=(fall dog *rung)
-      ~!  cat
-      =("foo" 3)
   ==
+::++  unwrap-tang
+::  |*  res/(each * tang)
+::  ?:(?=($& -.res) p.res (moan p.res))
+::::
+::++  gage-to-cages
+::  |=  gag/gage  ^-  (list (pair cage cage))
+::  (unwrap-tang (gage-to-tage gag))
+::::
+::++  gage-to-tage
+::  |=  gag/gage
+::  ^-  (each (list (pair cage cage)) tang)
+::  !!
+::::                                                      ::  
+::++  moan                                                ::  crash with trace
+::  |=  a/tang
+::  ^+  !!
+::  ?~  a  !!
+::  ~_(i.a $(a t.a))
 ::
-++  raft                                                ::  filesystem
-          $:  hoy/(map ship rung)                       ::  foreign
-              mon/(map term beam)                       ::  mount points
-              hez/(unit duct)                           ::  sync duct
-          ==                                            ::
-++  rung  $:  rus/@ud                                   ::  neighbor desks
-          ==                                            ::
 ++  nl
   |%
   ::                                                      ::

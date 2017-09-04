@@ -3,7 +3,6 @@
 ::
 ~%  %zuse  +  ~
 !:  
-^%
 |%
   ::::::::::::::::::::::::::::::::::::::::::::::::::::::  ::
 ::::              chapter 3b, Arvo libraries            ::::
@@ -1219,8 +1218,7 @@
     ;~  pfix  bas
       ;~  pose
         doq  fas  soq  bas
-        (sear ~(get by `(map @t @)`(my:nl b+8 t+9 n+10 f+12 r+13 ~)) low)
-        ::  (sear ~(get by `(map @t @)`(my b+8 t+9 n+10 f+12 r+13 ~)) low)
+        (sear ~(get by `(map @t @)`(my b+8 t+9 n+10 f+12 r+13 ~)) low)
         ;~(pfix (just 'u') (cook tuft qix:ab))           :: 4-digit hex to UTF-8
       ==
     ==
@@ -1409,7 +1407,7 @@
   ++  enty                                              ::  entity
     %+  ifix  pam^sem
     ;~  pose
-      =+  def=^+(ent (my:nl [%gt '>'] [%lt '<'] [%amp '&'] [%quot '"'] ~))
+      =+  def=^+(ent (my [%gt '>'] [%lt '<'] [%amp '&'] [%quot '"'] ~))
       %+  sear  ~(get by (~(uni by def) ent))
       (cook crip ;~(plug alf (stun 1^31 aln)))
       %+  cook  |=(a/@c ?:((gth a 0x10.ffff) '�' (tuft a)))
@@ -1548,15 +1546,12 @@
   ::
   ++  op                                                ::  parse keys of map
     |*  {fel/rule wit/fist}
-    %+  cu  
-      |=  a/(list _[(wonk *fel) (need *wit)])
-      (my:nl a)
+    %+  cu  my
     %-  ci  :_  (om wit)
     |=  a/(map cord _(need *wit))
     ^-  (unit (list _[(wonk *fel) (need *wit)]))
-    %-  zl
-    %+  turn  (~(tap by a))
-    |=  {a/cord b/_(need *wit)}
+    =-  (zl (turn (~(tap by a)) -))
+    |*  {a/cord b/*}
     =+  nit=(rush a fel) 
     ?~  nit  ~
     (some [u.nit b])
@@ -1645,6 +1640,41 @@
     $34  "\\\""
     $92  "\\\\"
   ==
+::
+++  scanf                                              ::  formatted scan
+  |*  {tape (pole _;/(*{$^(rule tape)}))}
+  =>  .(+< [a b]=+<)
+  (scan a (parsf b))
+++  parsf                                              ::  make parser from:
+  |^  |*  a/(pole _;/(*{$^(rule tape)}))            ::  ;"chars{rule}chars"
+      =-  (cook - (bill (norm a)))
+      |*  (list)
+      ?~  +<  ~
+      ?~  t  i
+      [i $(+< t)]
+  ::
+  ::  .=  (norm [;"{n}, {n}"]:n=dim:ag)  ~[[& dim] [| ", "] [& dim]]:ag
+  ++  norm                                             
+    |*  (pole _;/(*{$^(rule tape)}))
+    ?~  +<  ~
+    =>  .(+< [i=+<- t=+<+])
+    :_  t=$(+< t)
+    =+  rul=->->.i
+    ^=  i
+    ?~  rul     [%| p=rul]
+    ?~  +.rul   [%| p=rul]
+    ?@  &2.rul  [%| p=;;(tape rul)]
+    [%& p=rul]
+  ::
+  ::  .=  (bill ~[[& dim] [| ", "] [& dim]]:ag)
+  ::  ;~(plug dim ;~(pfix com ace ;~(plug dim (easy)))):ag
+  ++  bill
+    |*  (list (each rule tape))
+    ?~  +<  (easy ~)
+    ?:  ?=($| -.i)  ;~(pfix (jest (crip p.i)) $(+< t))
+    %+  cook  |*({* *} [i t]=+<)
+    ;~(plug p.i $(+< t))
+  --
 ::
 ++  taco                                                ::  atom to octstream
   |=  tam/@  ^-  octs
