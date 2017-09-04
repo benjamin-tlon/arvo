@@ -1560,7 +1560,6 @@
     =+  nit=(rush a fel) 
     ?~  nit  ~
     (some [u.nit b])
-
   ::
   ++  pe                                                ::  prefix
     |*  {pre/* wit/fist}

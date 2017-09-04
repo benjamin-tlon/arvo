@@ -17,8 +17,21 @@
       (le:nl 1 2 3 4 ~)
       (nop:nl 1 2 3 4 ~)
       `(list ?(@ $foo))`(weld:nl [1 2 3 ~] [4 5 6 %foo ~])
+      =+  ruf=*raft
+      =+  dog=(~(get by *(map ship rung)) ~zod)
+      ~!  dog
+      =+  cat=(fall dog *rung)
+      ~!  cat
+      =("foo" 3)
   ==
 ::
+++  raft                                                ::  filesystem
+          $:  hoy/(map ship rung)                       ::  foreign
+              mon/(map term beam)                       ::  mount points
+              hez/(unit duct)                           ::  sync duct
+          ==                                            ::
+++  rung  $:  rus/@ud                                   ::  neighbor desks
+          ==                                            ::
 ++  nl
   |%
   ::                                                      ::
@@ -169,12 +182,15 @@
   ::
   ++  op                                                ::  parse keys of map
     |*  {fel/rule wit/fist}
-    %+  cu  my
+    %+  cu  
+      |=  a/(list _[(wonk *fel) (need *wit)])
+      (my:nl a)
     %-  ci  :_  (om wit)
     |=  a/(map cord _(need *wit))
     ^-  (unit (list _[(wonk *fel) (need *wit)]))
-    =-  (zl (turn (~(tap by a)) -))
-    |*  {a/cord b/*}
+    %-  zl
+    %+  turn  (~(tap by a))
+    |=  {a/cord b/_(need *wit)}
     =+  nit=(rush a fel) 
     ?~  nit  ~
     (some [u.nit b])
