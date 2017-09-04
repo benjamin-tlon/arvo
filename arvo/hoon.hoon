@@ -9439,10 +9439,8 @@
               ?=(?($noun $void {?($atom $core) *}) ref)
           ==
         done
-      ~|  %foo
-      ~_  (dunk 'redo: dext: sut')
-      ~_  (dunk(sut ref) 'redo: dext: ref')
-      ~|  %bar
+      ::  ~_  (dunk 'redo: dext: sut')
+      ::  ~_  (dunk(sut ref) 'redo: dext: ref')
       ?-    sut
           ?($noun $void {?($atom $core) *})
         ::  reduce reference and reassemble leaf
@@ -9483,7 +9481,6 @@
           {$hold *}
         ::  reduce to hard 
         ::
-        ~_  (dunk 'redo: hold: sut')
         =>  (sint |)
         ?>  ?=({$hold *} sut)
         ?:  (~(has in fan) [p.sut q.sut])

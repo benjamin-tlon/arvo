@@ -3,6 +3,7 @@
 ::
 ~%  %zuse  +  ~
 !:  
+^%
 |%
   ::::::::::::::::::::::::::::::::::::::::::::::::::::::  ::
 ::::              chapter 3b, Arvo libraries            ::::
@@ -1218,7 +1219,7 @@
     ;~  pfix  bas
       ;~  pose
         doq  fas  soq  bas
-        (sear ~(get by `(map @t @)`(my b+8 t+9 n+10 f+12 r+13 ~)) low)
+        (sear ~(get by `(map @t @)`(my:nl b+8 t+9 n+10 f+12 r+13 ~)) low)
         ::  (sear ~(get by `(map @t @)`(my b+8 t+9 n+10 f+12 r+13 ~)) low)
         ;~(pfix (just 'u') (cook tuft qix:ab))           :: 4-digit hex to UTF-8
       ==
@@ -1408,7 +1409,7 @@
   ++  enty                                              ::  entity
     %+  ifix  pam^sem
     ;~  pose
-      =+  def=^+(ent (my [%gt '>'] [%lt '<'] [%amp '&'] [%quot '"'] ~))
+      =+  def=^+(ent (my:nl [%gt '>'] [%lt '<'] [%amp '&'] [%quot '"'] ~))
       %+  sear  ~(get by (~(uni by def) ent))
       (cook crip ;~(plug alf (stun 1^31 aln)))
       %+  cook  |=(a/@c ?:((gth a 0x10.ffff) '�' (tuft a)))
@@ -1549,7 +1550,7 @@
     |*  {fel/rule wit/fist}
     %+  cu  
       |=  a/(list _[(wonk *fel) (need *wit)])
-      (my a)
+      (my:nl a)
     %-  ci  :_  (om wit)
     |=  a/(map cord _(need *wit))
     ^-  (unit (list _[(wonk *fel) (need *wit)]))
