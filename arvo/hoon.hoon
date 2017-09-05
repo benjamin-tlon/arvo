@@ -2975,47 +2975,47 @@
   |*  a/(list)
   =+  b=*(set _?>(?=(^ a) i.a))
   (~(gas in b) a)
-::
-++  nl
-  |%
-  ::                                                      ::
-  ++  le                                                  ::  construct list
-    |*  a/(list)
-    ^+  =<  $
-      |%  +-  $  ?:(*? ~ [i=(snag 0 a) t=$])
-      --
-    a
-  ::                                                      ::
-  ++  my                                                  ::  construct map
-    |*  a/(list (pair))
-    =>  .(a ^+((le a) a))
-    (~(gas by `(map _p.i.-.a _q.i.-.a)`~) a)
-  ::                                                      ::
-  ++  mz                                                  ::  construct map
-    |*  a/(list (pair))
-    =>  .(a ^+((le a) a))
-    (~(gas by ~) a)
-  ::                                                      ::
-  ++  si                                                  ::  construct set
-    |*  a/(list)
-    =>  .(a ^+((le a) a))
-    (~(gas in `(set _i.-.a)`~) a)
-  ::                                                      ::
-  ++  snag                                                ::  index
-    |*  {a/@ b/(list)}
-    ?~  b
-      ~|('snag-fail' !!)
-    ?:  =(0 a)  i.b
-    $(b t.b, a (dec a))
-  ::                                                      ::
-  ++  weld                                                ::  concatenate
-    |*  {a/(list) b/(list)}
-    =>  .(a ^+((le a) a), b ^+((le b) b))
-    =+  42
-    |-
-    ?~  a  b
-    [i=i.a t=$(a t.a)]
-  --
+::::
+::++  nl
+::  |%
+::  ::                                                      ::
+::  ++  le                                                  ::  construct list
+::    |*  a/(list)
+::    ^+  =<  $
+::      |%  +-  $  ?:(*? ~ [i=(snag 0 a) t=$])
+::      --
+::    a
+::  ::                                                      ::
+::  ++  my                                                  ::  construct map
+::    |*  a/(list (pair))
+::    =>  .(a ^+((le a) a))
+::    (~(gas by `(map _p.i.-.a _q.i.-.a)`~) a)
+::  ::                                                      ::
+::  ++  mz                                                  ::  construct map
+::    |*  a/(list (pair))
+::    =>  .(a ^+((le a) a))
+::    (~(gas by ~) a)
+::  ::                                                      ::
+::  ++  si                                                  ::  construct set
+::    |*  a/(list)
+::    =>  .(a ^+((le a) a))
+::    (~(gas in `(set _i.-.a)`~) a)
+::  ::                                                      ::
+::  ++  snag                                                ::  index
+::    |*  {a/@ b/(list)}
+::    ?~  b
+::      ~|('snag-fail' !!)
+::    ?:  =(0 a)  i.b
+::    $(b t.b, a (dec a))
+::  ::                                                      ::
+::  ++  weld                                                ::  concatenate
+::    |*  {a/(list) b/(list)}
+::    =>  .(a ^+((le a) a), b ^+((le b) b))
+::    =+  42
+::    |-
+::    ?~  a  b
+::    [i=i.a t=$(a t.a)]
+::  --
   ::::::::::::::::::::::::::::::::::::::::::::::::::::::  ::
 ::::              chapter 2e, miscellaneous libs        ::::
 ::  ::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -8629,6 +8629,7 @@
       [dox p.q]
     ?>  ?=($elm -.q)
     ::  ~_  (dunk(sut [%cell q.q.p p.p]) %fire-wet)  
+    ::  =.  p.p  ?:(fab p.p (redo(sut p.p) q.q.p))
     =.  p.p  ?:(fab p.p (redo(sut p.p) q.q.p))
     ::  =.  p.p  ?:(fab p.p (rydo(sut q.q.p) p.p))
     ::  =.  p.p  (rydo(sut p.p) q.q.p)
@@ -9338,7 +9339,7 @@
         $noun      (nest(sut %void) | ref)
         {$atom *}  sint
         {$cell *}  sint
-        {$core *}  sint(sut [%cell p.sut %noun])
+        {$core *}  sint(sut [%cell %noun %noun])
         {$fork *}  %+  levy  (~(tap in p.sut))
                    |=(span dext(sut +<))
         {$face *}  dext(sut q.sut) 
@@ -9389,9 +9390,14 @@
       ::  :(unit (list tool)): unified tool stack
       ::
       ^-  (unit (list tool))
-      ::  reference faces must be clear
+      ::  empty implies void
       ::
-      ?.  ?=({* $~ $~} wec)  ~
+      ?~  wec  `~
+      ::  any reference faces must be clear
+      ::
+      ?.  ?=({* $~ $~} wec)  
+        ~&  [%dear-many wec]
+        ~
       :-  ~
       ::  har: single reference tool stack
       ::
