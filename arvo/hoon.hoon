@@ -2973,47 +2973,47 @@
   |*  a/(list)
   =+  b=*(set _?>(?=(^ a) i.a))
   (~(gas in b) a)
-::::
-::++  nl
-::  |%
-::  ::                                                      ::
-::  ++  le                                                  ::  construct list
-::    |*  a/(list)
-::    ^+  =<  $
-::      |%  +-  $  ?:(*? ~ [i=(snag 0 a) t=$])
-::      --
-::    a
-::  ::                                                      ::
-::  ++  my                                                  ::  construct map
-::    |*  a/(list (pair))
-::    =>  .(a ^+((le a) a))
-::    (~(gas by `(map _p.i.-.a _q.i.-.a)`~) a)
-::  ::                                                      ::
-::  ++  mz                                                  ::  construct map
-::    |*  a/(list (pair))
-::    =>  .(a ^+((le a) a))
-::    (~(gas by ~) a)
-::  ::                                                      ::
-::  ++  si                                                  ::  construct set
-::    |*  a/(list)
-::    =>  .(a ^+((le a) a))
-::    (~(gas in `(set _i.-.a)`~) a)
-::  ::                                                      ::
-::  ++  snag                                                ::  index
-::    |*  {a/@ b/(list)}
-::    ?~  b
-::      ~|('snag-fail' !!)
-::    ?:  =(0 a)  i.b
-::    $(b t.b, a (dec a))
-::  ::                                                      ::
-::  ++  weld                                                ::  concatenate
-::    |*  {a/(list) b/(list)}
-::    =>  .(a ^+((le a) a), b ^+((le b) b))
-::    =+  42
-::    |-
-::    ?~  a  b
-::    [i=i.a t=$(a t.a)]
-::  --
+::
+++  nl
+  |%
+  ::                                                      ::
+  ++  le                                                  ::  construct list
+    |*  a/(list)
+    ^+  =<  $
+      |%  +-  $  ?:(*? ~ [i=(snag 0 a) t=$])
+      --
+    a
+  ::                                                      ::
+  ++  my                                                  ::  construct map
+    |*  a/(list (pair))
+    =>  .(a ^+((le a) a))
+    (~(gas by `(map _p.i.-.a _q.i.-.a)`~) a)
+  ::                                                      ::
+  ++  mz                                                  ::  construct map
+    |*  a/(list (pair))
+    =>  .(a ^+((le a) a))
+    (~(gas by ~) a)
+  ::                                                      ::
+  ++  si                                                  ::  construct set
+    |*  a/(list)
+    =>  .(a ^+((le a) a))
+    (~(gas in `(set _i.-.a)`~) a)
+  ::                                                      ::
+  ++  snag                                                ::  index
+    |*  {a/@ b/(list)}
+    ?~  b
+      ~|('snag-fail' !!)
+    ?:  =(0 a)  i.b
+    $(b t.b, a (dec a))
+  ::                                                      ::
+  ++  weld                                                ::  concatenate
+    |*  {a/(list) b/(list)}
+    =>  .(a ^+((le a) a), b ^+((le b) b))
+    =+  42
+    |-
+    ?~  a  b
+    [i=i.a t=$(a t.a)]
+  --
   ::::::::::::::::::::::::::::::::::::::::::::::::::::::  ::
 ::::              chapter 2e, miscellaneous libs        ::::
 ::  ::::::::::::::::::::::::::::::::::::::::::::::::::::::
