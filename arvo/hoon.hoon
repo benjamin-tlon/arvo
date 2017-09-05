@@ -9,13 +9,11 @@
     (make:all cud)                                      ::  else simple compile
 ^=  all                                                 ::  assemble engine
   =~                                                    ::  volume stack
-^%
 %151                                                    ::  version constant
 ::::::  ::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::::::  ::::::    volume 0, version stub                ::::::
 ::::::  ::::::::::::::::::::::::::::::::::::::::::::::::::::::   
 ~%  %k.151  ~  ~                                        ::
-^%
 |%                                                      ::
 ++  hoon  %151                                          ::  version stub
 --                                                      ::  
