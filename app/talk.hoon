@@ -8,6 +8,7 @@
 ::
 ::::
   ::
+^%
 [. talk sole]
 =>  |%                                                  ::  data structures
     ++  house  {$6 house-6}                             ::  full state
@@ -381,7 +382,8 @@
       %_    .
           +>
         =/  typ
-          =+  (ly ~[%a-group %f-grams %x-cabal])
+          =+  ^-  (list ?($a-group $f-grams $v-glyph $x-cabal))  
+              ~[%a-group %f-grams %x-cabal]
           (rap 3 (turn - encode:peer-type))
         (ra-subscribe:(ra-subscribe her.she ~) her.she [typ man.she ~])
       ==
@@ -1402,7 +1404,10 @@
       [%brown ~] 
     %^  ra-consume  &  our.hid
     :^    (shaf %init eny.hid)  
-        (my [[%& our.hid (main our.hid)] *envelope %pending] ~)
+        ^-  audience
+        %+  ~(put by *audience) 
+          `partner`[%& our.hid (main our.hid)] 
+        [*envelope %pending]
       now.hid
     [~ %app %tree 'receiving forum posts, ;join %posts for details']
   ::
@@ -1412,7 +1417,9 @@
     %^  ra-consume  |
       src.hid
     :*  (shaf %comt eny.hid)
-        (my [[%& our.hid man] *envelope %pending] ~)
+        %+  ~(put by *audience) 
+          `partner`[%& our.hid man] 
+        [*envelope %pending]
         now.hid
         (sy /fora-post eyre+pax ~)
       :-  %mor  :~
@@ -1442,7 +1449,10 @@
       [%brown ~] 
     %^  ra-consume  &  our.hid
     :^    (shaf %init eny.hid)  
-        (my [[%& our.hid (main our.hid)] *envelope %pending] ~)
+        ^-  audience
+        %+  ~(put by *audience) 
+          `partner`[%& our.hid (main our.hid)] 
+        [*envelope %pending]
       now.hid
     [~ %app %tree 'receiving comments, ;join %comments for details']
   ::
@@ -1453,7 +1463,9 @@
     %^  ra-consume  |
       src.hid
     :*  (shaf %comt eny.hid)
-        (my [[%& our.hid man] *envelope %pending] ~)
+        %+  ~(put by *audience) 
+          `partner`[%& our.hid man] 
+        [*envelope %pending]
         now.hid
         (sy /comment eyre+pax ~)
       :-  %mor  :~
@@ -1765,7 +1777,8 @@
       =+  old=(sub now.hid ~d1)                         :: XX full backlog
       =+  ini=?^(num (scot %ud u.num) (scot %da old))
       =/  typ
-        =+  (ly ~[%a-group %f-grams %x-cabal])
+        =+  ^-  (list ?($a-group $f-grams $v-glyph $x-cabal))  
+            ~[%a-group %f-grams %x-cabal]
         (rap 3 (turn - encode:peer-type))
       ?-  -.tay
         $|  !!

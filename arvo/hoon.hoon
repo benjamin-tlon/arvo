@@ -1,6 +1,7 @@
 ::::::  ::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::::::  ::::::    Preface                               ::::::
 ::::::  ::::::::::::::::::::::::::::::::::::::::::::::::::::::
+^%
 ?>  ?=(@ .)                                             ::  atom subject 
 %.  .                                                   ::  fun with subject
 |=  cud/@                                               ::  call it cud
@@ -2950,12 +2951,10 @@
 ::                section 2dD, casual containers        ::
 ::
 ++  ly                                                  ::  list from raw noun
-  |*  a/*
-  ^+((homo (limo a)) a)
+  le:nl
 ::
 ++  my                                                  ::  map from raw noun
-  |*  a/* 
-  (malt ^+((homo (limo a)) a))
+  my:nl
 ::
 ++  malt                                                ::  map from raw list
   |*  a/(list) 
@@ -2966,8 +2965,7 @@
   (~(gas by `(map _p.i.-.a _q.i.-.a)`~) a)
 ::
 ++  sy                                                  ::  set from raw noun
-  |*  a/*
-  (silt ^+((homo (limo a)) a))
+  si:nl
 ::
 ++  silt                                                ::  make a set
   |*  a/(list)
@@ -8627,10 +8625,8 @@
       [dox p.q]
     ?>  ?=($elm -.q)
     ::  ~_  (dunk(sut [%cell q.q.p p.p]) %fire-wet)  
-    ::  =.  p.p  ?:(fab p.p (redo(sut p.p) q.q.p))
     =.  p.p  ?:(fab p.p (redo(sut p.p) q.q.p))
-    ::  =.  p.p  ?:(fab p.p (rydo(sut q.q.p) p.p))
-    ::  =.  p.p  (rydo(sut p.p) q.q.p)
+    ::  =.  p.p  (redo(sut p.p) q.q.p)
     ?>  ?|  !vet
             (~(has in rib) [p dox p.q])
             !=(** (mull(sut p, rib (~(put in rib) p dox p.q)) %noun dox p.q))
