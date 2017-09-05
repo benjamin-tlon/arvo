@@ -608,7 +608,7 @@
           ==
       ^+  ret
       =.  ret
-        =+  eno=(~(tap by one))
+        =+  eno=(~(tap in one))
         |-  ^+  ret
         ?~  eno  ret
         =.  ret  $(eno t.eno)
@@ -616,7 +616,7 @@
           ret
         ret(old [i.eno old.ret])
       =.  ret
-        =+  owt=(~(tap by two))
+        =+  owt=(~(tap in two))
         |-  ^+  ret
         ?~  owt  ret
         =.  ret  $(owt t.owt)

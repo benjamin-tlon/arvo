@@ -8625,8 +8625,8 @@
       [dox p.q]
     ?>  ?=($elm -.q)
     ::  ~_  (dunk(sut [%cell q.q.p p.p]) %fire-wet)  
-    =.  p.p  ?:(fab p.p (redo(sut p.p) q.q.p))
-    ::  =.  p.p  (redo(sut p.p) q.q.p)
+    ::  =.  p.p  ?:(fab p.p (redo(sut p.p) q.q.p))
+    =.  p.p  (redo(sut p.p) q.q.p)
     ?>  ?|  !vet
             (~(has in rib) [p dox p.q])
             !=(** (mull(sut p, rib (~(put in rib) p dox p.q)) %noun dox p.q))
