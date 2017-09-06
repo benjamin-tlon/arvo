@@ -1,9 +1,7 @@
-^%
 :: 
 ::  zuse (3), standard library (tang)   
 ::
 ~%  %zuse  +  ~
-!:  
 |%
   ::::::::::::::::::::::::::::::::::::::::::::::::::::::  ::
 ::::              chapter 3b, Arvo libraries            ::::

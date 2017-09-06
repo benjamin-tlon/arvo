@@ -8,7 +8,6 @@
 ::
 ::::
   ::
-^%
 [. talk sole]
 =>  |%                                                  ::  data structures
     ++  house  {$6 house-6}                             ::  full state
