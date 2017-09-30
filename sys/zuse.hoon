@@ -97,10 +97,20 @@
     ::                                                  ::::
   ++  able  ^?
     |%
-    ++  card                                            ::  out cards
-      $%  {$went p/sack q/path r/@ud s/coop}            ::  response confirm
-          {$west p/sack q/path r/@ud s/*}               ::  network request
-      ==                                                ::
+    ++  note                                            ::  out request $->
+      $?  $:  $d                                        ::  to %dill
+      $%  {$flog p/flog:dill}                           ::
+      ==  ==                                            ::
+          $:  $a                                        ::  to %ames
+      $%  {$kick p/@da}                                 ::
+      ==  ==                                            ::
+          $:  $g                                        ::  to %gall
+      $%  {$deal p/sock q/cush:gall}                    ::
+      ==  ==                                            ::
+          $:  @tas                                      ::  to any
+      $%  {$init p/@p}                                  ::
+          {$west p/sack q/path r/*}                     ::
+      ==  ==  ==                                        ::
     ++  gift                                            ::  out result <-$
       $%  {$drop $~}                                    ::  drop packet
           {$hear p/lane q/@}                            ::  receive packet
@@ -113,11 +123,16 @@
           {$went p/ship q/cape}                         ::  reaction message
           {$woot p/ship q/path r/coop}                  ::  e2e reaction message
       ==                                                ::
-    ++  note                                            ::  out request $->
-      $%  {$c card}                                     ::  to %clay
-          {$e card}                                     ::  to %eyre
-          {$g card}                                     ::  to %gall
-      ==                                                ::
+    ++  sign                                                ::  in result _<-
+              $?  $:  $g                                    ::  from %gall
+              $%  {$unto p/cuft}                            ::
+                  {$mean p/ares}                            ::  XX old clean up
+                  {$nice $~}                                ::
+              ==  ==                                        ::
+                  $:  @tas                                  ::
+              $%  {$crud p/@tas q/(list tank)}              ::  by any
+                  {$mack p/(unit tang)}                     ::  message ack
+              ==  ==  ==                                    ::
     ++  task                                            ::  in request ->$
       $%  ::  {$born p/@p q/@pG r/?}                    ::  ticket birth
           {$barn $~}                                    ::  new unix process
