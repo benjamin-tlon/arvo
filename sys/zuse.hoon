@@ -123,16 +123,16 @@
           {$went p/ship q/cape}                         ::  reaction message
           {$woot p/ship q/path r/coop}                  ::  e2e reaction message
       ==                                                ::
-    ++  sign                                                ::  in result _<-
-              $?  $:  $g                                    ::  from %gall
-              $%  {$unto p/cuft}                            ::
-                  {$mean p/ares}                            ::  XX old clean up
-                  {$nice $~}                                ::
-              ==  ==                                        ::
-                  $:  @tas                                  ::
-              $%  {$crud p/@tas q/(list tank)}              ::  by any
-                  {$mack p/(unit tang)}                     ::  message ack
-              ==  ==  ==                                    ::
+    ++  sign                                            ::  in result _<-
+              $?  $:  $g                                ::  from %gall
+              $%  {$unto p/cuft:gall}                   ::
+                  {$mean p/ares}                        ::  XX old clean up
+                  {$nice $~}                            ::
+              ==  ==                                    ::
+                  $:  @tas                              ::
+              $%  {$crud p/@tas q/(list tank)}          ::  by any
+                  {$mack p/(unit tang)}                 ::  message ack
+              ==  ==  ==                                ::
     ++  task                                            ::  in request ->$
       $%  ::  {$born p/@p q/@pG r/?}                    ::  ticket birth
           {$barn $~}                                    ::  new unix process
@@ -179,6 +179,19 @@
       --  ::nu                                          ::
     --  ::acru                                          ::
   ++  bait  {p/skin q/@ud r/dove}                       ::  fmt nrecvd spec
+  ++  bath                                              ::  convo per client
+    $:  sop/shed                                        ::  not stalled
+        raz/(map path race)                             ::  statements inbound
+        ryl/(map path rill)                             ::  statements outbound
+    ==                                                  ::
+  ++  boon                                              ::  fort output
+    $%  {$beer p/ship q/@uvG}                           ::  gained ownership
+        {$cake p/sock q/soap r/coop s/duct}             ::  e2e message result
+        {$mead p/lane q/rock}                           ::  accept packet
+        {$milk p/sock q/soap r/*}                       ::  e2e pass message
+        {$ouzo p/lane q/rock}                           ::  transmit packet
+        {$wine p/sock q/tape}                           ::  notify user
+    ==                                                  ::
   ++  bray  {p/life q/(unit life) r/ship s/@da}         ::  our parent us now
   ++  buck  {p/mace q/wyll}                             ::  all security data
   ++  cake  {p/sock q/skin r/@}                         ::  top level packet
@@ -192,6 +205,12 @@
         qim/(map hand code)                             ::  inbound
     ==                                                  ::
   ++  code  @uvI                                        ::  symmetric key
+  ++  corn                                              ::  flow by server
+    $:  hen/duct                                        ::  admin channel
+        nys/(map flap bait)                             ::  packets incoming
+        olz/(map flap cape)                             ::  packets completed
+        wab/(map ship bath)                             ::  relationship
+    ==                                                  ::
   ++  deyd  {p/@ q/step r/?}                            ::  sig stage fake?
   ++  dore                                              ::  foreign contact
     $:  wod/road                                        ::  connection to
@@ -203,6 +222,14 @@
   ++  flow                                              ::  packet connection
     $:  rtt/@dr                                         ::  decaying avg rtt
         wid/@ud                                         ::  logical wdow msgs
+    ==                                                  ::
+  ++  fort                                              ::  formal state
+    $:  $0                                              ::  version
+        gad/duct                                        ::  client interface
+        hop/@da                                         ::  network boot date
+        bad/(set @p)                                    ::  bad ships
+        ton/town                                        ::  security
+        zac/(map ship corn)                             ::  flows by server
     ==                                                  ::
   ++  gcos                                              ::  id description
     $%  {$czar $~}                                      ::  8-bit ship

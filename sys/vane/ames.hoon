@@ -23,7 +23,7 @@
       ?>((pier i.wet) [i.wet ~])
     ?~  q.p.q.i.wet
       ?>((meld i.wet i.law) [i.wet law])
-    =+  rul=(sein r.p.q.i.wet)
+    =+  rul=(sein:title r.p.q.i.wet)
     |-  ^-  wyll
     ?:  ?&  =(rul r.p.q.i.law)
             =(p.p.q.i.law u.q.p.q.i.wet)
@@ -35,13 +35,13 @@
     |=  {new/deyd old/deyd}
     ^-  $&
     ?>  (melt new old)
-    ?>  =((shaf %meld (sham q.new)) (need (sure:as:(com:nu:crub r.q.old) *code p.new)))
+    ?>  =((shaf %meld (sham q.new)) (need (sure:as:(com:nu:crub:crypto r.q.old) *code p.new)))
     %&
   ::
   ++  melt                                              ::  proper connect
     |=  {new/deyd old/deyd}
     ^-  ?
-    =+  rac=(clan r.p.q.new)
+    =+  rac=(clan:title r.p.q.new)
     ?&  =(r.new r.old)                                  ::  match fake
         ?~  q.p.q.new
           ?&  =(r.p.q.old r.p.q.new)
@@ -49,7 +49,7 @@
           ==
         ?&  &(!=(%pawn rac) !=(%czar rac))
             |(=(0 p.p.q.new) =(%earl rac))
-            =(r.p.q.old (sein r.p.q.new))
+            =(r.p.q.old (sein:title r.p.q.new))
             =(p.p.q.old u.q.p.q.new)
         ==
     ==
@@ -70,8 +70,8 @@
   ++  pier  !:                                          ::  initial deyd
     |=  wed/deyd
     ^-  $&
-    ?>  =+  rac=(clan r.p.q.wed)
-        =+  loy=(com:nu:crub r.q.wed)
+    ?>  =+  rac=(clan:title r.p.q.wed)
+        =+  loy=(com:nu:crub:crypto r.q.wed)
         ?:  &(r.wed =(rac %czar))  %&
         ?>  =(0 p.p.q.wed)
         ?>  =(fig:ex:loy ?+(rac !! $czar (zeno r.p.q.wed), $pawn r.p.q.wed))
@@ -86,7 +86,7 @@
             ?>  ?&  ?=(^ law)
                     (lth p.p.q.i.law 9)                 ::  9-lives rule
                     =(p.p.q.i.law p.i.mac)
-                    =(r.q.i.law pub:ex:(nol:nu:crub q.i.mac))
+                    =(r.q.i.law pub:ex:(nol:nu:crub:crypto q.i.mac))
                 ==
             $(mac t.mac, law t.law)
         ==
@@ -424,7 +424,7 @@
       ++  born                                          ::    born:as:go
         |=  {now/@da her/@p tic/@pG ges/gens pub/pass}  ::  register user
         ^-  {(unit wyll) _+>}
-        ?.  =(our (sein her))  [~ +>.$]
+        ?.  =(our (sein:title her))  [~ +>.$]
         =+  nes=sen
         =+  ryt=(end 6 1 (shaf %tick (mix her (shax sec:ex:q.nes))))
         ?.  =(tic ryt)
@@ -451,7 +451,7 @@
           ?.  =(fak.ton r.i.lew.wod.dur)  ~|([%client-wrong-fake her] !!)
           :+  p.p.q.i.lew.wod.dur
             q.q.i.lew.wod.dur
-          (com:nu:crub r.q.i.lew.wod.dur)
+          (com:nu:crub:crypto r.q.i.lew.wod.dur)
         ::
         ++  clon
           ^-  life
@@ -546,12 +546,12 @@
               :-  %fast
               %^  cat  7
                 p.u.yed.caq.dyr
-              (en:crub q.u.yed.caq.dyr mal)
+              (en:crub:crypto q.u.yed.caq.dyr mal)
           ==
         ::
         ++  xeno                                        ::    xeno:lax:as:go
           ^-  (list ship)                               ::  foreign canon
-          (saxo her)
+          (saxo:title her)
         ::
         ++  xong                                        ::    xong:lax:as:go
           ^-  (list ship)                               ::  route unto
@@ -673,7 +673,7 @@
       ::
       ++  xen                                           ::  canon
         |-  ^-  (list ship)
-        (saxo our)
+        (saxo:title our)
       ::
       ++  yew                                           ::  best wyll for
         |=  her/ship
@@ -681,7 +681,7 @@
         =+  gel=(~(get by hoc.saf) her)
         ?^  gel
           lew.wod.u.gel
-        ?:((lth her 256) ~ $(her (sein her)))
+        ?:((lth her 256) ~ $(her (sein:title her)))
       --                                                ::  --as:go
     ::
     ++  ha  !:                                          ::  adopt new license
@@ -699,9 +699,9 @@
           our
         :*  %-  flop
             |-  ^-  (list ship)
-            ?:((lth our 256) ~ =+(seg=(sein our) [seg $(our seg)]))
+            ?:((lth our 256) ~ =+(seg=(sein:title our) [seg $(our seg)]))
         ::
-            (turn mac |=({p/life q/ring} [p q (nol:nu:crub q)]))
+            (turn mac |=({p/life q/ring} [p q (nol:nu:crub:crypto q)]))
             wil
             ~
             ~
@@ -945,18 +945,18 @@
           urb.ton
         %-  ~(gas by *(map ship sufi))
         %+  turn
-          (~(tap by urb.ton.fox) ~)
+          ~(tap by urb.ton.fox)
         |=  {p/ship q/sufi}  ^-  {p/ship q/sufi}
         :-  p
         %=    q
             val
-          (turn val.q |=({p/life q/ring r/acru} [p q (nol:nu:crub q)]))
+          (turn val.q |=({p/life q/ring r/acru} [p q (nol:nu:crub:crypto q)]))
         ==
       ==
     ++  come                                            ::    come:am
       |=  {ges/(unit @t) wid/@ bur/@ fak/?}            ::  instantiate pawn
       ^-  {p/{p/ship q/@uvG} q/fort}
-      =+  loy=(pit:nu:crub wid bur)
+      =+  loy=(pit:nu:crub:crypto wid bur)
       =+  rig=sec:ex:loy
       =+  our=`@p`fig:ex:loy
       =+  syp=[[0 ~ our now] [%en %pawn ges] pub:ex:loy]
@@ -974,7 +974,12 @@
     ++  czar  !:                                        ::    czar:am
       |=  {our/ship ger/@uw fak/?}                      ::  instantiate emperor
       ^-  {p/(list boon) q/fort}
-      =+  loy=?:(fak (pit:nu:crub 512 our) (pit:nu:crub 512 ger)) ::  fake uses carrier /
+      =+  ^=  loy
+          ?:  fak                     
+            ::  fake uses carrier number as seed
+            ::
+            (pit:nu:crub:crypto 512 our) 
+          (pit:nu:crub:crypto 512 ger)
       =+  fim==(fig:ex:loy (zeno our))
       ?:  &(!fak !fim)  !!                              ::  not fake & bad fig
       =+  mac=`mace`[[0 sec:ex:loy] ~]
@@ -1028,7 +1033,7 @@
     ::
     ++  kick                                            ::    kick:am
       |=  hen/duct                                      ::  refresh net
-      =+  aks=(turn (~(tap by urb.ton.fox) ~) |=({p/ship q/sufi} p))
+      =+  aks=(turn ~(tap by urb.ton.fox) |=({p/ship q/sufi} p))
       |-  ^-  {p/(list boon) q/fort}
       ?~  aks  [~ fox]
       =^  buz  fox  zork:(kick:(um i.aks) hen)
@@ -1521,9 +1526,9 @@
             ^-  kiss:able
             ?:  ?=($soft -.q.hic)
               ((hard kiss:able) p.q.hic)
-            ?:  (~(nest ut -:!>(*kiss-ames)) | p.hic)  q.hic
+            ?:  (~(nest ut -:!>(*task:able)) | p.hic)  q.hic
             ~&  [%ames-call-flub (@tas `*`-.q.hic)]
-            ((hard kiss-ames) q.hic)
+            ((hard task:able) q.hic)
           ==
       ^-  {p/(list move) q/_..^$}
       =^  duy  ..knob
@@ -1659,7 +1664,7 @@
     ==
   ::
   ++  knob
-    |=  {hen/duct kyz/kiss-ames}
+    |=  {hen/duct kyz/task:able}
     ^-  {(list move) _+>}
     ?:  ?=($crud -.kyz)
       [[[hen [%slip %d %flog kyz]] ~] +>]
@@ -1749,7 +1754,7 @@
         %+  bind  (rick mar his lew.wod.u.fod)
         |=(a/wyll `[%noun !>(a)])
       ?:  ?=({$tick $~} tyl)
-        ?.  =(our (sein his))  ~
+        ?.  =(our (sein:title his))  ~
         ``[%noun !>((end 6 1 (shaf %tick (mix his (shax sec:ex:q:sen:u.gys)))))]
       ~
     ?:  ?=({$buck $~} tyl)
