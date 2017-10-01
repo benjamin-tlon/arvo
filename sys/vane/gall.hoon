@@ -431,7 +431,7 @@
       %-  mo-awed
       :*  `ship`p.+>.sih
           ;;(?($peer $peel $poke $pull) i.t.pax)
-          `(unit ares)`r.+>.sih
+          +>+.sih
       ==
     ==
   ::

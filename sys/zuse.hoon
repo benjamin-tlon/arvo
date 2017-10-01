@@ -112,43 +112,38 @@
           {$west p/sack q/path r/*}                     ::
       ==  ==  ==                                        ::
     ++  gift                                            ::  out result <-$
-      $%  {$drop $~}                                    ::  drop packet
-          {$hear p/lane q/@}                            ::  receive packet
-          {$east p/sock q/*}                            ::  network response
+      $%  {$hear p/lane q/@}                            ::  receive packet
           {$init p/@p}                                  ::  report install
           {$mass p/mass}                                ::  memory usage
           {$send p/lane q/@}                            ::  transmit packet
-          {$waft p/ship q/path r/*}                     ::  response message
-          {$wart p/sock q/@tas r/path s/*}              ::  network request
-          {$went p/ship q/cape}                         ::  reaction message
-          {$woot p/ship q/path r/coop}                  ::  e2e reaction message
+          {$woot p/ship q/coop}                         ::  reaction message
       ==                                                ::
     ++  sign                                            ::  in result _<-
-              $?  $:  $g                                ::  from %gall
-              $%  {$unto p/cuft:gall}                   ::
-                  {$mean p/ares}                        ::  XX old clean up
-                  {$nice $~}                            ::
-              ==  ==                                    ::
-                  $:  @tas                              ::
-              $%  {$crud p/@tas q/(list tank)}          ::  by any
-                  {$mack p/(unit tang)}                 ::  message ack
-              ==  ==  ==                                ::
+      $?  $:  $g                                        ::  from %gall
+      $%  {$unto p/cuft:gall}                           ::
+          {$mean p/ares}                                ::  XX old clean up
+          {$nice $~}                                    ::
+      ==  ==                                            ::
+          $:  @tas                                      ::
+      $%  {$crud p/@tas q/(list tank)}                  ::  by any
+          {$mack p/(unit tang)}                         ::  message ack
+      ==  ==  ==                                        ::
     ++  task                                            ::  in request ->$
-      $%  ::  {$born p/@p q/@pG r/?}                    ::  ticket birth
-          {$barn $~}                                    ::  new unix process
+      $%  {$barn $~}                                    ::  new unix process
           {$crud p/@tas q/(list tank)}                  ::  error with trace
           {$cash p/@p q/buck}                           ::  civil license
-          ::  {$funk p/@p q/@p r/@}                     ::  symtix from/to/key
           {$hear p/lane q/@}                            ::  receive packet
+          {$halo p/lane q/@ r/ares}                     ::  hole with trace
           {$hole p/lane q/@}                            ::  packet failed
           {$junk p/@}                                   ::  entropy
           {$kick p/@da}                                 ::  wake up
+          {$nuke p/@p}                                  ::  toggle auto-block
           {$make p/(unit @t) q/@ud r/@ s/?}             ::  wild license
-          {$sith p/@p q/@uw r/@uw}                      ::  user/ticket/secret
+          {$sith p/@p q/@uw r/?}                        ::  imperial generator
           {$wake $~}                                    ::  timer activate
-          {$want p/sock q/path r/*}                     ::  send message
           {$wegh $~}                                    ::  report memory
-          {$wont p/sock q/path r/*}                     ::  e2e send message
+          {$west p/sack q/path r/*}                     ::  network request
+          {$want p/sock q/path r/*}                     ::  forward message
       ==                                                ::
     --  ::able
   ::
@@ -251,10 +246,8 @@
   ++  life  @ud                                         ::  regime number
   ++  mace  (list {p/life q/ring})                      ::  private secrets
   ++  meal                                              ::  payload
-    $%  {$back p/cape q/flap r/@dr}                     ::  acknowledgment
-        {$buck p/coop q/flap r/@dr}                     ::  e2e ack
+    $%  {$back p/coop q/flap r/@dr}                     ::  ack
         {$bond p/life q/path r/@ud s/*}                 ::  message
-        {$bund p/life q/path r/@ud s/*}                 ::  e2e message
         {$carp p/@ q/@ud r/@ud s/flap t/@}              ::  skin+inx+cnt+hash
         {$fore p/ship q/(unit lane) r/@}                ::  forwarded packet
     ==                                                  ::

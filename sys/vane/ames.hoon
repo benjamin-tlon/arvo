@@ -1438,7 +1438,7 @@
                       [%caw caw.sop.bah]
                       [%cag cag.sop.bah]
                   ==
-                  =+  qup=(~(tap to puq.sop.bah) ~)
+                  =+  qup=~(tap to puq.sop.bah)
                   :-  %qup
                   %+  turn  qup
                   |=  {a/@ud b/soul}
@@ -1452,17 +1452,17 @@
               ==
           ::
               :-  %raz
-              =+  zar=(~(tap by raz.bah) ~)
+              =+  zar=~(tap by raz.bah)
               %+  turn  zar
               |=  {a/path b/race}
               :+  a
                 did.b
-              =+  ciy=(~(tap by mis.b) ~)
+              =+  ciy=~(tap by mis.b)
               %+  turn  ciy
               |=  {c/@ud d/{p/cape q/lane r/flap s/(unit)}}
               [c p.d r.d]
           ::
-              [%ryl (~(tap to ryl.bah) ~)]
+              [%ryl ~(tap to ryl.bah)]
               [%lun lun.wod.dur.diz]
               [%caq caq.dur.diz]
               [%lew lew.wod.dur.diz]
@@ -1487,7 +1487,7 @@
       ++  pals                                          ::    pals:um:am
         ^-  (list @p)                                   ::  active neighbors
         %+  turn
-          %+  skim  (~(tap by wab.weg) ~)
+          %+  skim  ~(tap by wab.weg)
           |=  {a/ship b/bath}
           !(~(boom pu sop.b) now)
         |=({a/ship b/bath} a)
@@ -1519,13 +1519,13 @@
     |%                                                  ::  vane interface
     ++  call                                            ::  handle request
       |=  $:  hen/duct
-              hic/(hypo (hobo kiss:able))
+              hic/(hypo (hobo task:able))
           ==
       =>  %=    .                                       ::  XX temporary
               q.hic
-            ^-  kiss:able
+            ^-  task:able
             ?:  ?=($soft -.q.hic)
-              ((hard kiss:able) p.q.hic)
+              ((hard task:able) p.q.hic)
             ?:  (~(nest ut -:!>(*task:able)) | p.hic)  q.hic
             ~&  [%ames-call-flub (@tas `*`-.q.hic)]
             ((hard task:able) q.hic)
@@ -1548,18 +1548,12 @@
       =.  doz  $(wab.yem l.wab.yem)
       =.  doz  $(wab.yem r.wab.yem)
       =+  bah=q.n.wab.yem
-      (hunt doz rtn.sop.bah)
+      (hunt lth doz rtn.sop.bah)
     ::
     ++  load
-      |=  old/?(fort furt)
+      |=  old/fort 
       ~&  %ames-reload
-      %_    ..^$
-          fox
-        ?-  -.old
-          $0  [%1 gad.old hop.old ~ ton.old zac.old]
-          $1  old
-        ==
-      ==
+      ..^$(fox old)
     ::
     ++  scry
       |=  {fur/(unit (set monk)) ren/@tas who/ship syd/desk lot/coin tyl/path}
@@ -1741,7 +1735,9 @@
     ?~  tyl  ~
     ?:  ?=({$name $~} tyl)
       =+  wul=$(tyl [%wyll ~])
-      ``[%noun !>(?~(wul (scot %p his) (gnow his q.q.q:((hard deyd) -.u.wul))))]
+      :+  ~  ~
+      :-  %noun
+      !>(?~(wul (scot %p his) (gnow:title his q.q.q:((hard deyd) -.u.wul))))
     ?:  ?=({$gcos $~} tyl)
       =+  wul=$(tyl [%wyll ~])
       ?~(wul ~ ``[%noun !>(`gcos`q.q.q:((hard deyd) -.u.wul))])
