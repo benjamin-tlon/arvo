@@ -247,9 +247,9 @@
       ::  to this returning pump.
       ::
       +>
-    ::  ?:  ?=($peer-not -.q.caz)
-    ::  ::  short circuit error
-    ::  (mo-give %unto %reap (some p.q.caz))
+    ?:  ?=($peer-not -.q.caz)
+      ::  short circuit error
+      (mo-give %unto %reap (some p.q.caz))
     =^  num  +>.$  (mo-bale him)
     =+  ^=  roc  ^-  rook
         ?-  -.q.caz
@@ -494,8 +494,8 @@
       %+  mo-pass
         [%sys %val (scot %p q.q.pry) dap ~]
       [%f %exec our ~ (mo-beak dap) %cast p.cub %$ q.cub]
-    ::  ?:  ?=($peer-not -.cub)
-    ::  (mo-give %unto %reap (some p.cub))
+    ?:  ?=($peer-not -.cub)
+      (mo-give %unto %reap (some p.cub))
     ap-abet:(ap-club:(ap-abed:ap dap pry) cub)
   ::
   ++  mo-club                                           ::  local action
@@ -667,7 +667,7 @@
         $peer   (ap-peer +.cub)
         $puff   !!
         $punk   !!
-      ::  $peer-not   !!
+        $peer-not   !!
         $pull   ap-pull
         $pump   ap-fall
       ==
@@ -893,11 +893,11 @@
       =+  pux=((soft path) +>+.q.vax)
       ?.  &(?=(^ pux) (levy u.pux (sane %ta)))
         [%| (ap-suck "peel: malformed path")]
-      ::  ?:  (~(has in misvale) p.p.yep)
-      ::  =/  err  [leaf+"peel: misvalidation encountered"]~
-      ::  :^  %&  sto  %pass
-      ::  :-  p.p.yep
-      ::  [%send q.p.yep r.p.yep %peer-not err]
+      ?:  (~(has in misvale) p.p.yep)
+        =/  err  [leaf+"peel: misvalidation encountered"]~
+        :^  %&  sto  %pass
+        :-  p.p.yep
+        [%send q.p.yep r.p.yep %peer-not err]
       :^  %&  sto  %pass
       :-  p.p.yep
       [%send q.p.yep r.p.yep %peel u.mar u.pux]
@@ -911,11 +911,11 @@
       =+  pux=((soft path) +>.q.vax)
       ?.  &(?=(^ pux) (levy u.pux (sane %ta)))
         [%| (ap-suck "peer: malformed path")]
-      ::  ?:  (~(has in misvale) p.p.yep)
-      ::    =/  err  [leaf+"peer: misvalidation encountered"]~
-      ::  :^  %&  sto  %pass
-      ::  :-  p.p.yep
-      ::  [%send q.p.yep r.p.yep %peer-not err]
+      ?:  (~(has in misvale) p.p.yep)
+        =/  err  [leaf+"peer: misvalidation encountered"]~
+        :^  %&  sto  %pass
+        :-  p.p.yep
+        [%send q.p.yep r.p.yep %peer-not err]
       :^  %&  sto  %pass
       :-  p.p.yep
       [%send q.p.yep r.p.yep %peer u.pux]
