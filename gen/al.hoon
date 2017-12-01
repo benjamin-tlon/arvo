@@ -15,16 +15,16 @@
       %whip  whip
     ==
   =+  :*  top=`tope`& 
-          gom=`axis`1
+          dom=`axis`1
           wat=*what
       ==
   |_  mod/tile
-          gom/axis
+          dom/axis
       ==
   ++  home  
     ::  express a hoon against the original subject
     ::
-    |=(gen/hoon ^-(hoon ?:(=(1 gom) gen [%tsgr [%$ gom] gen])))
+    |=(gen/hoon ^-(hoon ?:(=(1 dom) gen [%tsgr [%$ dom] gen])))
   ::
   ++  hail
     ::  add help
@@ -83,18 +83,84 @@
       (home p.mod)
     ==
   ::
-  ++  bu
-  ::
-  ++  construct
-    ::  produce a constructor that works against axis
+  ++  sample
+    ::  operate against one sample of the subject
     ::
-    |=  $:  axe/axis
+    |_  $:  ::  axe: axis to sample
+            ::  top: topographic type of sample
+            ::
+            axe/axis
             top/tope 
         ==
+    ++  match 
+      ::  match one choice from list
+      ::
+      |=  $:  ::  sed: kind of rune
+              ::  one: first choice
+              ::  rep: rest of choices
+              ::
+              one/tile
+              rep/tile
+          ==
+      ::  if no other choices, construct head
+      ::
+      ?~  rep  construct(mod one)
+    ++
+        
+    ++  assemble
+  ::
+  ++  construct
+    ::  constructor at arbitrary sample
+    ::
     ^-  hoon
     ?-    mod
         {^ *}
-      =<  
+      ::  apply and clear help
+      ::
+      %-  hail
+      =.  wat  ~
+      ::  check topography of sample
+      ::
+      ?^  top
+        ::  if known cell, descend directly
+        ::
+        :-  $(mod -.mod, top p.top, axe (peg axe 2))
+        $(mod +.mod, top q.top, axe (peg axe 3))
+      ::  otherwise, build constructor gate
+      ::
+      :+  %tsgr
+        :^  %brts  ~^~
+          [%base %noun]
+        =:  dom  (peg 7 dom)
+            axe  6
+            top  &
+          ==
+        [$(mod -.mod) $(mod +.mod)]
+      ::  boc: call constructor
+      ::  but: default, cast to call
+      ::
+      =/  boc/hoon  [%limb %$]
+      =/  but/hoon  [%ktls boc default]
+      ?:  top
+        ::  may be atom or cell; default or construct
+        ::
+        [%wtpt [[%& axe] ~] but boc]
+      ::  must be atom; construct
+      ::
+      but
+    ::
+        {%fern *}
+      ::  pit: core construction loop
+      ::
+      =/  pit/hoon
+      |-  ^-  hoon
+      ::  default to the last 
+      ::
+      ?~  t.p.mod  ^$(mod i.p.mod)
+      =/  mor/hoon  $(mod 
+
+      
+      =.  dom  (peg dom 7)
       
       ?-  top
         %|  
