@@ -16,7 +16,7 @@
     ==
   =+  :*  top=`tope`& 
           dom=`axis`1
-          wat=*what
+          wot=*(list what)
       ==
   |_  mod/tile
           dom/axis
@@ -31,7 +31,7 @@
     ::
     |=  gen/hoon
     ^-  hoon
-    ?~(wat gen [%docs u.wat gen])
+    ?~(wot ?~(i.wot gen [%docs u.i.wot gen])
   ::
   ++  default
     ::  produce a hoon that makes the model's default value, untyped
@@ -60,10 +60,14 @@
       $(mod q.mod)
     ::
         {$fern *}
+      ::  last entry is the default value
+      ::
       |-  ^-  hoon
       ?~(t.p.mod ^$(mod i.p.mod) $(i.p.mod i.t.p.mod, t.p.mod t.t.p.mod))
     ::
         {$kelp *}
+      ::  last entry is the default value
+      ::
       |-  ^-  hoon
       ?~(t.p.mod ^$(mod i.p.mod) $(i.p.mod i.t.p.mod, t.p.mod t.t.p.mod))
     ::
@@ -92,10 +96,16 @@
             axe/axis
             top/tope 
         ==
-    ++  match 
-      ::  match one choice from list
+    ++  fetch
+      ::  load the sample
       ::
-      |=  $:  ::  sed: kind of rune
+      ^-  hoon
+      [%$ axe]
+    ::
+    ++  match-full
+      ::  match from list, with full evaluation
+      ::
+      |=  $:
               ::  one: first choice
               ::  rep: rest of choices
               ::
@@ -105,6 +115,37 @@
       ::  if no other choices, construct head
       ::
       ?~  rep  construct(mod one)
+      ::  build the loop completion
+      ::
+      =/  mor/hoon  $(one i.rep, rep t.rep)
+      ::  interrogate this instance 
+      ::
+      |-  ^-  hoon
+      ?^  -.one
+        ::  cell
+        ::
+      ?:  ?=($leaf 
+      ?-    -.one
+          $axil
+          $bark
+          $deet
+          $fern
+          $herb
+          $kelp
+      ::
+          $leaf
+        ::  use a formal test
+        ::
+        :^    %wtcl  
+            [%wtts [%leaf p.mod q.mod] fetch]
+          (hail 
+          $plow
+          $
+          {$axil *}
+          {$bark 
+        
+      == 
+      
     ++
         
     ++  assemble
@@ -118,7 +159,7 @@
       ::  apply and clear help
       ::
       %-  hail
-      =.  wat  ~
+      =.  wot  ~
       ::  check topography of sample
       ::
       ?^  top
