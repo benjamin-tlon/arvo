@@ -5850,6 +5850,7 @@
 ::::  4o: molds and mold builders
   ::
 ++  abel  typo                                          ::  original sin: type
+++  alas  (list (pair term hoon))                       ::  alias list
 ++  atom  @                                             ::  just an atom
 ++  aura  @ta                                           ::  atom format
 ++  axis  @                                             ::  tree address
@@ -5986,7 +5987,7 @@
     {$bcts p/toga q/root}                               ::  $= name
     {$bcsm p/hoon}                                      ::  $; assembly
   ::                                            ::::::  cores
-    {$brcb p/chap q/root r/(map @ tomb)}                ::  |_
+    {$brcb p/chap q/root r/alas s/(map @ tomb)}         ::  |_
     {$brcl p/chap q/hoon r/hoon}                        ::  |:
     {$brcn p/chap q/(map @ tomb)}                       ::  |%
     {$brdt p/chap q/hoon}                               ::  |.
@@ -7070,7 +7071,7 @@
         {$halo *}  ~(clam al boil)
         {$bcsm *}  p.gen
     ::
-        {$brcb *}  [%tsls [%bunt q.gen] [%brcn p.gen r.gen]]
+        {$brcb *}  [%tsls [%bunt q.gen] [%brcn p.gen s.gen]]
         {$brcl *}  [%tsls [%ktcn q.gen] [%brdt p.gen r.gen]]
         {$brdt *}  :+  %brcn  p.gen
                    =-  [[0 [~ ~] -] ~ ~]
@@ -7087,8 +7088,8 @@
                    :+  %brcn  p.gen
                    =-  [[0 [~ ~] -] ~ ~]
                    (~(put by *(map term (pair what foot))) %$ ~ [%elm r.gen])
-        {$brts *}  :^  %brcb  p.gen  q.gen 
-                   =-  [[0 [~ ~] -] ~ ~]
+        {$brts *}  :^  %brcb  p.gen  q.gen
+                   =-  [~ [[0 [~ ~] -] ~ ~]]
                    (~(put by *(map term (pair what foot))) %$ ~ [%ash r.gen])
         {$brwt *}  [%ktwt %brdt p.gen q.gen]
     ::
@@ -7417,8 +7418,7 @@
         $bcwt  (lead -.gen %.(+.gen moar))
         $bcts  (lead -.gen %.(+.gen nexp))
         $bcsm  (lead -.gen %.(+.gen expr))
-        $brcb  (lead -.gen %.(+.gen (trio noop expr arms)))
-        $brcb  (lead -.gen %.(+.gen (trio noop expr arms)))
+        $brcb  (lead -.gen %.(+.gen (quad noop expr exps arms)))
         $brcl  (lead -.gen %.(+.gen (twin noop dubs)))
         $brcn  (lead -.gen %.(+.gen (twin noop arms)))
         $brdt  (lead -.gen %.(+.gen (twin noop expr)))
@@ -7520,6 +7520,15 @@
     ++  expr
       |=  p/hoon
       ^$(gen p)
+    ::
+    ++  exps
+      |=  p/(list (pair term hoon))
+      =|  out/(list (pair term hoon))
+      |-  ^+  [out vit]
+      ?~  p
+        [out vit]
+      =^  nex  vit  ^^$(gen q.i.p)
+      $(p t.p, out [[p.i.p nex] out])
     ::
     ++  heel
       |=  bud/foot
@@ -11661,6 +11670,15 @@
     ++  whap                                            ::  chapter
       (most muck boog)
     ::
+    ++  wasp                                            ::  $brcb aliases
+      ;~  pose  
+        %+  ifix
+          [;~(plug lus tar muck) muck]
+        (most muck ;~(gunk sym loaf))
+      ::
+        (easy ~)
+      ==
+    ::
     ++  wisp                                            ::  core tail
       ?.  tol  fail
       %+  sear
@@ -11798,7 +11816,7 @@
     ++  exqs  |.((butt hunk))                           ::  closed gapped roots
     ++  exqg  |.(;~(gunk sym loan))                     ::  term and root
     ++  exqk  |.(;~(gunk loaf ;~(plug loan (easy ~))))  ::  hoon with one root
-    ++  exqr  |.(;~(gunk loan wisp))                    ::  root and core tail
+    ++  exqr  |.(;~(gunk loan ;~(plug wasp wisp)))      ::  root/aliases?/tail
     ++  exqn  |.(;~(gunk loan (stag %cltr (butt hank))))::  autoconsed hoons
     ++  exqw  |.(;~(gunk loaf loan))                    ::  hoon and root
     ++  exqx  |.(;~(gunk loaf loan loan))               ::  hoon, two roots
