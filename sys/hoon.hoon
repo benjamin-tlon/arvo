@@ -1,6 +1,7 @@
 ::                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
+!:
 =<  ride
 =>  %143  =>
 ::                                                      ::
@@ -5981,6 +5982,7 @@
 ++  tile  $^  {p/tile q/tile}                           ::  ordered pair
           $%  {$axil p/base}                            ::  base type
               {$bark p/toga q/tile}                     ::  name
+              {$funk p/tile q/tile}                     ::  function type
               {$deet p/spot q/tile}                     ::  set debug
               {$fern p/{i/tile t/(list tile)}}          ::  plain selection
               {$herb p/hoon}                            ::  assembly
@@ -5988,6 +5990,7 @@
               {$leaf p/term q/@}                        ::  constant atom
               {$plow p/what q/tile}                     ::  apply help
               {$reed p/tile q/tile}                     ::  atom+cell
+              ::  {$tupl p/{i/tile t/(list tile)}}      ::  aka row
               {$vine p/tile q/tile}                     ::  pair+tag
               {$weed p/hoon}                            ::  example
           ==                                            ::
@@ -6573,22 +6576,32 @@
           doc=*(list what)
       ==
   |_  mod/tile
-  ++  bunt  
-    ::  ~&  [%bunt-model mod]
-    ::  =-  ~&  [%bunt-product -]
-    ::      -  
-    ::  ~$  %ut-ersatz-call
-    ~+
-    ::  ~$  %ut-ersatz-make
+  ++  bunt  ~+
     ersatz
-  ++  clam  
-    ::  ~&  [%clam-model mod]
-    ::  =-  ~&  [%clam-product -]
-    ::      -
-    ::  ~$  %ut-factory-call
-    ~+
-    ::  ~$  %ut-factory-make
+  ::
+  ++  clam  ~+
     factory
+  ::
+  ++  function
+    ::  construct a function example
+    ::
+    |=  {fun/tile arg/tile}
+    ^-  hoon
+    ::  minimal context as subject
+    ::
+    :+  %tsgr
+      ::  context is example of both tiles
+      ::
+      [ersatz(mod fun) ersatz(mod arg)]
+    ::  produce an %iron (contravariant) core
+    ::
+    :-  %ktbr
+    ::  make an actual gate
+    ::
+    :^  %brcl  [~ ~]
+      [%$ 2]
+    [%$ 15]  
+  ::
   ++  home  
     ::  express a hoon against the original subject
     ::
@@ -6625,6 +6638,9 @@
       ::
       |-  ^-  hoon
       ?~(t.p.mod ^$(mod i.p.mod) $(i.p.mod i.t.p.mod, t.p.mod t.t.p.mod))
+    ::
+        {$funk *}
+      (function p.mod q.mod)
     ::
         {$kelp *}
       ::  last entry is the default value  
@@ -6699,6 +6715,7 @@
       {$bark *}  clean(mod q.mod)
       {$herb *}  |
       {$deet *}  clean(mod q.mod)
+      {$funk *}  &(clean(mod p.mod) clean(mod q.mod))
       {$fern *}  |-  ^-  ?
                  ?&  clean(mod i.p.mod)
                      ?~  t.p.mod  &
@@ -6739,6 +6756,7 @@
     ::  
         {$deet *}  [%dbug p.mod ersatz(mod q.mod)]
         {$fern *}  trivial
+        {$funk *}  (decorate (function p.mod q.mod))
         {$kelp *}  trivial
         {$leaf *}  (decorate [%rock p.mod q.mod])
         {$plow *}  ersatz(mod q.mod, doc [p.mod doc])
@@ -6989,6 +7007,11 @@
       ::
           {$plow *}
         construct(doc [p.mod doc], mod q.mod)
+      ::
+      ::  function
+      ::
+          {$funk *}  
+        (decorate (function p.mod q.mod))
       ::
       ::  branch, $@
       ::
@@ -7302,15 +7325,7 @@
       ==
     ::
         {$bckt *}  [%vine boil(gen p.gen) boil(gen q.gen)]
-        {$bchp *}
-      :-  %weed
-      :+  %tsgr
-        :-  [%tsgr p.gen [%limb %$]] 
-        [%tsgr q.gen [%limb %$]]
-      :-  %ktbr
-      :^  %brcl  [~ ~]
-        [%$ 2]
-      [%$ 15]  
+        {$bchp *}  [%funk boil(gen p.gen) boil(gen q.gen)]
     ::
         {$halo *}  [%plow p.gen boil(gen q.gen)]
         {$bcts *}  [%bark p.gen boil(gen q.gen)]
