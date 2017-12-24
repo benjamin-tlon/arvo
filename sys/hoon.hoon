@@ -1,7 +1,6 @@
 ::                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
-!:
 =<  ride
 =>  %143  =>
 ::                                                      ::
@@ -6911,6 +6910,30 @@
       ::
       fin
     ::
+::  ++  probe
+::    ::  probe for cell or default
+::    ::
+::    ^-  hoon
+::    ::  boc: construct against cell
+::    ::
+::    =/  boc/hoon  construct(top [& &])
+::    ?^  top
+::      ::  no probe is needed if already a cell 
+::      ::
+::      boc
+::    :+  %ktls
+::      boc
+::    ::  luz: subject edited to inject default
+::    ::
+::    =/  luz/hoon  
+::      :+  %cnts 
+::        [[%& 1] ~] 
+::      :_  ~
+::      [fetch-wing bunt(mod [%axil %cell])]
+::    ?:  =(& top)
+::      [%tsgr [%wtpt fetch-wing luz [%$ 1]] boc]
+::    [%tsgr luz boc]
+    ::
     ++  probe
       ::  probe for cell or default
       ::
@@ -6919,6 +6942,8 @@
       =/  but/hoon  default
       ::  :+  %sgbc
       ::    %run-probing
+      ?^  top
+        boc
       :+  %ktls
         boc
       ?:  =(& top)
