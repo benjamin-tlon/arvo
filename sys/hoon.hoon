@@ -6887,6 +6887,10 @@
     ++  probe
       ::  probe for cell or default
       ::
+      |=  $:  ::  any: default if probe fails
+              ::
+              any/tile
+          ==
       ^-  hoon
       ::  boc: construct against cell
       ::
@@ -6903,10 +6907,31 @@
         :+  %cnts 
           [[%& 1] ~] 
         :_  ~
-        [fetch-wing ersatz:clear(mod ?~(def [%axil %cell] u.def))]
+        [fetch-wing ersatz:clear(mod any)]
       ?:  =(& top)
         [%tsgr [%wtpt fetch-wing luz [%$ 1]] boc]
       [%tsgr luz boc]
+    ::
+    ++  dummy
+      ::  reduce to minimal dummy tile
+      ::
+      ^-  tile
+      ~+
+      ?^  def  u.def
+      ?+  mod      mod
+        {^ *}      [dummy(mod p.mod) dummy(mod q.mod)]
+        {$bark *}  dummy(mod q.mod)
+        {$deet *}  dummy(mod q.mod)
+        {$deft *}  p.mod
+        {$fern *}  |-  ^-  tile
+                   ?~  t.p.mod  i.p.mod  
+                   $(i.p.mod i.t.p.mod, t.p.mod t.t.p.mod)
+        {$kelp *}  |-  ^-  tile
+                   ?~  t.p.mod  dummy(mod i.p.mod)
+                   $(i.p.mod i.t.p.mod, t.p.mod t.t.p.mod)
+        {$reed *}  dummy(mod p.mod)
+        {$vine *}  dummy(mod q.mod)
+      ==
     ::
     ++  construct
       ::  constructor at arbitrary sample
@@ -6924,7 +6949,8 @@
         %-  decorate
         ::  probe unless we know the sample is a cell
         ::
-        ?@  top  probe
+        ?@  top  
+          (probe ?^(def u.def [%axil %cell]))
         ::  if known cell, descend directly
         ::
         :-  construct:clear(mod -.mod, top p.top, axe (peg axe 2))
@@ -6969,7 +6995,12 @@
           {$kelp *}
         ::  if atom or unknown, probe
         ::
-        ?@  top  probe
+        ?@  top  
+          %-  probe 
+          ?^  def  u.def
+          |-  ^-  tile
+          ?~  t.p.mod  i.p.mod  
+          $(i.p.mod i.t.p.mod, t.p.mod t.t.p.mod)
         ::  if cell, enter switch directly
         ::
         (switch i.p.mod t.p.mod)
@@ -6987,7 +7018,11 @@
       ::  function
       ::
           {$funk *}  
-        (decorate (function:clear p.mod q.mod))
+        %-  decorate 
+        =/  fun  (function:clear p.mod q.mod)
+        ?^  def
+          [%ktls fun ersatz:clear(mod u.def)]
+        fun 
       ::
       ::  branch, $@
       ::
@@ -7006,7 +7041,8 @@
       ::
           {$vine *}
         %-  decorate
-        ?@  top  probe
+        ?@  top  
+          (probe ?^(def u.def [%axil %cell]))
         :^    %wtpt
             fetch-wing(axe (peg axe 2))
           construct:clear(top [%| %&], mod q.mod) 
