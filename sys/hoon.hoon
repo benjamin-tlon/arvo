@@ -1,6 +1,7 @@
 ::                                                      ::
 ::::    /sys/hoon                                       ::
   ::                                                    ::
+!:
 =<  ride
 =>  %143  =>
 ::                                                      ::
@@ -6624,7 +6625,7 @@
     ::
     ^-  hoon
     :+  %tsls
-      ?~(def [%bust %noun] ersatz:clear(mod u.def))
+      [%ktls [%bust %noun] ersatz:clear(mod dummy)]
     ~(construct sample(dom (peg 3 dom)) [2 %&])
   ::
   ++  basal
@@ -6660,6 +6661,27 @@
       ::  should not actually be a thing
       ::
       [%zpzp ~] 
+    ==
+  ::
+  ++  dummy
+    ::  reduce to minimal dummy tile
+    ::
+    ^-  tile
+    ~+
+    ?^  def  u.def
+    ?+  mod      mod
+      {^ *}      [dummy(mod p.mod) dummy(mod q.mod)]
+      {$bark *}  dummy(mod q.mod)
+      {$deet *}  dummy(mod q.mod)
+      {$deft *}  p.mod
+      {$fern *}  |-  ^-  tile
+                 ?~  t.p.mod  i.p.mod  
+                 $(i.p.mod i.t.p.mod, t.p.mod t.t.p.mod)
+      {$kelp *}  |-  ^-  tile
+                 ?~  t.p.mod  dummy(mod i.p.mod)
+                 $(i.p.mod i.t.p.mod, t.p.mod t.t.p.mod)
+      {$reed *}  dummy(mod p.mod)
+      {$vine *}  dummy(mod q.mod)
     ==
   ::
   ++  decorate
@@ -6713,7 +6735,7 @@
       [ersatz:clear(mod -.mod) ersatz:clear(mod +.mod)]
     ::
         {$axil *}  (decorate (basal p.mod))
-        {$bark *}  [%ktts p.mod ersatz(mod q.mod)]
+        {$bark *}  (decorate [%ktts p.mod ersatz:clear(mod q.mod)])
         {$herb *}
       %-  decorate
       =+  cys=~(boil ap p.mod)
@@ -6737,18 +6759,14 @@
     ::  produce a normalizing gate (mold)
     ::
     ^-  hoon
-    ::  process annotations outside construct, to catch default
-    ::
-    ?:  ?=($plow -.mod)  factory(mod q.mod, doc [p.mod doc])
-    ?:  ?=($deet -.mod)  factory(mod q.mod, bug [p.mod bug])
-    ?:  ?=($deft -.mod)  factory(mod q.mod, def `p.mod)
     =-  ::  for basic molds that don't need the subject,
-        ::  clear it so constants fold better
+        ::  clear it so constants fold better 
         ::
         ?.  clean  -
         [%tsgr [%rock %n 0] -]
     :^  %brts  ~^~
-      ?~(def [%base %noun] ersatz:clear(mod u.def))
+      ::  [%ktls [%base %noun] ersatz:clear(mod dummy)]
+      [%base %noun]
     ~(construct sample(dom (peg 7 dom)) [6 %&])
   ::
   ++  sample
@@ -6912,27 +6930,6 @@
         [%tsgr [%wtpt fetch-wing luz [%$ 1]] boc]
       [%tsgr luz boc]
     ::
-    ++  dummy
-      ::  reduce to minimal dummy tile
-      ::
-      ^-  tile
-      ~+
-      ?^  def  u.def
-      ?+  mod      mod
-        {^ *}      [dummy(mod p.mod) dummy(mod q.mod)]
-        {$bark *}  dummy(mod q.mod)
-        {$deet *}  dummy(mod q.mod)
-        {$deft *}  p.mod
-        {$fern *}  |-  ^-  tile
-                   ?~  t.p.mod  i.p.mod  
-                   $(i.p.mod i.t.p.mod, t.p.mod t.t.p.mod)
-        {$kelp *}  |-  ^-  tile
-                   ?~  t.p.mod  dummy(mod i.p.mod)
-                   $(i.p.mod i.t.p.mod, t.p.mod t.t.p.mod)
-        {$reed *}  dummy(mod p.mod)
-        {$vine *}  dummy(mod q.mod)
-      ==
-    ::
     ++  construct
       ::  constructor at arbitrary sample
       ::
@@ -6950,7 +6947,7 @@
         ::  probe unless we know the sample is a cell
         ::
         ?@  top  
-          (probe ?^(def u.def [%axil %cell]))
+          (probe dummy)
         ::  if known cell, descend directly
         ::
         :-  construct:clear(mod -.mod, top p.top, axe (peg axe 2))
@@ -6996,11 +6993,7 @@
         ::  if atom or unknown, probe
         ::
         ?@  top  
-          %-  probe 
-          ?^  def  u.def
-          |-  ^-  tile
-          ?~  t.p.mod  i.p.mod  
-          $(i.p.mod i.t.p.mod, t.p.mod t.t.p.mod)
+          (probe dummy)
         ::  if cell, enter switch directly
         ::
         (switch i.p.mod t.p.mod)
@@ -7042,7 +7035,7 @@
           {$vine *}
         %-  decorate
         ?@  top  
-          (probe ?^(def u.def [%axil %cell]))
+          (probe dummy)
         :^    %wtpt
             fetch-wing(axe (peg axe 2))
           construct:clear(top [%| %&], mod q.mod) 
