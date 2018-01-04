@@ -8,10 +8,11 @@
 =,  space:userlib
 =,  format
 =,  unity
+=,  talk
+=,  sole
 ::
 ::::
   ::
-[. talk sole]
 =>  |%                                                  ::  data structures
     ++  house  {$6 house-6}                             ::  full state
     ++  house-any                                       ::  app history
@@ -938,13 +939,13 @@
       ^+  +>
       ?~  lit  +>
       =^  lic  say.she
-          (~(transmit sole say.she) `sole-edit`?~(t.lit i.lit [%mor lit]))
+          (~(transmit ^^sole say.she) `sole-edit`?~(t.lit i.lit [%mor lit]))
       (sh-fact [%mor [%det lic] ?~(err ~ [%err u.err]~)])
     ::
     ++  sh-stir                                         ::  apply edit
       |=  cal/sole-change
       ^+  +>
-      =^  inv  say.she  (~(transceive sole say.she) cal)
+      =^  inv  say.she  (~(transceive ^^sole say.she) cal)
       =+  fix=(sh-sane inv buf.say.she)
       ?~  lit.fix
         +>.$
@@ -1235,7 +1236,7 @@
       %.  u.jub
       =<  sh-work
       =+  buf=buf.say.she
-      =^  cal  say.she  (~(transmit sole say.she) [%set ~])
+      =^  cal  say.she  (~(transmit ^^sole say.she) [%set ~])
       %-  sh-fact
       :*  %mor
           [%nex ~]

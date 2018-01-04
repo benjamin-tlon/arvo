@@ -4,7 +4,7 @@
 /?    310                                               ::  version
 /-    sole
 /+    talk
-[. sole]
+=,    sole
 ::                                                      ::  ::
 ::::                                                    ::  ::
   ::                                                    ::  ::
@@ -167,7 +167,7 @@
   |=  {who/@p myl/@t}  =<  abet
   %^  emit  %poke  /helm/invite
   :-  [our %talk]
-  (said:talk our %helm now eny [%leaf "invited: {<who>} at {(trip myl)}"]~)
+  (said:^talk our %helm now eny [%leaf "invited: {<who>} at {(trip myl)}"]~)
 ::
 ++  poke-reset                                        ::  reset system
   |=  hood-reset  =<  abet
