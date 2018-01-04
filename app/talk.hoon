@@ -22,13 +22,13 @@
           {$6 house-6}                                  ::  5: talk
       ==                                                ::
     ++  house-3                                         ::
-      %+  cork  house-4  |=  house-4                    ::  modern house with
+      %+  cork  house-4  |:  $:house-4                  ::  modern house with
       +<(stories (~(run by stories) story-3))           ::  old stories
     ++  house-4                                         ::
-      %+  cork  house-5  |=  house-5                    ::  modern house with
+      %+  cork  house-5  |:  $:house-5                  ::  modern house with
       +<(shells (~(run by shells) shell-4))             ::  no settings
     ++  house-5                                         ::
-      %+  cork  house-6  |=  house-6                    ::  modern house with
+      %+  cork  house-6  |:  $:house-6                  ::  modern house with
       +<(shells (~(run by shells) shell-5))             ::  auto-audience
     ++  house-6                                         ::
       $:  stories/(map knot story)                      ::  conversations
@@ -40,7 +40,7 @@
           nik/(map (set partner) char)                  ::  bound station glyphs
           nak/(jug char (set partner))                  ::  station glyph lookup
       ==                                                ::
-    ++  story-3  (cork story |=(story +<(|10 &11.+<)))  ::  missing glyphers
+    ++  story-3  (cork story |:($:story +<(|10 &11.+<)))::  missing glyphers
     ++  story                                           ::  wire content
       $:  count/@ud                                     ::  (lent grams)
           grams/(list telegram)                         ::  all history
@@ -68,12 +68,13 @@
           settings/(set knot)                           ::  frontend settings
       ==                                                ::
     ++  shell-5                                         ::  has passive
-      %+  cork  shell  |=  shell                        ::
+      %+  cork  shell  |:  $:shell                      ::
       %=  +<                                            ::
         &6      passive=*(set partner)                  ::
         active  *(unit (set partner))                   ::
       ==                                                ::
-    ++  shell-4  (cork shell-5 |=(shell-5 +<(|8 &9.+<)))::  missing settings
+    ++  shell-4                                         ::  missing settings
+      (cork shell-5 |:($:shell-5 +<(|8 &9.+<)))
     ++  river  (pair point point)                       ::  stream definition
     ++  point                                           ::  stream endpoint
       $%  {$ud p/@ud}                                   ::  by number
@@ -140,7 +141,7 @@
     ++  peer-lib                                        ::  stream requests
       |%
       ++  apex  ?($a-group $f-grams $v-glyph $x-cabal)  ::  options
-      ++  encode  |=(a/apex ^-(char (end 3 1 a)))       ::  by first char
+      ++  encode  |:(a=$:apex ^-(char (end 3 1 a)))     ::  by first char
       ++  decode                                        ::  discriminate
         |=  a/char  ^-  apex
         ?+  a  ~|(bad-subscription-designator+a !!)
@@ -172,7 +173,7 @@
     (slaw %da tym.a)
   ::
   ++  uni
-    |=  b/_a  ^+  a
+    |:  b=a  ^+  a
     :: XX efficiency
     %-  ~(uni by a)
     %-  ~(urn by b)
@@ -1031,7 +1032,7 @@
         %_    ..sh-work
             ..pa
           %-  (ra-know man.she)
-          |=(_pa pa-abet:(pa-report glyphers %glyph nak))
+          |:(pa pa-abet:(pa-report glyphers %glyph nak))
         ==
       ::
       ++  join                                          ::  %join
@@ -1469,29 +1470,31 @@
         ==
     ==
   ::
-  ++  ra-know                                           ::  story monad
+  ++  ra-know                                           ::  story monad  
     |=  man/knot
-    |*  fun/$-(_pa _+>)
-    ^+  +>+>
-    =+  pur=(~(get by stories) man)
-    ?~  pur
-      ~&  [%ra-know-not man]                            ::  XX should crash
-      +>+>.$
-    (fun ~(. pa man u.pur))
+    =+  fun=^|(|:(pa +>+>))
+    |%  +-  $
+          ^+  +>+>
+          =+  pur=(~(get by stories) man)
+          ?~  pur
+            ~&  [%ra-know-not man]                      ::  XX should crash
+            +>+>.$
+          (fun ~(. pa man u.pur))
+    --
   ::
   ++  ra-diff-talk-report                               ::  subscription update
     |=  {man/knot cuz/station rad/report}
-    %-  (ra-know man)  |=  par/_pa  =<  pa-abet
+    %-  (ra-know man)  |:  par=pa  =<  pa-abet
     (pa-diff-talk-report:par cuz rad)
   ::
   ++  ra-quit                                           ::  subscription quit
     |=  {man/knot cuz/station}
-    %-  (ra-know man)  |=  par/_pa  =<  pa-abet
+    %-  (ra-know man)  |:  par=pa  =<  pa-abet
     (pa-quit:par %& cuz)
   ::
   ++  ra-retry                                          ::  subscription resend
     |=  {man/knot cuz/station}
-    %-  (ra-know man)  |=  par/_pa  =<  pa-abet
+    %-  (ra-know man)  |:  par=pa  =<  pa-abet
     (pa-acquire:par [%& cuz]~)
   ::
   ++  ra-coup-repeat                                    ::
@@ -1517,7 +1520,7 @@
     ^+  +>
     ?.  ?=({@ @ *} pax)
       +>(general (~(del in general) ost.hid))
-    %-  (ra-know i.t.pax)  |=  par/_pa  =<  pa-abet
+    %-  (ra-know i.t.pax)  |:  par=pa  =<  pa-abet
     (pa-notify:pa-cancel:par src %gone *human)
   ::
   ++  ra-human                                          ::  look up person
@@ -1616,7 +1619,7 @@
   ::
   ++  ra-record                                         ::  add to story
     |=  {man/knot gam/telegram}
-    %-  (ra-know man)  |=  par/_pa  =<  pa-abet
+    %-  (ra-know man)  |:  par=pa  =<  pa-abet
     (pa-learn:par gam)
   ::
   ++  ra-transmit                                       ::  send to neighbor
@@ -2298,12 +2301,12 @@
   ==
 ::
 ++  etch-friend                                         ::
-  |=  {way/wire fun/$-({man/knot cuz/station} {(list move) _.})}
+  |:  $:{way/wire fun/$-({man/knot cuz/station} {(list move) _.})}
   =+  wer=(etch way)
   ?>(?=($friend -.wer) (fun p.wer q.wer))
 ::
 ++  etch-repeat                                         ::
-  |=  {way/wire fun/$-({num/@ud src/@p man/knot} {(list move) _.})}
+  |:  $:{way/wire fun/$-({num/@ud src/@p man/knot} {(list move) _.})}
   =+  wer=(etch way)
   ?>(?=($repeat -.wer) (fun p.wer q.wer r.wer))
 ::
