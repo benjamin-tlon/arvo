@@ -1,10 +1,9 @@
-::                                                      ::  ::  
+::                                                      ::  ::
 ::::  /hoon/helm/hood/lib                               ::  ::
   ::                                                    ::  ::
 /?    310                                               ::  version
 /-    sole
 /+    talk
-=,    sole
 ::                                                      ::  ::
 ::::                                                    ::  ::
   ::                                                    ::  ::
@@ -15,8 +14,8 @@
       hoc/(map bone session)                            ::  consoles
   ==                                                    ::  
 ++  session                                             ::
-  $:  say/sole-share                                    ::  console state
-      mud/(unit (sole-dialog @ud))                      ::  console dialog
+  $:  say/sole-share:sole                               ::  console state
+      mud/(unit (sole-dialog:sole @ud))                 ::  console dialog
   ==                                                    ::  
 ::                                                      ::  ::
 ::::                                                    ::  ::
@@ -149,8 +148,7 @@
   =+  top=`path`/(scot %p our)/[syd]/(scot %da now)
   =/  van/(list {term $~})
     :-  zus=[%zuse ~]
-    =+  arc=.^(arch %cy (welp top /sys/vane))
-    ~(tap by dir:arc)
+    ~(tap by dir:.^(arch %cy (welp top /sys/vane)))
   |=  nam/@tas
     =.  nam
     ?.  =(1 (met 3 nam))
@@ -169,7 +167,7 @@
   |=  {who/@p myl/@t}  =<  abet
   %^  emit  %poke  /helm/invite
   :-  [our %talk]
-  (said:^talk our %helm now eny [%leaf "invited: {<who>} at {(trip myl)}"]~)
+  (said:talk our %helm now eny [%leaf "invited: {<who>} at {(trip myl)}"]~)
 ::
 ++  poke-reset                                        ::  reset system
   |=  hood-reset  =<  abet
