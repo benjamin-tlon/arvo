@@ -5650,7 +5650,7 @@
               {$e p/hoon q/(list tuna)}                 ::  element
               {$f p/(list tuna)}                        ::  subflow
           ==                                            ::
-++  hoon-models
+++  hoon-structures
   |%                                                ::REVIEW
   ++  beer  $@(char {~ p/hoon})                    ::  simple embed
   ++  mane  $@(@tas {@tas @tas})                    ::  XML name+space
@@ -5661,10 +5661,15 @@
   ++  mare  (each manx marl)                        ::  node or nodes
   ++  maru  (each tuna marl)                        ::  interp or nodes
   ++  tuna                                          ::  maybe interpolation
-      $^(manx {?($tape $manx $marl $call) p/hoon})  ::
+      $~  [[%$ ~] ~]
+      $^  manx 
+      $:  ?($tape $manx $marl $call) 
+          p/hoon
+      ==
   --                                                ::
 ++  hoon                                                ::
-  =,  hoon-models
+  =,  hoon-structures
+  $~  [%zpzp ~]
   $^  {p/hoon q/hoon}                                   ::
   $%                                                    ::
     {$$ p/axis}                                         ::  simple leg
@@ -6149,7 +6154,7 @@
     ::
     ::  9; invocation
     ::
-        {$9 b/* c/*}       
+        {$9 b/* c/*}
       ::  semantic expansion
       ::
       ?^  b.fol  ~
@@ -6159,7 +6164,19 @@
       ::  propagate stop
       ::
       ?~  one  ~
-      ::  complete call
+      ::  if core is constant
+      ::
+      ?:  ?=([[%full ~] *] one)
+        ::  then call virtual nock directly
+        ::
+        =+  (mack data.one [%9 b.fol %0 1])
+        ::  propagate stop
+        ::
+        ?~  -  ~
+        ::  produce result
+        ::
+        [[%full ~] u.-]
+      ::  else complete call
       ::
       %+  require
         ::  retrieve formula
@@ -9138,9 +9155,8 @@
     =-  :_  [%1 dez]
         (core sut mel sut wad [[%full ~] dez] dom)
     ^=  dez
-    =+  foo=(laze wad dom)
     =.  sut  
-      ?:  |
+      ?:  fab
         (core sut %gold sut wad *seminoun dom)
       (core sut %gold sut wad (laze wad dom) dom)
     |-  ^-  ?(~ ^)
