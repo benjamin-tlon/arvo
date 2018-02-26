@@ -429,8 +429,9 @@
               ==                                        ::
           ==                                            ::
 ++  tanq                                                ::  tomorrow's tank
-          $?  {~ p/(list tanq)}                        ::  list of printables
-              {~ ~ p/tape}                            ::  simple string
+          $~  [~ ~]
+          $?  {~ p/(list tanq)}                         ::  list of printables
+              {~ ~ p/tape}                              ::  simple string
               (pair @tas tanq)                          ::  captioned
           ==                                            ::
 ++  tape  (list @tD)                                    ::  UTF8 string as list
@@ -5489,14 +5490,14 @@
   :: =.  p.ton  (moop p.ton)
   =+  yel=(lent p.ton)
   =.  p.ton
-    ?.  (gth yel 256)  p.ton
+    ?.  (gth yel 1.024)  p.ton
     %+  weld
-      (scag 128 p.ton)
+      (scag 512 p.ton)
     ^-  (list {@ta *})
-    :_  (slag (sub yel 128) p.ton)
+    :_  (slag (sub yel 512) p.ton)
     :-  %lose
     %+  rap  3
-    "[skipped {(scow %ud (sub yel 256))} frames]"
+    "[skipped {(scow %ud (sub yel 1.024))} frames]"
   |-  ^-  (list tank)
   ?~  p.ton  ~
   =+  rep=$(p.ton t.p.ton)
@@ -5626,7 +5627,7 @@
               {$leaf p/term q/@}                        ::  constant atom
               {$plow p/what q/crib}                     ::  apply help
               {$reed p/crib q/crib}                     ::  atom+cell
-              {$tupl p/{i/crib t/(list crib)}}      ::  aka row
+              {$tupl p/{i/crib t/(list crib)}}          ::  aka row
               {$vine p/crib q/crib}                     ::  pair+tag
               {$weed p/hoon}                            ::  example
           ==                                            ::
@@ -5643,6 +5644,7 @@
       ==                                                ::
   (pair tope tope)                                      ::  cell
 ++  tuna                                                ::  tagflow
+          $~  [%f ~]
           $%  {$a p/hoon}                               ::  plain text
               {$b p/hoon}                               ::  single tag
               {$c p/hoon}                               ::  simple list
@@ -5849,6 +5851,7 @@
           ==                                            ::
 ++  tool  $@(term tune)                                 ::  type decoration
 ++  tune                                                ::  complex
+          $~  [~ ~]                                     ::
           $:  p/(map term (pair what (unit hoon)))      ::  aliases
               q/(list hoon)                             ::  bridges
           ==                                            ::
@@ -5880,22 +5883,22 @@
           ::  $json                                     ::  json schema?
           ::  
           ==
-::::
+::
 ::  +block: abstract identity of resource awaited
 ::
 ++  block  
   path
-::::
+::
 ::  +result: internal interpreter result
 ::
 ++  result  
   $@(~ seminoun)
-::::
+::
 ::  +thunk: fragment constructor
 ::
 ++  thunk
   $-(@ud (unit noun))
-::::
+::
 ::  +seminoun: 
 ::
 ++  seminoun  
@@ -5903,31 +5906,36 @@
   ::
   $~  [[%full ~] ~]
   {mask/stencil data/noun}
-::::
+::
 ::  +stencil: noun knowledge map
 ::
 ++  stencil  
-  $%  ::  %half: noun has partial block substructure
+  $%  ::
+      ::  %half: noun has partial block substructure
       ::
       [%half left=stencil rite=stencil]
+      ::
       ::  %full: noun is either fully complete, or fully blocked
       ::
       [%full blocks=(set block)]
+      ::
       ::  %lazy: noun can be generated from virtual subtree
       ::  
       [%lazy fragment/axis resolve/thunk]
   == 
 ::
 ++  output
-  ::  null; interpreter stopped
+  ::  ~: interpreter stopped
   ::
   %-  unit
-  $%  ::  output is complete
+  $%  ::
+      ::  %done: output is complete
       ::
-      {$done p/noun}
-      ::  output is waiting for resources
+      [%done p/noun]
       ::
-      {$wait p/(list block)}
+      ::  %wait: output is waiting for resources
+      ::
+      [%wait p/(list block)]
   ==
 :: profiling
 ++  doss
@@ -6263,7 +6271,7 @@
       $lazy  ::  fragment 1 is the whole thing
              ::
              ?:  =(1 fragment.mask.bus)
-               ::  blocked; otherwise, an
+               ::  blocked; we can't get fragment 1 while compiling it
                ::
                [[%full [~ ~ ~]] ~]
              ::  execute thunk
@@ -6654,7 +6662,7 @@
   ++  wtts  |=(gen/hoon (gray [%wtts (blue gen) puce]))
   --
 ::
-++  ax
+++  ax  !:
   =+  :*  ::  dom: axis to home
           ::  doc: documentation
           ::  bug: debug annotations
@@ -9156,7 +9164,7 @@
         (core sut mel sut wad [[%full ~] dez] dom)
     ^=  dez
     =.  sut  
-      ?:  fab
+      ?:  |
         (core sut %gold sut wad *seminoun dom)
       (core sut %gold sut wad (laze wad dom) dom)
     |-  ^-  ?(~ ^)
