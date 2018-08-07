@@ -799,7 +799,7 @@
   ::  c: gate from list-item and state to product and new state
   ~/  %spin
   |*  [a=(list) b=* c=_|=(^ [** +<+])]
-  =>  .(c `$-([_?>(?=(^ a) i.a) _b] [* _b])`c)
+  =>  .(c `$-([_?>(?=(^ a) i.a) _b] [_-:(c) _b])`c)
   =/  acc=(list _-:(c))  ~
   ::  transformed list and updated state
   |-  ^-  (pair _acc _b)
@@ -13496,17 +13496,28 @@
       ==
     ==
   ::
-  ++  wise  
-    %+  cook
-      |=  [=term =(unit spec)]
-      ^-  skin
-      ?~  unit
-        term
-      [%name term %spec u.unit %base %noun]
-    ;~  plug  sym 
-      ::  XX: net deprecated
-      ::
-      (punt ;~(pfix ;~(pose net tis) wyde))
+  ++  wise
+    ;~  pose
+      ;~  pfix  tis
+        %+  sear
+          |=  =spec
+          ^-  (unit skin)
+          %+  bind  ~(autoname ax & spec)
+          |=  =term
+          [%name term %spec spec %base %noun]
+        wyde
+      ==
+      %+  cook
+        |=  [=term =(unit spec)]
+        ^-  skin
+        ?~  unit
+          term
+        [%name term %spec u.unit %base %noun]
+      ;~  plug  sym 
+        ::  XX: net deprecated
+        ::
+        (punt ;~(pfix ;~(pose net tis) wyde))
+      ==
     ==
   ++  tall                                              ::  full tall form
     %+  knee  *hoon
