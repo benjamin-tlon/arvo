@@ -5,20 +5,20 @@
 |=  pit/vase
 =>  =~
 |%
-++  sqeu  |*  {a/_* b/_*}                               ::  binary skew queno
-          $~  [0 *a *b ~]
++*  sqeu  [a b]                                         ::  binary skew queno
+          $~  [0 *a *b ~]                               ::
           $:  r/@u                                      ::  rank+depth
               k/a                                       ::  priority
               n/b                                       ::  value
               c/(broq a b)                              ::  children
           ==                                            ::
-++  broq  |*  {a/_* b/_*}                               ::  brodal skew qeu
++*  broq  [a b]                                         ::  brodal skew qeu
           (list (sqeu a b))                             ::
-++  move  {p/duct q/(wind note gift:able)}              ::  local move
++$  move  {p/duct q/(wind note gift:able)}              ::  local move
 +$  note  ~                                             ::  out request $->
 +$  sign  ~                                             ::  in result $<-
-++  clok  (broq @da duct)                               ::  stored timers
-++  coke  $~  [%0 ~ ~]
++$  clok  (broq @da duct)                               ::  stored timers
++$  coke  $~  [%0 ~ ~]
           $:  $0                                        ::  all state
               tym/{p/clok q/clok}                       ::  positive+negative
           ==                                            ::
@@ -38,13 +38,11 @@
   tym
 ::
 ++  up                                                  ::  priority queue
-  ::  xx this is ugly old hoon and needs to be modernized
-  ::
   =+  [key=@da val=duct]
   =+  cmp=lte                                           ::  lte=min, gte=max
   =>  |%
       ++  link
-        |:  $:{p/(sqeu key val) q/(sqeu key val)}         ::  link eq rank
+        |=  {p/(sqeu key val) q/(sqeu key val)}         ::  link eq rank
         ^-  (sqeu key val)
         ?>  =(r.p r.q)
           ?:  (cmp k.p k.q)
@@ -52,7 +50,7 @@
           [r=+(r.q) k=k.q n=n.q c=[i=p t=c.q]]
       ::
       ++  sink                                          ::  skew link
-        |:  $:{p/(sqeu key val) q/(sqeu key val) r/(sqeu key val)}
+        |=  {p/(sqeu key val) q/(sqeu key val) r/(sqeu key val)}
         ^-  (sqeu key val)
         ?:  &((cmp k.q k.p) (cmp k.q k.r))
           [r=+(r.q) k=k.q n=n.q c=[i=p t=[i=r t=c.q]]]
@@ -61,7 +59,7 @@
         [r=+(r.q) k=k.p n=n.p c=[i=q t=[i=r t=~]]]
       ::
       ++  sert                                          ::  internal ins op
-        |:  $:{{p/(sqeu key val) q/(broq key val)}}
+        |=  {p/(sqeu key val) q/(broq key val)}
         ^-  (broq key val)
         ?~  q  [p ~]
         ?>  (lte r.p r.i.q)
@@ -70,12 +68,12 @@
         $(p (link p i.q), q t.q)
       ::
       ++  uniq                                          ::  remove init dup
-        |:  $:{q/(broq key val)}
+        |=  q/(broq key val)
         ?~  q  ~
         (sert i.q t.q)
       ::
       ++  meek                                          ::  unique meld
-        |:  $:{p/(broq key val) q/(broq key val)}
+        |=  {p/(broq key val) q/(broq key val)}
         ^-  (broq key val)
         ?~  p  q
         ?~  q  p
@@ -86,7 +84,7 @@
         (sert (link i.p i.q) $(p t.p, q t.q))
       ::
       ++  mini                                           ::  getmin
-        |:  $:{q/(broq key val)}
+        |=  q/(broq key val)
         ^-  p/{(sqeu key val) (broq key val)}
         ?~  q  ~|(%fatal-mini-empty !!)
         ?~  t.q  [i=i.q t=~]
@@ -96,7 +94,7 @@
         [l [i.q r]]
       ::
       ++  spit                                          ::  split
-        |:  $:{p/(broq key val) q/(list {k/key n/val}) r/(broq key val)}
+        |=  {p/(broq key val) q/(list {k/key n/val}) r/(broq key val)}
         ^-  {t/(broq key val) x/(list {k/key n/val})}
         ?~  r
           [t=p x=q]
@@ -104,10 +102,9 @@
           $(q [[k=k.i.r n=n.i.r] q], r t.r)
         $(p [i.r p], r t.r)
       --
-  =+  $:{a/(broq key val)}
-  |%                                                    ::  public interface
+  |_  a/(broq key val)                                  ::  public interface
   ++  put                                               ::  insert element
-    |:  $:{k/key n/val}
+    |=  {k/key n/val}
     ^+  a
     ?~  a  [i=[r=0 k=k n=n c=~] t=~]
     ?~  t.a  [i=[r=0 k=k n=n c=~] t=a]
@@ -125,9 +122,9 @@
     (gas x)
   ::
   ++  gas
-    |:  $:{b/(list {k/key n/val})}
+    |=  b/(list {k/key n/val})
     ^+  a
-    (roll b |:($:{{k/key n/val} q/_a} (put(a q) k n)))
+    (roll b |=({{k/key n/val} q/_a} (put(a q) k n)))
   ::
   ++  tap
     ^-  (list {k/key n/val})
@@ -142,7 +139,7 @@
     ?.((cmp k.i.a p.m) m [k n]:i.a)
   ::
   ++  uni                                               ::  merge
-    |:  $:{q/(broq key val)}
+    |=  q/(broq key val)
     ^+  a
     (meek (uniq a) (uniq q))
   --

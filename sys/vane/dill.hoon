@@ -7,6 +7,7 @@
 ++  gill  (pair ship term)                              ::  general contact
 --                                                      ::
 =>  |%                                                  ::  console protocol
+++  all-axle  ?(axle)                                   ::
 ++  axle                                                ::
   $:  $0                                                ::
       ore/(unit ship)                                   ::  identity once set
@@ -19,6 +20,7 @@
           e/(unit mass)                                 ::
           f/(unit mass)                                 ::
           g/(unit mass)                                 ::
+          t/(unit mass)                                 ::
       ==                                                ::
   ==                                                    ::
 ++  axon                                                ::  dill per duct
@@ -36,87 +38,59 @@
 ++  move  {p/duct q/(wind note gift:able)}              ::  local move
 ++  note-ames                                           ::  weird ames move
   $%  {$make p/(unit @t) q/@ud r/@ s/?}                 ::
-      {$sith p/@p q/@uw r/?}                            ::
-      {$wegh $~}                                        ::
-  ==                                                    ::
-++  note-behn                                           ::
-  $%  {$wegh $~}                                        ::
+      {$sith p/@p q/@uw r/?}                          ::
   ==                                                    ::
 ++  note-clay                                           ::
   $%  {$merg p/@p q/@tas r/@p s/@tas t/case u/germ:clay}::  merge desks
       {$warp p/sock q/riff:clay}                        ::  wait for clay hack
-      {$wegh $~}                                        ::
       {$perm p/ship q/desk r/path s/rite:clay}          ::  change permissions
   ==                                                    ::
 ++  note-dill                                           ::  note to self, odd
   $%  {$crud p/@tas q/(list tank)}                      ::
-      {$heft $~}                                        ::
+      {$heft ~}                                         ::
       {$init p/ship}                                    ::
       {$text p/tape}                                    ::
       {$veer p/@ta q/path r/@t}                         ::  install vane
       {$vega p/path q/path}                             ::  reboot by path
       {$velo p/@t q/@t}                                 ::  reboot by path
-      {$verb $~}                                        ::  verbose mode
-  ==                                                    ::
-++  note-eyre                                           ::
-  $%  {$wegh $~}                                        ::
-  ==                                                    ::
-++  note-ford                                           ::
-  $%  {$wegh $~}                                        ::
+      {$verb ~}                                         ::  verbose mode
   ==                                                    ::
 ++  note-gall                                           ::
   $%  {$conf dock $load ship desk}                      ::
       {$deal p/sock q/cush:gall}                        ::
-      {$wegh $~}                                        ::
   ==                                                    ::
 ++  note                                                ::  out request $->
+  $@  {?($a $b $c $e $f $g $t) $wegh ~}                 ::
   $%  {$a note-ames}                                    ::
-      {$b note-behn}                                    ::
       {$c note-clay}                                    ::
       {$d note-dill}                                    ::
-      {$e note-eyre}                                    ::
-      {$f note-ford}                                    ::
       {$g note-gall}                                    ::
   ==                                                    ::
 ++  sign-ames                                           ::
-  $%  {$nice $~}                                        ::
+  $%  {$nice ~}                                        ::
       {$send p/lane:ames q/@}                           ::
       {$init p/ship}                                    ::
-      {$mass p/mass}                                    ::
-  ==                                                    ::
-++  sign-behn                                           ::
-  $%  {$mass p/mass}                                    ::
   ==                                                    ::
 ++  sign-clay                                           ::
   $%  {$mere p/(each (set path) (pair term tang))}      ::
       {$note p/@tD q/tank}                              ::
       {$writ p/riot:clay}                               ::
-      {$mass p/mass}                                    ::
       {$mack p/(unit tang)}                             ::
   ==                                                    ::
 ++  sign-dill                                           ::
   $%  {$blit p/(list blit)}                             ::
   ==                                                    ::
-++  sign-eyre                                           ::
-  $%  {$mass p/mass}                                    ::
-  ==                                                    ::
-++  sign-ford                                           ::
-  $%  {$mass p/mass}                                    ::
-  ==                                                    ::
 ++  sign-gall                                           ::
   $%  {$onto p/(each suss:gall tang)}                   ::
       {$unto p/cuft:gall}                               ::
-      {$mass p/mass}                                    ::
   ==                                                    ::
 ++  sign                                                ::  in result $<-
+  $@  {?($a $b $c $e $f $g $t) $mass p/mass}            ::
   $%  {$a sign-ames}                                    ::
-      {$b sign-behn}                                    ::
       {$c sign-clay}                                    ::
       {$d sign-dill}                                    ::
-      {$e sign-eyre}                                    ::
-      {$f sign-ford}                                    ::
       {$g sign-gall}                                    ::
-  ==
+  ==                                                    ::
 ::::::::                                                ::  dill tiles
 --
 =|  all/axle
@@ -255,9 +229,9 @@
           |=  a/^deco  ^-  @
           ?-  a
             ~   '0'
-            %br  '1'
-            %un  '4'
-            %bl  '5'
+            $br  '1'
+            $un  '4'
+            $bl  '5'
           ==
         ::
         ++  tint                                        ::  ANSI colors (fg)
@@ -273,7 +247,7 @@
             $m  '5'
             $c  '6'
             $w  '7'
-            $~  '9'
+            ~  '9'
           ==
         --
       ::
@@ -286,6 +260,7 @@
               [hen %pass /heft/eyre %e %wegh ~]
               [hen %pass /heft/ford %f %wegh ~]
               [hen %pass /heft/gall %g %wegh ~]
+              [hen %pass /heft/turbo %t %wegh ~]
               moz
           ==
         ==
@@ -389,7 +364,7 @@
         |=  sih/sign
         ^+  +>
         ?-    sih
-            {?($a $b $c $e $f $g) $mass *}
+            {?($a $b $c $e $f $g $t) $mass *}
           (wegt -.sih p.sih)
         ::
             {$a $nice *}
@@ -447,7 +422,7 @@
         ==
       ::
       ++  wegt
-        |=  {lal/?($a $b $c $e $f $g) mas/mass}
+        |=  {lal/?($a $b $c $e $f $g $t) mas/mass}
         ^+  +>
         =.  hef.all
           ?-  lal
@@ -457,6 +432,7 @@
             $e  ~?(?=(^ e.hef.all) %double-mass-e hef.all(e `mas))
             $f  ~?(?=(^ f.hef.all) %double-mass-f hef.all(f `mas))
             $g  ~?(?=(^ g.hef.all) %double-mass-g hef.all(g `mas))
+            $t  ~?(?=(^ t.hef.all) %double-mass-t hef.all(t `mas))
           ==
         ?.  ?&  ?=(^ a.hef.all)
                 ?=(^ b.hef.all)
@@ -464,12 +440,13 @@
                 ?=(^ e.hef.all)
                 ?=(^ f.hef.all)
                 ?=(^ g.hef.all)
+                ?=(^ t.hef.all)
             ==
           +>.$
-        %+  done(hef.all [~ ~ ~ ~ ~ ~])
+        %+  done(hef.all [~ ~ ~ ~ ~ ~ ~])
           %mass
         =>  [hef.all d=wegh]
-        [%vanes %| ~[u.a u.c d u.e u.f u.g u.b]]
+        [%vanes %| ~[u.a u.c d u.e u.f u.g u.b u.t]]
       --
     ::
     ++  ax                                              ::  make ++as
@@ -540,8 +517,10 @@
   ~
 ::
 ++  load                                                ::  trivial
-  |=  old/axle
+  |=  old/all-axle
   ..^$(all old)
+  ::  |=  old=*   ::  diable
+  ::  ..^$(ore.all `~zod)
 ::
 ++  scry
   |=  {fur/(unit (set monk)) ren/@tas why/shop syd/desk lot/coin tyl/path}

@@ -1,6 +1,7 @@
 ::  ::  %eyre, http servant
 !?  164
 ::::
+!:
 |=  pit/vase
 =,  eyre
 =,  wired
@@ -36,8 +37,8 @@
           ==  ==  ==                                    ::
 ++  sign                                                ::  in result $<-
           $%  $:  $a                                    ::  by %ames
-          $%  {$woot p/ship q/coop}                     ::  acknowledgment
-              {$went ship cape:ames}                    ::  XX ignore
+          $%  {$woot p/ship q/coop}              ::  acknowledgment
+              {$went ship cape:ames}                   ::  XX ignore
           ==  ==                                        ::
               $:  $b                                    ::  by %behn
           $%  {$wake ~}                                ::  timer activate
@@ -756,7 +757,7 @@
           (give-thou q.u.mez)
       ::
         $lon
-          ::  ~&  ses-ask+[p.u.mez sop (~(run by wup) ,~)]
+          ::  ~&  ses-ask+[p.u.mez sop (~(run by wup) ~)]
           ?:  (ses-authed p.u.mez)
             (ames-gram q.p.kyz aut+~ p.u.mez)
           =.  sop  (~(put by sop) p.u.mez q.p.kyz |)
@@ -830,7 +831,7 @@
         ~&(e+lost+[tee hen] +>.$)
       %+  roll  ~(tap in (~(get ju liz) p.sih))
       =<  .(con ..axon(liz (~(del by liz) p.sih)))
-      |:  $:{sus/(each duct ixor) con/_..axon}
+      |=  {sus/(each duct ixor) con/_..axon}
       =.  ..axon  con
       ?-  -.sus
         %&  (give-json(hen p.sus) 200 ~ %s (scot %uv p.sih))
@@ -921,7 +922,7 @@
   ::
   ++  norm-beak  |=(bek/beak ?+(r.bek bek {$ud $0} bek(r da+now)))
   ++  emule
-    |:  a=|?(..emule)  ^+  ..emule
+    |=  a/_|?(..emule)  ^+  ..emule
     ?:  [unsafe=|]
       (a)
     =+  mul=(mule a)
@@ -1056,10 +1057,7 @@
         ==
     ++  abet  ..handle
     ++  done  .
-    ++  teba  =+  a=$-(* _..handle) 
-              |@  ++  $
-                    |*(b/* %_(done ..handle (a b)))
-              --
+    ++  teba  |*(a/$-(* _..handle) |*(b/* %_(done ..handle (a b))))
     ++  del-deps  (teba ^del-deps)
     ++  new-deps  (teba ^new-deps)
     ++  exec-live  (teba ^exec-live)
@@ -1313,7 +1311,7 @@
     :: process-payload handles the translation of a payload for post.
     :: currently this involves treating the payload as a urlencoded
     :: request. In the future it's possible the payload could be
-    :: a spedific mark instead.
+    :: a specific mark instead.
     ::
     ++  process-payload
       ^-  {quay meth}
@@ -1337,7 +1335,8 @@
         =+  ext=(fall p.pok %urb)
         =+  bem=?-(-.hem $beam p.hem, $spur [-.top (weld p.hem s.top)])
         ~|  bad-beam+q.bem
-        ?<  =([~ 0] (sky [151 %noun] %cw (en-beam bem(+ ~, r [%da now]))))
+        ?<  =-  ?~(- | =(-.u.- 0))
+            (sky [151 %noun] %cw (en-beam bem(+ ~, r [%da now])))
         =+  wir=`whir`[%ha (en-beam -.bem ~)]
         =.  wir  ?+(mef !! $get wir, $head [%he wir])
         =.  r.bem  ?+(r.bem r.bem {$ud $0} da+now)
@@ -1616,10 +1615,7 @@
       =.  +>  poll-rest
       ..ix(wix (~(del by wix) ire))
     ::
-    ++  teba  =+  a=$-(* _..ix) 
-              |@  ++  $
-                    |*(b/* %_(done ..ix (a b)))
-              --
+    ++  teba  |*(a/$-(* _..ix) |*(b/* %_(done ..ix (a b))))
     ++  give-json  (teba ^give-json)
     ++  pass-note  (teba ^pass-note)
     ++  hurl-note
@@ -1788,7 +1784,6 @@
         ==
     ++  self  .
     ++  abet  +>(sec (~(put by sec) +<- +<+))
-    ++  boss  +>
     ++  execute  
       |=({a/whir-se b/{beak silk:ford}} (execute:abet se+[a usr dom] b))
     ++  dead-this  |=(a/tang (fail:abet 500 0v0 a))
@@ -1797,8 +1792,7 @@
     ++  pass-note  |=({a/whir-se b/note} (pass-note:abet se+[a usr dom] b))
     ::  XX block reqs until correct core checked in?
     ++  warn  |=(a/tang ((slog (flop a)) abet))
-    ++  with  =+  $:{a/vase b/$-(vase abet)} 
-              |@  ++  $  |=(c/vase (b (slam a c)))  --
+    ++  with  |*({a/vase b/$-(vase abet)} |=(c/vase (b (slam a c))))
     ++  root-beak  `beak`[our %home da+now]
     ::
     ::  Main
@@ -1810,7 +1804,7 @@
       :::+  %dude  [|.(+)]:>%mod-samp<
       ^-  silk:ford
       :^  %mute  core+[root-beak (flop %_(dom . sec+dom))]
-        [[%& 12]~ %$ bale+!>(*(bale @))]  :: XX spedify on type?
+        [[%& 12]~ %$ bale+!>(*(bale @))]  :: XX specify on type?
       ?~  cor  ~
       ?~  u.cor  ~
       ?:  (has-arm %discard-state)  ~
@@ -1939,13 +1933,13 @@
     ++  do-give  (with !>(|=({$give a/httr} a)) fin-httr)
     ++  do-show  (with !>(auth-print) _abet)
     ++  do-send
-      |=  wir/whir-se  ^-  $-(vase _boss)
+      |=  wir/whir-se  ^-  $-(vase _abet)
       |=  res/vase
       =.  liv  |  :: block requests until a reponse is given
       (eyre-them wir (slam !>(|=({$send a/hiss} a)) res))
     ::
     ++  handle-moves
-      |=  a/(list {p/term q/$-(vase _boss)})
+      |=  a/(list {p/term q/$-(vase _abet)})
       |=  b/vase
       ~>  %nil.
         ~|  %bad-sec-move  :: XX move ~| into ?> properly
@@ -1958,20 +1952,20 @@
       $(a t.a)
     ::
     ++  on-ford-fail
-      |:  $:{err/$-(tang _boss) try/$-((each cage tang) _boss)}
+      |=  {err/$-(tang _abet) try/$-((each cage tang) _abet)}
       |=  a/(each cage tang)  ^+  abet
       ?-(-.a %| (err p.a), %& (try a))
     ::
     ++  on-error
-      |:  $:{err/$-(tang _boss) handle-move/_|.(|~(vase abet))}
+      |=  {err/$-(tang _abet) handle-move/_|.(|~(vase abet))}
       |=  a/(each cage tang)  ^+  abet
-      =+  try=(possibly-stateful |:(b=self (handle-move(+ b))))  :: XX types
+      =+  try=(possibly-stateful |=(b/_self (handle-move(+ b))))  :: XX types
       ?:  ?=(%| -.a)  (err p.a)
       =-  ?-(-.- %& p.-, %| (err p.-))
       (mule |.(~|(driver+dom ~|(bad-res+p.q.p.a (try q.p.a)))))
     ::
     ++  possibly-stateful
-      |:  $:{han/$-(_self $-(vase _boss))}  :: XX |.(|+(vase abet))
+      |=  han/$-(_self $-(vase _abet))  :: XX |.(|+(vase abet))
       |=  res/vase  ^+  abet
       ?:  ?=({@ *} q.res)
         =.  p.res  (~(fuse ut p.res) p:!>(*{@ *}))
@@ -2032,8 +2026,11 @@
   ~
 ::
 ++  load                                                ::  take previous state
-  |=  old/bolo
-  ..^$(+>- old)
+  ::|=  *  %.  (bolo +<)
+  |=  old/?(bolo)  ^+  ..^$
+  ?-  -.old
+    $0  ..^$(+>- old)
+  ==
 ::
 ++  scry
   |=  {fur/(unit (set monk)) ren/@tas why/shop syd/desk lot/coin tyl/path}

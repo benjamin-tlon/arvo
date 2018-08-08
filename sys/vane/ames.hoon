@@ -4,9 +4,9 @@
   =>  =~
 ::  structures
 =,  ames
-=+  protocol-version=0
+=+  protocol-version=2
 |%
-+$  move  [p=duct q=(wind note:able gift:able)]         ::  local move
++=  move  [p=duct q=(wind note:able gift:able)]         ::  local move
 --
   ::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   ::              section 4aA, identity logic           ::
@@ -36,8 +36,7 @@
     |=  [new=deyd old=deyd]
     ^-  %&
     ?>  (melt new old)
-    ?>  .=  (shaf %meld (sham q.new)) 
-            (need (sure:as:(com:nu:crub:crypto r.q.old) *code p.new))
+    ?>  =((shaf %meld (sham q.new)) (need (sure:as:(com:nu:crub:crypto r.q.old) *code p.new)))
     %&
   ::
   ++  melt                                              ::  proper connect
@@ -171,8 +170,8 @@
         0w0                           ::   52, ~rut, Curtis Yarvin
         0w2L.M6-o5.DDTFL.R4sFL.7Zuay  ::   53, ~tyl, Tlon Investor 11 (oldkey)
         0w0                           ::   54, ~wyd, Curtis Yarvin
-        0w0                           ::   55, ~tep, Curtis Yarvin
-        0w0                           ::   56, ~bes, Curtis Yarvin
+        0w0                           ::   55, ~tep, Rivendell
+        0w0                           ::   56, ~bes, NSPV
         0w0                           ::   57, ~dex, Jared Hance
         0w0                           ::   58, ~sef, Owen Rescher
         0w0                           ::   59, ~wyc, Galen Wolfe-Pauly
@@ -645,7 +644,7 @@
         ~(. lax [her ?~(fod (gur her) u.fod)])
       ::
       ++  nux                                           ::  install dore
-        |:  new=lax
+        |=  new=_lax
         ^+  +>
         +>(hoc.saf (~(put by hoc.saf) her.new dur.new))
       ::
@@ -711,7 +710,7 @@
       ==
     ::
     ++  su                                              ::  install safe
-      |:  new=as
+      |=  new=_as
       ^-  town
       ton(urb (~(put by urb.ton) our.new saf.new))
     ::
