@@ -5664,6 +5664,7 @@
 ::
 ++  zuse  %309                                          ::  hoon+zuse kelvin
 ++  gift-arvo                                           ::  out result <-$
+  $~  [%init ~zod]
   $%  gift:able:ames
       gift:able:behn
       gift:able:clay
@@ -5684,6 +5685,7 @@
       task:able:ford-api
   ==
 ++  note-arvo                                           ::  out request $->
+  $~  [%a %wake ~] 
   $%  {$a task:able:ames}
       {$b task:able:behn}
       {$c task:able:clay}

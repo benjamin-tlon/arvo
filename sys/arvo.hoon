@@ -463,7 +463,7 @@
 --
 =+  pit=`vase`!>(.)                                     ::
 =+  bud=pit                                             ::  becomes tang
-::  =+  vil=(viol p.bud)                                    ::  cached reflexives
+::  =+  vil=(viol p.bud)                                ::  cached reflexives
 =+  vil=(viol p.bud)                                    ::  cached reflexives
 =|  $:  lac/?                                           ::  laconic bit
         eny/@                                           ::  entropy
