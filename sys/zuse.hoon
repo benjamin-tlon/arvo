@@ -1456,13 +1456,13 @@
         ==
         $:  ::  %fskt: `/^` cast
             ::
-            ::    `/^` takes a +mold and a +crane, and casts the result of the
-            ::    crane to the mold.
+            ::    `/^` takes a $spec and a $crane, and casts the result of the
+            ::    crane to the spec.
             ::
             %fskt
-            ::  mold: evaluates to a mold to be applied to :crane
+            ::  spec: structure .crane is cast to
             ::
-            mold=hoon
+            =spec
             =crane
         ==
         $:  ::  %fszp: `/!mark/` evaluate as hoon, then pass through mark

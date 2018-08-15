@@ -1,5 +1,6 @@
 ::  pit: a +vase of the hoon+zuse kernel, which is a deeply nested core
-::
+::  
+!:
 |=  pit=vase
 ::
 =,  ford-api
@@ -831,8 +832,8 @@
     ::
     ++  parse-cast
       %+  wide-or-tall
-        ;~(plug ;~(sfix wide:hoon-parser ket) subcrane)
-      ;~(pfix gap ;~(plug tall:hoon-parser subcrane))
+        ;~(plug ;~(sfix wyde:hoon-parser ket) subcrane)
+      ;~(pfix gap ;~(plug till:hoon-parser subcrane))
     ::  +crane: parses a subcrane
     ::
     ++  subcrane
@@ -3268,7 +3269,7 @@
           :_  ..run-crane
           :*  %subject
               p.subject.child
-              [[%face [~ face] p.q.subject.child] q.q.subject.child]
+              [[%face face p.q.subject.child] q.q.subject.child]
           ==
         ::  +run-fscm: runs the `/,` rune
         ::
@@ -3573,7 +3574,7 @@
         ::  +run-fskt: runs the `/^` rune
         ::
         ++  run-fskt
-          |=  [mold=hoon sub-crane=^crane]
+          |=  [=spec sub-crane=^crane]
           ^-  compose-cranes
           ::
           =^  child  ..run-crane  (run-crane subject sub-crane)
@@ -3581,7 +3582,7 @@
             [child ..run-crane]
           ::
           =/  bunt-build=^build
-            [date.build [%ride [%bunt mold] [%$ subject]]]
+            [date.build [%ride [%kttr spec] [%$ subject]]]
           =^  bunt-result  accessed-builds  (depend-on bunt-build)
           ?~  bunt-result
             [[%block [bunt-build]~] ..run-crane]
@@ -3743,7 +3744,7 @@
           ::  use the library name as a face to prevent namespace leakage
           ::
           ^-  vase
-          [[%face face.cable.i.imports p.i.core-vases] q.i.core-vases]
+          [[%face u.face.cable.i.imports p.i.core-vases] q.i.core-vases]
         ::
         $(core-vases t.core-vases, imports t.imports)
       --
