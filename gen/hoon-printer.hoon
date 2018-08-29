@@ -11,60 +11,60 @@
 |=  {^ {{demo=hoon ~} ~}}
 :-  %txt
 ^-  wain
-=<  =/  ploom=ploom  (hoon-to-ploom demo)
-    ~(tall ploomer ploom)
+=<  =/  plum=plum  (hoon-to-plum demo)
+    ~(tall plume plum)
 :: |=  {^ {{demo=type ~} ~}}
 :: :-  %txt
 :: ^-  wain
-:: =<  =/  ploom=ploom  (hoon-to-ploom (type-to-hoon demo))
-::     ~(tall ploome ploom)
+:: =<  =/  plum=plum  (hoon-to-plum (type-to-hoon demo))
+::     ~(tall plume plum)
 |%
 ::
-::  A `ploom` is the intermediate representation of the pretty-printer. It
+::  A `plum` is the intermediate representation of the pretty-printer. It
 ::  encodes hoon-like data with the least amount of structured needed
 ::  for formating.
 ::
-::  A `ploom` is either a
+::  A `plum` is either a
 ::
 ::  - `cord`: A simple cord
 ::  - `[%para *]`: A wrappable paragraph.
-::  - `[%tree *]`: A formated ploom tree
+::  - `[%tree *]`: A formated plum tree
 ::  - `[%sbrk *]`: An indication of a nested subexpression.
 ::
 ::  The formatter will use the tall mode unless:
 ::
-::    - A ploom has only a `wide` style.
-::    - The ploom is in `%sbrk` form and it's subploom, when formatted in
+::    - A plum has only a `wide` style.
+::    - The plum is in `%sbrk` form and it's subplum, when formatted in
 ::      wide mode, can fit on a single line.
 ::
-+$  ploom
++$  plum
   $@  cord
   $%  [%para prefix=tile lines=(list @t)]
-      [%tree fmt=ploomfmt nested=(list ploom)]
-      [%sbrk subploom=ploom]
+      [%tree fmt=plumfmt nested=(list plum)]
+      [%sbrk subplum=plum]
   ==
 ::
-::  A `ploomfmt` is a description of how to format a `ploom`. A `ploomfmt`
+::  A `plumfmt` is a description of how to format a `plum`. A `plumfmt`
 ::  must include a `wide`, a `tall`, or both.
 ::
-::  A `wide` is a description of how to format a ploom in a single
-::  line. The `nested` sub-plooms will be interleaved with `delimit`
+::  A `wide` is a description of how to format a plum in a single
+::  line. The `nested` sub-plums will be interleaved with `delimit`
 ::  strings, and, if `enclose` is set, then the output will be enclosed
 ::  with `p.u.enclose` abnd `q.u.enclose`.
 ::
-::  For examle, to build a ploomfmt for string literals, we could write:
+::  For examle, to build a plumfmt for string literals, we could write:
 ::
 ::      [wide=[~ '' [~ '"' '"']] tall=~]
 ::
-::  A `tall` is a description of how to format a ploom accross multiple
+::  A `tall` is a description of how to format a plum accross multiple
 ::  lines. The output will be prefixed by `intro`, suffixed by
-::  `final.u.indef`, and each subploom prefixed by `sigil.u.indef`.
+::  `final.u.indef`, and each subplum prefixed by `sigil.u.indef`.
 ::
-::  For example, to build a ploomfmt for cores, we could write:
+::  For example, to build a plumfmt for cores, we could write:
 ::
 ::      [wide=~ tall=`['' `['++' '--']]]
 ::
-+$  ploomfmt
++$  plumfmt
   $:  wide=(unit [delimit=tile enclose=(unit (pair tile tile))])
       tall=(unit [intro=tile indef=(unit [sigil=tile final=tile])])
   ==
@@ -77,9 +77,9 @@
   ?:  =(p 3)  '+'
   (cat 3 '+' (scot %ud p))
 ::
-++  limb-to-ploom
+++  limb-to-plum
   |=  =limb
-  ^-  ploom
+  ^-  plum
   ?@  limb
     ?:  .=('' limb)  '$'
       limb
@@ -98,32 +98,32 @@
     [%cltr hoons]
   ==
 ::
-++  wing-to-ploom
+++  wing-to-plum
   |=  =wing
-  ^-  ploom
+  ^-  plum
   :+  %tree
     [wide=`['.' ~] tall=~]
-  (turn `^wing`wing limb-to-ploom)
+  (turn `^wing`wing limb-to-plum)
 ::
-++  battery-spec-to-ploom-list
+++  battery-spec-to-plum-list
   |=  =(map term spec)
   %+  turn  ~(tap by map)
   |=  [=term =spec]
   :-  %sbrk
   :+  %tree
     [wide=~ tall=`['' ~]]
-  [term (spec-to-ploom spec) ~]
+  [term (spec-to-plum spec) ~]
 ::
-++  core-spec-to-ploom
+++  core-spec-to-plum
   |=  [=knot =spec =(map term spec)]
-  ^-  ploom
+  ^-  plum
   :-  %sbrk
   :+  %tree
     [~ `[knot ~]]
-  :~  (spec-to-ploom spec)
+  :~  (spec-to-plum spec)
       :+  %tree
         [~ tall=`['' `['++' '--']]]
-      (battery-spec-to-ploom-list map)
+      (battery-spec-to-plum-list map)
   ==
 ::
 ++  varying
@@ -136,15 +136,15 @@
 ::
 ++  standard
   |=  =stud
-  ^-  ploom
+  ^-  plum
   ?@  stud  stud
   :+  %tree
     [wide=`['/' ~] tall=~]
-  `(list ploom)`[auth.stud type.stud]
+  `(list plum)`[auth.stud type.stud]
 ::
-++  limb-ploom
+++  limb-plum
   |=  =limb
-  ^-  ploom
+  ^-  plum
   ?^  limb  %todo-wtf-is-this  limb
 ::
 ++  tall-fixed
@@ -157,14 +157,14 @@
   ^-  (unit [cord (unit [cord cord])])
   [~ rune [~ sigil (cat 3 ' ' term)]]
 ::
-++  woof-ploom
+++  woof-plum
   |=  =woof
-  ^-  ploom
+  ^-  plum
   ?@  woof
     woof
   :+  %tree
     :-  wide=`[' ' `['{' '}']]  tall=~
-  (turn (unwrap-woof-tuple +.woof) hoon-to-ploom)
+  (turn (unwrap-woof-tuple +.woof) hoon-to-plum)
 ::
 ++  unwrap-woof-tuple
   |=  =hoon
@@ -173,14 +173,14 @@
     p.hoon
   ~[hoon]
 ::
-++  hoons-to-ploom-list
+++  hoons-to-plum-list
   |=  =hoon=(list hoon)
-  ^.  (list ploom)
-  (turn hoon-list hoon-to-ploom)
+  ^.  (list plum)
+  (turn hoon-list hoon-to-plum)
 ::
-++  raw-tall-ploom
-  |=  nested=(list ploom)
-  ^.  ploom
+++  raw-tall-plum
+  |=  nested=(list plum)
+  ^.  plum
   tree/[[wide=~ tall=[~ '' ~]] nested]
 ::
 ++  rune-short-form
@@ -191,9 +191,9 @@
   ?^  short   u.short
   [(cat 3 rune '(') ')']
 ::
-++  rune-to-ploom
-  |=  [rune=cord term=(unit cord) short=(unit [cord cord]) nested=(list ploom)]
-  ^.  ploom
+++  rune-to-plum
+  |=  [rune=cord term=(unit cord) short=(unit [cord cord]) nested=(list plum)]
+  ^.  plum
   :-  %sbrk
   :+  %tree
     :-  (rune-short-form rune short)
@@ -201,33 +201,33 @@
     (tall-running rune '' u.term)
   nested
 ::
-++  chum-to-ploom
+++  chum-to-plum
   |=  =chum
-  ^-  ploom
+  ^-  plum
   %todo-chum
 ::
-++  tyre-to-ploom
+++  tyre-to-plum
   |=  =tyre
-  ^-  ploom
+  ^-  plum
   %todo-tyre
 ::
-++  matches-to-ploom-list
+++  matches-to-plum-list
   |=  =update=(list (pair spec hoon))
-  ^-  (list ploom)
+  ^-  (list plum)
   %-  add-trailing-commas-to-wide-form
   %+  turn  update-list
   |=  [=spec =hoon]
-  ^-  (pair ploom ploom)
-  [(spec-to-ploom spec) (hoon-to-ploom hoon)]
+  ^-  (pair plum plum)
+  [(spec-to-plum spec) (hoon-to-plum hoon)]
 ::
-++  updates-to-ploom-list
+++  updates-to-plum-list
   |=  =update=(list (pair wing hoon))
-  ^-  (list ploom)
+  ^-  (list plum)
   %-  add-trailing-commas-to-wide-form
   %+  turn  update-list
   |=  [=wing =hoon]
-  ^-  (pair ploom ploom)
-  [(wing-to-ploom wing) (hoon-to-ploom hoon)]
+  ^-  (pair plum plum)
+  [(wing-to-plum wing) (hoon-to-plum hoon)]
 ::
 ::  This adds commas to a list of pair of hoons, but only in wide form.
 ::
@@ -244,28 +244,28 @@
 ::  parent is formatted in wide mode.
 ::
 ++  add-trailing-commas-to-wide-form
-  |=  plooms=(list (pair ploom ploom))
-  =|  acc=(list (list ploom))
-  |^  ^-  (list ploom)
-    ?~  plooms  (zing (flop acc))
-    =/  x=ploom  p.i.plooms
-    =/  y=ploom  q.i.plooms
-    ?~  t.plooms
-      $(plooms t.plooms, acc [~[x y] acc])
-    $(plooms t.plooms, acc [~[x (comma y)] acc])
+  |=  plums=(list (pair plum plum))
+  =|  acc=(list (list plum))
+  |^  ^-  (list plum)
+    ?~  plums  (zing (flop acc))
+    =/  x=plum  p.i.plums
+    =/  y=plum  q.i.plums
+    ?~  t.plums
+      $(plums t.plums, acc [~[x y] acc])
+    $(plums t.plums, acc [~[x (comma y)] acc])
   ++  comma
-    |=  =sub=ploom
-    ^-  ploom
+    |=  =sub=plum
+    ^-  plum
     :+  %tree
       :-  [~ '' [~ '' ',']]  [~ '' ~]
-    ~[sub-ploom]
+    ~[sub-plum]
   --
 ::
 ::  Just a helper function for constructing a wide-form %tree plum.
 ::
-++  simple-wide-ploom
-  |=  [init=cord sep=cord end=cord babes=(list ploom)]
-  ^-  ploom
+++  simple-wide-plum
+  |=  [init=cord sep=cord end=cord babes=(list plum)]
+  ^-  plum
   :+  %tree  [wide=[~ sep [~ init end]] tall=~]  babes
 ::
 ::  XX Add special wide forms for:
@@ -274,30 +274,30 @@
 ::    - `!x`
 ::    - `:x`
 ::
-++  hoon-to-ploom
+++  hoon-to-plum
   |=  x=hoon
-  |^  ^-  ploom
+  |^  ^-  plum
     ?+    x
         %autocons
       [%$ @]     (axis-to-cord p.x)
       [%base *]  (spec [%base p.x])
-      [%bust *]  (simple-wide-ploom '*' '' '' (spec [%base p.x]) ~)
+      [%bust *]  (simple-wide-plum '*' '' '' (spec [%base p.x]) ~)
       [%dbug *]  (hn q.x)                               ::  p.x is irrelevant
       [%eror *]  %assembly-error
       [%hand *]  %ast-node-hand
       [%note *]  (hn q.x)                               ::  p.x is irrelevant
       [%fits *]  %ast-node-fits
-      [%knit *]  (simple-wide-ploom '"' '' '"' (turn p.x woof-ploom))
+      [%knit *]  (simple-wide-plum '"' '' '"' (turn p.x woof-plum))
       [%leaf *]  (spec x)
       [%limb *]  p.x
       [%lost *]  (hn p.x)                               ::  for internal use
       [%rock *]  ?^  q.x  !!  (cat 3 '%' (crip (scow p.x `@`q.x)))
       [%sand *]  ?^  q.x  !!  (crip (scow p.x `@`q.x))
-      [%tell *]  (simple-wide-ploom '<' ' ' '>' (hoons p.x))
+      [%tell *]  (simple-wide-plum '<' ' ' '>' (hoons p.x))
       [%tune *]  ?@(p.x p.x %todo-tune)
-      [%wing *]  (simple-wide-ploom '' '.' '' (turn p.x limb-to-ploom))
-      [%yell *]  (simple-wide-ploom '>' ' ' '<' (hoons p.x))
-      [%xray *]  (xray-to-ploom p.x)
+      [%wing *]  (simple-wide-plum '' '.' '' (turn p.x limb-to-plum))
+      [%yell *]  (simple-wide-plum '>' ' ' '<' (hoons p.x))
+      [%xray *]  (xray-to-plum p.x)
       [%brcb *]  (chapter '|_' `(spec p.x) r.x)         ::  skip aliases
       [%brcl *]  (rune '|:' ~ ~ (hoons ~[p q]:x))
       [%brcn *]  (chapter '|%' ~ q.x)                   ::  Ignoring p.x
@@ -361,7 +361,7 @@
       [%mcsg *]  (rune ';~' `['=='] ~ (hoons [p q]:x))
       [%mcmc *]  (rune ';;' ~ ~ (hoons ~[p q]:x))
       [%tsbr *]  (rune ';;' ~ ~ ~[(spec p.x) (hn q.x)])
-      [%tscl *]  (tiscol-to-ploom p.x q.x)
+      [%tscl *]  (tiscol-to-plum p.x q.x)
       [%tsnt *]  (rune '=/' ~ ~ (skin p.x) (hn q.x) (hn r.x) ~)
       [%tsmc *]  (rune '=;' ~ ~ [(skin p.x) (hoons ~[q r]:x)])
       [%tsdt *]  (rune '=.' ~ ~ [(wing p.x) (hoons ~[q r]:x)])
@@ -398,20 +398,20 @@
       [%zpwt *]  (hn q.x)                               ::  Ignore p.x
       [%zpzp ~]  '!!'
     ==
-    ++  hn         hoon-to-ploom
-    ++  battery    battery-to-ploom-list
-    ++  chapter    chapters-to-ploom
-    ++  chum       chum-to-ploom
-    ++  hint       hint-to-ploom
-    ++  hoons      hoons-to-ploom-list
-    ++  matches    matches-to-ploom-list
-    ++  rune       rune-to-ploom
-    ++  skin       skin-to-ploom
-    ++  spec       spec-to-ploom
-    ++  tyre       tyre-to-ploom
-    ++  updates    updates-to-ploom-list
-    ++  wing       wing-to-ploom
-    ++  wingseq    wingseq-to-ploom
+    ++  hn         hoon-to-plum
+    ++  battery    battery-to-plum-list
+    ++  chapter    chapters-to-plum
+    ++  chum       chum-to-plum
+    ++  hint       hint-to-plum
+    ++  hoons      hoons-to-plum-list
+    ++  matches    matches-to-plum-list
+    ++  rune       rune-to-plum
+    ++  skin       skin-to-plum
+    ++  spec       spec-to-plum
+    ++  tyre       tyre-to-plum
+    ++  updates    updates-to-plum-list
+    ++  wing       wing-to-plum
+    ++  wingseq    wingseq-to-plum
     ::
     ::  Note [TisCol Order]
     ::  ~~~~~~~~~~~~~~~~~~~
@@ -442,46 +442,46 @@
     ::  AST fragment or an expression that evaluates to `[%leaf "need"]. I'm
     ::  going to assume the latter for now.
     ::
-    ++  tiscol-to-ploom
+    ++  tiscol-to-plum
       |=  [updates=(list [^wing hoon]) body=hoon]
-      ^-  ploom
+      ^-  plum
       =/  rem=(list (pair ^wing hoon))  updates         ::  Note [TisCol Order]
       =/  acc=hoon  body
-      %-  hoon-to-ploom
+      %-  hoon-to-plum
       |-  ^-  hoon
       ?~  rem  acc
       $(rem t.rem, acc `hoon`[%tsdt `^wing`p.i.rem `hoon`q.i.rem `hoon`acc])
   --
 ::
-++  hint-to-ploom
+++  hint-to-plum
   |=  hint=$@(term (pair term hoon))
-  ^-  ploom
+  ^-  plum
   ?@  hint  (cat 3 '%' hint)
   :+  %tree
     [wide=`['.' ~] tall=~]
   :~  (cat 3 '%' p.hint)
-      (hoon-to-ploom q.hint)
+      (hoon-to-plum q.hint)
   ==
 ::
-++  battery-to-ploom-list
+++  battery-to-plum-list
   |=  =(map term hoon)
-  ^-  (list ploom)
+  ^-  (list plum)
   %+  turn  ~(tap by map)
   |=  [=term =hoon]
   :+  %tree
     [wide=~ tall=`['' ~]]
-  [term (hoon-to-ploom hoon) ~]
+  [term (hoon-to-plum hoon) ~]
 ::
-++  core-to-ploom
-  |=  [=knot head=(unit ploom) =(map term hoon)]
-  ^-  ploom
+++  core-to-plum
+  |=  [=knot head=(unit plum) =(map term hoon)]
+  ^-  plum
   :-  %sbrk
   :+  %tree
     [~ `[knot ~]]
-  =/  nested=ploom
+  =/  nested=plum
     :+  %tree
       [~ `['' `[' ++' ' --']]]                        ::  Note [Plum Spaces]
-    (battery-to-ploom-list map)
+    (battery-to-plum-list map)
   ?~  head  ~[nested]
   ~[u.head nested]
 ::
@@ -489,7 +489,7 @@
 ::  ~~~~~~~~~~~~~~~~~~
 ::
 ::  XX I don't understand why the space prefixes on ++ and -- are
-::  necessary to get valid output. The ploom printer manages to output
+::  necessary to get valid output. The plum printer manages to output
 ::  double spaces in other situations, but in this situation it only
 ::  outputs one space.
 ::
@@ -503,76 +503,76 @@
 ::      > +hoon-printer !,  *hoon  |_  x=*  ++  y  3  ++  z  5  ++  g  4  --
 ::      <||_  x=* ++  z    5  ++  y    3  ++  g    4 --|>
 ::
-++  chapters-to-ploom
-  |=  [=knot head=(unit ploom) =(map term tome)]
-  ^-  ploom
+++  chapters-to-plum
+  |=  [=knot head=(unit plum) =(map term tome)]
+  ^-  plum
   =/  chapters=(list (pair term tome))  ~(tap by map)
-  ?~  chapters  (chapters-to-ploom-verbose knot head map)
+  ?~  chapters  (chapters-to-plum-verbose knot head map)
   ?~  t.chapters
     ?:  .=('' p.i.chapters)
-      (core-to-ploom knot head q.q.i.chapters)
-    (chapters-to-ploom-verbose knot head map)
-  (chapters-to-ploom-verbose knot head map)
+      (core-to-plum knot head q.q.i.chapters)
+    (chapters-to-plum-verbose knot head map)
+  (chapters-to-plum-verbose knot head map)
 ::
-++  chapters-to-ploom-verbose
-  |=  [=knot head=(unit ploom) =(map term tome)]
-  ^-  ploom
+++  chapters-to-plum-verbose
+  |=  [=knot head=(unit plum) =(map term tome)]
+  ^-  plum
   =/  chaps=(list (pair term tome))  ~(tap by map)
   :+  %tree
     [~ `[knot `['' ' --']]]                             ::  Note [Plum Spaces]
-  =/  nested=(list ploom)
+  =/  nested=(list plum)
     %+  turn  chaps
-    chapter-to-ploom
+    chapter-to-plum
   ?~  head  nested
   [u.head nested]
 ::
-++  chapter-to-ploom
+++  chapter-to-plum
   |=  [nm=knot [* bat=(map term hoon)]]
-  ^-  ploom
+  ^-  plum
   :+  %tree
     [~ `['+|' ~]]
   :~  (cat 3 '%' nm)
       :+  %tree
         [~ `['' `['++' '']]]
-      (battery-to-ploom-list bat)
+      (battery-to-plum-list bat)
   ==
 ::
-++  chapters-to-ploom-list
+++  chapters-to-plum-list
   |=  =(map term tome)
-  ^-  (list ploom)
+  ^-  (list plum)
   %+  turn  ~(tap by map)
   |=  [=term [* hoons=(^map term hoon)]]
-  ^-  ploom
+  ^-  plum
   ?:  =(term '')
-    (raw-tall-ploom (battery-to-ploom-list hoons))
-  (rune-to-ploom '+|' ~ ~ [(cat 3 '%' term) (battery-to-ploom-list hoons)])
+    (raw-tall-plum (battery-to-plum-list hoons))
+  (rune-to-plum '+|' ~ ~ [(cat 3 '%' term) (battery-to-plum-list hoons)])
 ::
-++  xray-to-ploom
+++  xray-to-plum
   |=  =manx:hoot
-  ^-  ploom
+  ^-  plum
   %ast-node-xray                                        ::  XX Punt
 ::
-++  skin-to-ploom
+++  skin-to-plum
   |=  =skin
-  ^-  ploom
+  ^-  plum
   ?@  skin  skin
   %todo-complex-skin                                    ::  XX Punt
 ::
-++  wingseq-to-ploom
+++  wingseq-to-plum
   |=  =(list wing)
-  ^-  ploom
+  ^-  plum
   :+  %tree
     [wide=`[':' ~] tall=~]
-  (turn list wing-to-ploom)
+  (turn list wing-to-plum)
 ::
 ++  subtree
-  |=  [p=ploomfmt q=(list ploom)]
-  ^-  ploom
+  |=  [p=plumfmt q=(list plum)]
+  ^-  plum
   [%sbrk [%tree p q]]
 ::
-++  spec-to-ploom
+++  spec-to-plum
   |=  =spec
-  ^-  ploom
+  ^-  plum
   ?-  -.spec
     %base  ?-  p.spec
              %noun  '*'
@@ -584,7 +584,7 @@
            ==
     %dbug  $(spec q.spec)
     %leaf  =+((scot p.spec q.spec) ?:(=('~' -) - (cat 3 '%' -)))
-    %like  tree/[[`[':' ~] ~] (turn `(list wing)`+.spec wing-to-ploom)]
+    %like  tree/[[`[':' ~] ~] (turn `(list wing)`+.spec wing-to-plum)]
     %loop  (cat 3 '$' p.spec)
     %name  $(spec q.spec)
     %made  $(spec q.spec)
@@ -599,30 +599,30 @@
              :_  ~
              ?:  =(- 3)  '%^'
              ?:  =(- 2)  '%+'  '%-'
-           [(hoon-to-ploom p.spec) (turn q.spec ..$)]
-    %bsbs  (core-spec-to-ploom '$$' p.spec q.spec)
-    %bsbr  (subtree (fixed '$|') $(spec p.spec) (hoon-to-ploom q.spec) ~)
-    %bscb  (hoon-to-ploom p.spec)
+           [(hoon-to-plum p.spec) (turn q.spec ..$)]
+    %bsbs  (core-spec-to-plum '$$' p.spec q.spec)
+    %bsbr  (subtree (fixed '$|') $(spec p.spec) (hoon-to-plum q.spec) ~)
+    %bscb  (hoon-to-plum p.spec)
     %bscl  :-  %sbrk
            :+  %tree
              [`[' ' `['[' ']']] `['$:' `['' '==']]]
            (turn `(list ^spec)`+.spec ..$)
     %bscn  (subtree (varying '$%' '==') (turn `(list ^spec)`+.spec ..$))
-    %bsdt  (core-spec-to-ploom '$.' p.spec q.spec)
+    %bsdt  (core-spec-to-plum '$.' p.spec q.spec)
     %bsld  (subtree (fixed '$<') $(spec p.spec) $(spec q.spec) ~)
     %bsbn  (subtree (fixed '$>') $(spec p.spec) $(spec q.spec) ~)
     %bshp  (subtree (fixed '$-') $(spec p.spec) $(spec q.spec) ~)
     %bskt  (subtree (fixed '$-') $(spec p.spec) $(spec q.spec) ~)
     %bsls  (subtree (fixed '$+') (standard p.spec) $(spec q.spec) ~)
-    %bsnt  (core-spec-to-ploom '$/' p.spec q.spec)
-    %bsmc  (subtree (fixed '$;') (hoon-to-ploom p.spec) ~)
-    %bspd  (subtree (fixed '$&') $(spec p.spec) (hoon-to-ploom q.spec) ~)
-    %bssg  (subtree (fixed '$~') (hoon-to-ploom p.spec) $(spec q.spec) ~)
-    %bstc  (core-spec-to-ploom '$`' p.spec q.spec)
+    %bsnt  (core-spec-to-plum '$/' p.spec q.spec)
+    %bsmc  (subtree (fixed '$;') (hoon-to-plum p.spec) ~)
+    %bspd  (subtree (fixed '$&') $(spec p.spec) (hoon-to-plum q.spec) ~)
+    %bssg  (subtree (fixed '$~') (hoon-to-plum p.spec) $(spec q.spec) ~)
+    %bstc  (core-spec-to-plum '$`' p.spec q.spec)
     %bsts  :-  %sbrk
            :+  %tree
              [`['=' ~] `['$=' ~]]
-           :~  (skin-to-ploom p.spec)
+           :~  (skin-to-plum p.spec)
                $(spec q.spec)
            ==
     %bsvt  (subtree (fixed '$@') $(spec p.spec) $(spec q.spec) ~)
@@ -630,11 +630,11 @@
            :+  %tree
               [`[' ' `['?(' ')']] `['$?' `['' '==']]]
            (turn `(list ^spec)`+.spec ..$)
-    %bszp  (core-spec-to-ploom '$.' p.spec q.spec)
+    %bszp  (core-spec-to-plum '$.' p.spec q.spec)
   ==
 ::
-++  ploomer
-  |_  =ploom
+++  plume
+  |_  =plum
   ::
   ::  +flat: print as a single line
   ::
@@ -660,60 +660,60 @@
   ++  window
     ^-  (list [indent=@ud text=tape])
     ~+                                                  ::  for random access
-    ?@  ploom  [0 (trip ploom)]~                        ::  trivial text
-    ?-  -.ploom
+    ?@  plum  [0 (trip plum)]~                          ::  trivial text
+    ?-  -.plum
       ::
       ::  %para: Line-wrappable paragraph. This is a stub; it should
       ::  wrap text to 40 characters.
       ::
-      %para  [0 +:linear]~
+      %para
+        [0 +:linear]~
       ::
       ::  %sbrk: nested subexpression
       ::
       ::  This is an opportunity to switch to wide mode. First, try
       ::  formatting in wide mode. If that's possible and the result
-      ::  isn't too big, use that. Otherwise recurse into the subploom
+      ::  isn't too big, use that. Otherwise recurse into the subplum
       ::  without switching to wide mode.
       ::
       %sbrk
-          =/  sub  subploom.ploom
+          =/  sub  subplum.plum
           ?+    sub
-              window(ploom sub)
+              window(plum sub)
             [%tree *]
               =/  wideresult
                 ?~(wide.fmt.sub ~ [~ u=linear])
               ?:  ?&(?=(^ wideresult) (lte length.u.wideresult 40))
                 [0 text.u.wideresult]~
-                :: [0 (zing ~["█" text.u.wideresult "█"])]~
-              window(ploom sub)
+              window(plum sub)
           ==
       ::
       ::  %tree: text tree
       ::
-      ::  We are formatting in tall-mode here, but if `fmt.ploom` only
+      ::  We are formatting in tall-mode here, but if `fmt.plum` only
       ::  contains a wide form, use that. Otherwise, do the tall-mode
       ::  formatting.
       ::
       %tree
-          ?:  ?&(?=(~ tall.fmt.ploom) ?=(^ wide.fmt.ploom))
+          ?:  ?&(?=(~ tall.fmt.plum) ?=(^ wide.fmt.plum))
             [0 text:linear]~
           ::
           ::  If there isn't a wide form, then there *must* be a tall
           ::  form. Assert that.
           ::
-          ?>  ?=(^ tall.fmt.ploom)
+          ?>  ?=(^ tall.fmt.plum)
           ::
-          ::  First, render all of our subplooms recursivly.
+          ::  First, render all of our subplums recursivly.
           ::
           =/  blocks
-            (turn nested.ploom |=(=^ploom window(ploom ploom)))
+            (turn nested.plum |=(=^plum window(plum plum)))
           ::
-          =/  prelude  (trip intro.u.tall.fmt.ploom)
+          =/  prelude  (trip intro.u.tall.fmt.plum)
           ::
           ::  If `indef` isn't set in the plumfmt, then we will print
           ::  in sloping mode.
           ::
-          ?~  indef.u.tall.fmt.ploom
+          ?~  indef.u.tall.fmt.plum
             ?:  =(~ blocks)                             ::  no children
               ?~(prelude ~ [0 prelude]~)
             ^-  (list [indent=@ud text=tape])           ::  some children
@@ -762,8 +762,8 @@
           ::  prefix: before each entry
           ::  finale: after all entries
           ::
-          =/  prefix  (trip sigil.u.indef.u.tall.fmt.ploom)
-          =/  finale  (trip final.u.indef.u.tall.fmt.ploom)
+          =/  prefix  (trip sigil.u.indef.u.tall.fmt.plum)
+          =/  finale  (trip final.u.indef.u.tall.fmt.plum)
           ::  if, no children, then, just prelude and finale
           ::
           ?:  =(~ blocks)
@@ -835,63 +835,71 @@
   ++  linear
     ^-  [length=@ud text=tape]
     ~+                                                  ::  ~+ for random access
-    ?@  ploom  [(met 3 ploom) (trip ploom)]             ::  Just a cord.
-    ?-  -.ploom
+    ?@  plum  [(met 3 plum) (trip plum)]                ::  Just a cord.
+    ?-  -.plum
       ::
       ::  This is already in wide mode, so %sbrk nodes don't matter here.
       ::
       %sbrk
-        linear(ploom subploom.ploom)
+        linear(plum subplum.plum)
       ::
       ::  %para: To write a wrappable text paragraph to a single line,
       ::  we just combine all the lines into one, interspersing single
       ::  spaces chars.
       ::
       %para
-          |-  ^-  [length=@ud text=tape]
-          ?~  lines.ploom  [0 ~]
-          =/  next  $(lines.ploom t.lines.ploom)
-          =/  this  [length=(met 3 i.lines.ploom) text=(trip i.lines.ploom)]
-          :-  (add +(length.this) length.next)
-          (weld text.this `tape`[' ' text.next])
+        |-  ^-  [length=@ud text=tape]
+        ?~  lines.plum  [0 ~]
+        =/  next  $(lines.plum t.lines.plum)
+        =/  this  [length=(met 3 i.lines.plum) text=(trip i.lines.plum)]
+        :-  (add +(length.this) length.next)
+        (weld text.this `tape`[' ' text.next])
       ::
-      ::  %tree: text tree
+      ::  Render a text tree to a single line.
       ::
       %tree
-          ::
-          ::  If there is no wide plumfmt, then just combine all
-          ::  of the windows, separated by double-spaces.
-          ::
-          ?~  wide.fmt.ploom
-            =/  window  window
-            |-  ^-  [length=@ud text=tape]
-            ?~  window  [0 ~]
-            =/  next  $(window t.window)
-            :-  :(add (lent text.i.window) 2 length.next)
-            ?~(text.next text.i.window :(weld text.i.window "  " text.next))
-          ::
-          ::  If there *is* a wide plumfmt, then render the plum using that
-          ::
-          ::  Wrap the rendered body with `enclose.wide.fmt`.
-          ::
-          =-  ?~  enclose.u.wide.fmt.ploom  body
-              =*  clamps  u.enclose.u.wide.fmt.ploom
-              =/  close  [(trip -.clamps) (trip +.clamps)]
-              :-  :(add length.body (lent -.close) (lent +.close))
-              :(weld -.close text.body +.close)
-          ::
-          ::  Render all the subplums, and interleave `delimit.wide.fmt`
-          ::  between each.
-          ::
-          ^=  body
-          =/  stop  (trip delimit.u.wide.fmt.ploom)
-          |-  ^-  [length=@ud text=tape]
-          ?~  nested.ploom  [0 ~]
-          =/  next  $(nested.ploom t.nested.ploom)
-          =/  this  linear(ploom i.nested.ploom)
-          ?~  text.next  this
-          :-  :(add length.this (lent stop) length.next)
-          :(weld text.this stop text.next)
+        |^  ^-  [length=@ud text=tape]
+            ?~  wide.fmt.plum  (force-wide window)
+            =/  body  (render-body delimit.u.wide.fmt.plum nested.plum)
+            ?~  enclose.u.wide.fmt.plum  body
+            (wrap-with-enclose u.enclose.u.wide.fmt.plum body)
+        ::
+        ::  Given a list of subplums and a delimiter, render all the
+        ::  subplums onto a single line, and combine them into a single
+        ::  string by interspersing the delimiter.
+        ::
+        ++  render-body
+           |=  [delimit=cord subplums=(list ^plum)]
+           =/  stop  (trip delimit)
+           |-  ^-  [length=@ud text=tape]
+           ?~  subplums  [0 ~]
+           =/  next  $(subplums t.subplums)
+           =/  this  linear(plum i.subplums)
+           ?~  text.next  this
+           :-  :(add length.this (lent stop) length.next)
+           :(weld text.this stop text.next)
+        ::
+        ::  Wrap a wide-form-rendered result with the `enclose`  cords
+        ::  from it's `plumefmt`.
+        ::
+        ++  wrap-with-enclose
+          |=  [clamps=(pair cord cord) body=[length=@ text=tape]]
+          ^-  [length=@ud text=tape]
+          =/  close  [(trip -.clamps) (trip +.clamps)]
+          :-  :(add length.body (lent -.close) (lent +.close))
+          :(weld -.close text.body +.close)
+        ::
+        ::  Given the result of rendering a plum in tall form, combine
+        ::  all the lines into one by separating each by two spaces.
+        ::
+        ++  force-wide
+          |=  render=(list [@ud text=tape])
+          ^-  [length=@ud text=tape]
+          ?~  render  [0 ~]
+          =/  next  (force-wide t.render)
+          :-  :(add (lent text.i.render) 2 length.next)
+          ?~(text.next text.i.render :(weld text.i.render "  " text.next))
+        --
     ==
   --
 --
