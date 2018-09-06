@@ -8,16 +8,16 @@
 ::::
   ::
 :-  %say
-|=  {^ {{demo=hoon ~} ~}}
-:-  %txt
-^-  wain
-=<  =/  plum=plum  (hoon-to-plum demo)
-    ~(tall plume plum)
-:: |=  {^ {{demo=type ~} ~}}
+:: |=  {^ {{demo=hoon ~} ~}}
 :: :-  %txt
 :: ^-  wain
-:: =<  =/  plum=plum  (hoon-to-plum (type-to-hoon demo))
+:: =<  =/  plum=plum  (hoon-to-plum demo)
 ::     ~(tall plume plum)
+|=  {^ {{demo=type ~} ~}}
+:-  %txt
+^-  wain
+=<  =/  plum=plum  (hoon-to-plum (type-to-hoon demo))
+    ~(tall plume plum)
 |%
 ::
 ::  A `plum` is the intermediate representation of the pretty-printer. It
@@ -34,21 +34,21 @@
 ::  The formatter will use the tall mode unless:
 ::
 ::    - A plum has only a `wide` style.
-::    - The plum is in `%sbrk` form and it's subplum, when formatted in
-::      wide mode, can fit on a single line.
+::    - The plum is in `%sbrk` form and it's subplum (`kid`), when
+::      formatted in wide mode, can fit on a single line.
 ::
 +$  plum
   $@  cord
   $%  [%para prefix=tile lines=(list @t)]
-      [%tree fmt=plumfmt nested=(list plum)]
-      [%sbrk subplum=plum]
+      [%tree fmt=plumfmt kids=(list plum)]
+      [%sbrk kid=plum]
   ==
 ::
 ::  A `plumfmt` is a description of how to format a `plum`. A `plumfmt`
 ::  must include a `wide`, a `tall`, or both.
 ::
 ::  A `wide` is a description of how to format a plum in a single
-::  line. The `nested` sub-plums will be interleaved with `delimit`
+::  line. The nested (`kids`) sub-plums will be interleaved with `delimit`
 ::  strings, and, if `enclose` is set, then the output will be enclosed
 ::  with `p.u.enclose` abnd `q.u.enclose`.
 ::
@@ -68,6 +68,18 @@
   $:  wide=(unit [delimit=tile enclose=(unit (pair tile tile))])
       tall=(unit [intro=tile indef=(unit [sigil=tile final=tile])])
   ==
+::
+::  Map a gate over a list and then concatenate the results.
+::
+++  flat-map
+  |*  {a/(list) b/gate}
+  (zing (turn a b))
+::
+::  Append an element to the end of a list.
+::
+++  snoc
+  |*  {a/(list) b/*}
+  (weld a ^+(a [b]~))
 ::
 ++  axis-to-cord
   |=  p=@
@@ -155,7 +167,7 @@
 ++  tall-running
   |=  [rune=cord sigil=cord term=cord]
   ^-  (unit [cord (unit [cord cord])])
-  [~ rune [~ sigil (cat 3 ' ' term)]]
+  [~ rune [~ sigil term]]
 ::
 ++  woof-plum
   |=  =woof
@@ -179,9 +191,9 @@
   (turn hoon-list hoon-to-plum)
 ::
 ++  raw-tall-plum
-  |=  nested=(list plum)
+  |=  kids=(list plum)
   ^.  plum
-  tree/[[wide=~ tall=[~ '' ~]] nested]
+  tree/[[wide=~ tall=[~ '' ~]] kids]
 ::
 ++  rune-short-form
   |=  [rune=cord short=(unit [cord cord])]
@@ -192,14 +204,14 @@
   [(cat 3 rune '(') ')']
 ::
 ++  rune-to-plum
-  |=  [rune=cord term=(unit cord) short=(unit [cord cord]) nested=(list plum)]
+  |=  [rune=cord term=(unit cord) short=(unit [cord cord]) kids=(list plum)]
   ^.  plum
   :-  %sbrk
   :+  %tree
     :-  (rune-short-form rune short)
     ?~  term  (tall-fixed rune)
     (tall-running rune '' u.term)
-  nested
+  kids
 ::
 ++  chum-to-plum
   |=  =chum
@@ -313,20 +325,20 @@
       [%clkt *]  (rune ':^' ~ ~ (hoons ~[p q r s]:x))
       [%clhp *]  (rune ':-' ~ `['[' ']'] (hoons ~[p q]:x))
       [%clls *]  (rune ':+' ~ `['[' ']'] (hoons ~[p q r]:x))
-      [%clsg *]  (rune ':~' ~ `['~[' ']'] (hoons p.x))
+      [%clsg *]  (rune ':~' `'==' `['~[' ']'] (hoons p.x))
       [%cltr *]  ?~  p.x    '~'
                  ?~  +.p.x  (hn -.p.x)
-                 (rune ':*' `['=='] `['[' ']'] (hoons p.x))
-      [%cncb *]  (rune '%_' `['=='] ~ (wing p.x) (updates q.x))
+                 (rune ':*' `'==' `['[' ']'] (hoons p.x))
+      [%cncb *]  (rune '%_' `'==' ~ (wing p.x) (updates q.x))
       [%cndt *]  (rune '%.' ~ ~ (hoons ~[p q]:x))
       [%cnhp *]  (rune '%-' ~ `['(' ')'] (hoons ~[p q]:x))
-      [%cncl *]  (rune '%:' `['=='] `['(' ')'] (hoons [p q]:x))
-      [%cntr *]  (rune '%*' `['=='] ~ (wing p.x) (hn q.x) (updates r.x))
+      [%cncl *]  (rune '%:' `'==' `['(' ')'] (hoons [p q]:x))
+      [%cntr *]  (rune '%*' `'==' ~ (wing p.x) (hn q.x) (updates r.x))
       [%cnkt *]  (rune '%^' ~ ~ (hoons ~[p q r s]:x))
       [%cnls *]  (rune '%+' ~ ~ (hoons ~[p q r]:x))
-      [%cnsg *]  (rune '%~' `['=='] `['~(' ')'] (wing p.x) (hoons [q r]:x))
+      [%cnsg *]  (rune '%~' `'==' `['~(' ')'] (wing p.x) (hoons [q r]:x))
       [%cnts *]  ?~  q.x  (wing p.x)
-                 (rune '%=' `['=='] ~ (wing p.x) (updates q.x))
+                 (rune '%=' `'==' ~ (wing p.x) (updates q.x))
       [%dtkt *]  (rune '.^' ~ ~ (spec p.x) (hn q.x) ~)
       [%dtls *]  (rune '.+' ~ `['+(' ')'] (hoons ~[p]:x))
       [%dttr *]  (rune '.*' ~ ~ (hoons ~[p q]:x))
@@ -356,9 +368,9 @@
       [%sgwt *]  (rune '~?' ~ ~ (hoons ~[q r s]:x))     ::  Ignoring p.x
       [%sgzp *]  (rune '~!' ~ ~ (hoons ~[p q]:x))
       [%mcts *]  %ast-node-mcts
-      [%mccl *]  (rune ';:' `['=='] ~ (hoons [p q]:x))
+      [%mccl *]  (rune ';:' `'==' ~ (hoons [p q]:x))
       [%mcnt *]  (rune ';/' ~ ~ (hoons ~[p]:x))
-      [%mcsg *]  (rune ';~' `['=='] ~ (hoons [p q]:x))
+      [%mcsg *]  (rune ';~' `'==' ~ (hoons [p q]:x))
       [%mcmc *]  (rune ';;' ~ ~ (hoons ~[p q]:x))
       [%tsbr *]  (rune ';;' ~ ~ ~[(spec p.x) (hn q.x)])
       [%tscl *]  (tiscol-to-plum p.x q.x)
@@ -371,20 +383,20 @@
       [%tsbn *]  (rune '=<' ~ ~ (hoons ~[p q]:x))
       [%tskt *]  (rune '=^' ~ ~ [(skin p.x) (wing q.x) (hoons ~[r s]:x)])
       [%tsls *]  (rune '=+' ~ ~ (hoons ~[p q]:x))
-      [%tssg *]  (rune '=~' `['=='] ~ (hoons p:x))
+      [%tssg *]  (rune '=~' `'==' ~ (hoons p:x))
       [%tstr *]  ?~  q.p.x
                    (rune '=*' ~ ~ p.p.x (hoons ~[q r]:x))
                  (rune '=*' ~ ~ (spec [%bsts p.p.x u.q.p.x]) (hoons ~[q r]:x))
       [%tscm *]  (rune '=,' ~ ~ (hoons ~[p q]:x))
       [%wtbr *]  (rune '?|' `['--'] ~ (hoons p:x))
-      [%wthp *]  (rune '?-' `['=='] ~ (wing p.x) (matches q.x))
+      [%wthp *]  (rune '?-' `'==' ~ (wing p.x) (matches q.x))
       [%wtcl *]  (rune '?:' ~ ~ (hoons ~[p q r]:x))
       [%wtdt *]  (rune '?.' ~ ~ (hoons ~[p q r]:x))
       [%wtkt *]  (rune '?^' ~ ~ [(wing p.x) (hoons ~[q r]:x)])
       [%wtld *]  (rune '?<' ~ ~ (hoons ~[p q]:x))
       [%wtbn *]  (rune '?>' ~ ~ (hoons ~[p q]:x))
-      [%wtls *]  (rune '?+' `['=='] ~ (wing p.x) (hn q.x) (matches r.x))
-      [%wtpd *]  (rune '?&' `['=='] ~ (hoons p:x))
+      [%wtls *]  (rune '?+' `'==' ~ (wing p.x) (hn q.x) (matches r.x))
+      [%wtpd *]  (rune '?&' `'==' ~ (hoons p:x))
       [%wtvt *]  (rune '?@' ~ ~ (wing p.x) (hoons ~[q r]:x))
       [%wtsg *]  (rune '?~' ~ ~ (wing p.x) (hoons ~[q r]:x))
       [%wthx *]  (rune '?#' ~ ~ (skin p.x) (wing q.x) ~)
@@ -476,32 +488,18 @@
   |=  [=knot head=(unit plum) =(map term hoon)]
   ^-  plum
   :-  %sbrk
-  :+  %tree
-    [~ `[knot ~]]
-  =/  nested=plum
-    :+  %tree
-      [~ `['' `[' ++' ' --']]]                        ::  Note [Plum Spaces]
-    (battery-to-plum-list map)
-  ?~  head  ~[nested]
-  ~[u.head nested]
-::
-::  Note [Plum Spaces]
-::  ~~~~~~~~~~~~~~~~~~
-::
-::  XX I don't understand why the space prefixes on ++ and -- are
-::  necessary to get valid output. The plum printer manages to output
-::  double spaces in other situations, but in this situation it only
-::  outputs one space.
-::
-::  With the space prefixes (' ++' and ' --'):
-::
-::      > +hoon-printer !,  *hoon  |_  x=*  ++  y  3  ++  z  5  ++  g  4  --
-::      <||_  x=*  ++  z    5  ++  y    3  ++  g    4  --|>
-::
-::  With ('++' and '--') instead:
-::
-::      > +hoon-printer !,  *hoon  |_  x=*  ++  y  3  ++  z  5  ++  g  4  --
-::      <||_  x=* ++  z    5  ++  y    3  ++  g    4 --|>
+  :-  %tree
+    ?~  head
+      :-
+        [~ `[knot `['++' '--']]]
+        (battery-to-plum-list map)
+    :-
+      [~ `[knot ~]]
+      :~  u.head
+          :+  %tree
+            [~ `['' `['++' '--']]]
+          (battery-to-plum-list map)
+      ==
 ::
 ++  chapters-to-plum
   |=  [=knot head=(unit plum) =(map term tome)]
@@ -517,14 +515,15 @@
 ++  chapters-to-plum-verbose
   |=  [=knot head=(unit plum) =(map term tome)]
   ^-  plum
-  =/  chaps=(list (pair term tome))  ~(tap by map)
+  =/  chaps=(list (pair term tome))
+    ~(tap by map)
   :+  %tree
-    [~ `[knot `['' ' --']]]                             ::  Note [Plum Spaces]
-  =/  nested=(list plum)
+    [~ `[knot `['' '--']]]
+  =/  kids=(list plum)
     %+  turn  chaps
     chapter-to-plum
-  ?~  head  nested
-  [u.head nested]
+  ?~  head  kids
+  [u.head kids]
 ::
 ++  chapter-to-plum
   |=  [nm=knot [* bat=(map term hoon)]]
@@ -636,6 +635,14 @@
 ++  plume
   |_  =plum
   ::
+  ::  An indented line.
+  ::
+  +$  line  [indent=@ud text=tape]
+  ::
+  ::  An sequence of indented lines.
+  ::
+  +$  block  (list line)
+  ::
   ::  +flat: print as a single line
   ::
   ++  flat
@@ -646,19 +653,23 @@
   ++  tall
     ^-  wain
     %+  turn  window
-    |=  [indent=@ud text=tape]
+    |=  line
     (crip (runt [indent ' '] text))
   ::
   ::  +adjust: adjust lines to right
   ::
   ++  adjust
-    |=  [tab=@ud =(list [length=@ud text=tape])]
-    (turn list |=([@ud tape] [(add tab +<-) +<+]))
+    |=  [tab=@ud =block]
+    ^-  ^block
+    (turn block |=([@ud tape] [(add tab +<-) +<+]))
   ::
   ::  +window: print as list of tabbed lines
   ::
+  ++  prepend-spaces
+    |=  [n=@ =tape]
+    (runt [n ' '] tape)
   ++  window
-    ^-  (list [indent=@ud text=tape])
+    ^-  block
     ~+                                                  ::  for random access
     ?@  plum  [0 (trip plum)]~                          ::  trivial text
     ?-  -.plum
@@ -677,157 +688,170 @@
       ::  without switching to wide mode.
       ::
       %sbrk
-          =/  sub  subplum.plum
-          ?+    sub
-              window(plum sub)
-            [%tree *]
-              =/  wideresult
-                ?~(wide.fmt.sub ~ [~ u=linear])
-              ?:  ?&(?=(^ wideresult) (lte length.u.wideresult 40))
-                [0 text.u.wideresult]~
-              window(plum sub)
-          ==
+        =/  sub  kid.plum
+        ?+    sub
+            window(plum sub)
+          [%tree *]
+            =/  wideresult
+              ?~(wide.fmt.sub ~ [~ u=linear])
+            ?:  ?&(?=(^ wideresult) (lte length.u.wideresult 40))
+              [0 text.u.wideresult]~
+            window(plum sub)
+        ==
       ::
-      ::  %tree: text tree
+      ::  %tree: Try to format a text tree in tall mode.
       ::
-      ::  We are formatting in tall-mode here, but if `fmt.plum` only
-      ::  contains a wide form, use that. Otherwise, do the tall-mode
-      ::  formatting.
+      ::  We want to format this in tall mode. First, verify that there
+      ::  the plum has a tall format (if not, fall back to `linear`
+      ::  formatting), then render all the subplums, and then format
+      ::  them in one of two ways:
+      ::
+      ::  - If the `plumfmt` contains an `indef`, then this is
+      ::    variable-arity rune with a terminator: Use vertical
+      ::    formatting.
+      ::
+      ::  - Otherwise, this is a rune with a fixed number of arguments,
+      ::    format the subplums using backstop indentation.
       ::
       %tree
-          ?:  ?&(?=(~ tall.fmt.plum) ?=(^ wide.fmt.plum))
-            [0 text:linear]~
-          ::
-          ::  If there isn't a wide form, then there *must* be a tall
-          ::  form. Assert that.
-          ::
-          ?>  ?=(^ tall.fmt.plum)
-          ::
-          ::  First, render all of our subplums recursivly.
-          ::
-          =/  blocks
-            (turn nested.plum |=(=^plum window(plum plum)))
-          ::
-          =/  prelude  (trip intro.u.tall.fmt.plum)
-          ::
-          ::  If `indef` isn't set in the plumfmt, then we will print
-          ::  in sloping mode.
-          ::
-          ?~  indef.u.tall.fmt.plum
-            ?:  =(~ blocks)                             ::  no children
-              ?~(prelude ~ [0 prelude]~)
-            ^-  (list [indent=@ud text=tape])           ::  some children
-            %-  zing
-            =/  count  (lent blocks)                    ::  num children
-            =/  index  1                                ::  child index
-            |-  ^+  blocks
-            ?~  blocks  ~
-            :_  $(blocks t.blocks, index +(index))
-            ^-  (list [indent=@ud text=tape])
-            ::  indent: backstep indentation level
-            ::
-            =/  indent  (mul 2 (sub count index))
-            ::  unless, we're on the first block
-            ::
-            ?.  =(1 index)
-              ::  else, apply normal backstep indentation
-              ::
-              (adjust indent i.blocks)
-            ::  then, apply and/or inject prelude
-            ::
-            ::    this fixes the naive representations
-            ::
-            ::      :+
-            ::          foo
-            ::        bar
-            ::      baz
-            ::
-            ::    and
-            ::
-            ::      :-
-            ::        foo
-            ::      bar
-            ::
-            =.  indent  (max indent (add 2 (lent prelude)))
-            =.  i.blocks  (adjust indent i.blocks)
-            ?~  i.blocks  ?~(prelude ~ [0 prelude]~)
-            ?~  prelude   i.blocks
-            :_  t.i.blocks
-            :-  0
-            %+  weld  prelude
-            (runt [(sub indent.i.i.blocks (lent prelude)) ' '] text.i.i.blocks)
-          ::
-          ::  else, print in vertical mode
-          ::
-          ::  prefix: before each entry
-          ::  finale: after all entries
-          ::
-          =/  prefix  (trip sigil.u.indef.u.tall.fmt.plum)
-          =/  finale  (trip final.u.indef.u.tall.fmt.plum)
-          ::  if, no children, then, just prelude and finale
-          ::
-          ?:  =(~ blocks)
-            %+  weld
-              ?~(prelude ~ [0 prelude]~)
-            ?~(finale ~ [0 finale]~)
-          ::  if, no :prefix
-          ::
-          ?:  =(~ prefix)
-            ::  kids: flat list of child lines
-            ::  tab:  amount to indent kids
-            ::
-            =/  kids  `(list [indent=@ud text=tape])`(zing blocks)
-            =*  tab   =+((lent prelude) ?+(- 2 %0 0, %1 2, %2 4))
-            ::  indent kids by tab
-            ::
-            =.  kids  (turn kids |=([@ud tape] [(add tab +<-) +<+]))
-            ::  prepend or inject prelude
-            ::
-            =.  kids
-              ?:  =(~ prelude)  kids
-              ::  if, no kids, or prelude doesn't fit
-              ::
-              ?:  |(?=(~ kids) (gte +((lent prelude)) indent.i.kids))
-                ::  don't inject, just add to head if needed
-                ::
-                [[0 prelude] kids]
-              ::  inject: prelude
-              ::
-              =*  inject  %+  weld  prelude
-                          %+  runt  [(sub indent.i.kids (lent prelude)) ' ']
-                          text.i.kids
-              [[0 inject] t.kids]
-            ::  append finale
-            ::
-            ?~  finale  kids
-            (weld kids ^+(kids [0 finale]~))
-          ::  else, with :prefix
-          ::
-          ::  append :finale
-          ::
-          =-  ?~  finale  -
-              (weld - ^+(- [0 finale]~))
-          ^-  (list [indent=@ud text=tape])
-          ::  clear: clearance needed to miss prefix
-          ::
-          =/  clear  (add 2 (lent prefix))
-          %-  zing
-          ::  combine each subtree with the prefix
-          ::
-          %+  turn  blocks
-          |=  =(list [indent=@ud text=tape])
-          ^+  +<
-          ::  tab: depth to indent
-          ::
-          =*  tab  ?~(list 0 (sub clear (min clear indent.i.list)))
-          =.  list  (turn list |=([@ud tape] [(add tab +<-) +<+]))
-          ?~  list  ~
-          :_  t.list
-          :-  0
-          %+  weld
-            prefix
-          (runt [(sub indent.i.list (lent prefix)) ' '] text.i.list)
+        ?~  tall.fmt.plum  [0 text:linear]~
+        =/  prelude  (trip intro.u.tall.fmt.plum)
+        |^  =/  blocks   (turn kids.plum |=(=^plum window(plum plum)))
+            =/  prelude  (trip intro.u.tall.fmt.plum)
+            ?~  indef.u.tall.fmt.plum  (backstep prelude blocks)
+            =/  prefix  (trip sigil.u.indef.u.tall.fmt.plum)
+            =/  finale  (trip final.u.indef.u.tall.fmt.plum)
+            ?~  blocks  %+  weld
+                          ?~(prelude ~ [0 prelude]~)
+                        ?~(finale ~ [0 finale]~)
+            ?~  prefix  (running prelude blocks finale)
+            (core-like prelude prefix blocks finale)
+        --
     ==
+    ::
+    ::  Render a plum in tall-mode using backstop indentation. Here,
+    ::  we are rendering things that look something like this:
+    ::
+    ::      :+  foo
+    ::        bar
+    ::      baz
+    ::
+    ++  backstep
+      |=  [prelude=tape blocks=(list block)]
+      ^-  block
+      ?:  =(~ blocks)  ?~(prelude ~ [0 prelude]~)
+      %-  zing
+      =/  nkids  (lent blocks)
+      =/  idx  1
+      |-  ^-  (list block)
+      ?~  blocks  ~
+      :_  $(blocks t.blocks, idx +(idx))
+      ^-  block
+      =/  indent  (mul 2 (sub nkids idx))
+      ?.  =(1 idx)  (adjust indent i.blocks)
+      (rune-inline-with-block prelude indent i.blocks)
+    ::
+    ::  To make things look a bit nicer, we want to put the first
+    ::  sub-block on the same line as the rune. We want this:
+    ::
+    ::      :-  foo
+    ::      baz
+    ::
+    ::  Instead of this:
+    ::
+    ::      :-
+    ::          foo
+    ::      baz
+    ::
+    ::  This handles the "foo" case.
+    ::
+    ++  rune-inline-with-block
+      |=  [rune=tape indent=@ blk=block]
+      ^-  block
+      =.  indent  (max indent (add 2 (lent rune)))
+      =.  blk     (adjust indent blk)
+      ?~  rune  blk
+      ?~  blk   [0 rune]~
+      :_  t.blk
+      :-  0
+      %+  weld  rune
+      =/  spaces-btwn  (sub indent.i.blk (lent rune))
+      (prepend-spaces spaces-btwn text.i.blk)
+    ::
+    ::  Render a tall hoon with running indentation. Here, we are
+    ::  rendering things that look sopmething like:
+    ::
+    ::      :~  foo
+    ::          bar
+    ::          baz
+    ::      ==
+    ::
+    ::  So, there's basically three cases here: Either the prelude
+    ::  is a rune, the prelude is empty, or prelude is some other
+    ::  random-ass thing.
+    ::
+    ::  - If there is no prelude, then just combine all of the
+    ::    sub-blocks together unaltered.
+    ::  - If it's a rune (two-chatacters wide), then combine the
+    ::    rune and the first line into one line (separated by two
+    ::    spaces) and indent the rest of the lines by four spaces.
+    ::  - If the rune is some other random-ass thing (has a length
+    ::    that isn't 0 or 2), then render the prelude alone on the
+    ::    first line and then combine the sub-blocks together,
+    ::    all indented by another two spaces.
+    ::
+    ::  Regardless, if there's a finale, stick it on the end without
+    ::  any indentation.
+    ::
+    ++  running
+      |=  [prelude=tape blocks=(list block) finale=tape]
+      ^-  block
+      =/  result=block  (zing blocks)
+      =.  result
+        ?+    (lent prelude)
+            [[0 prelude] (adjust 2 result)]         ::  unusual prelude
+          %0                                        ::  empty prelude
+            result
+          %2                                        ::  rune prelude
+            (rune-inline-with-block prelude 4 result)
+        ==
+      ?~  finale  result
+      (snoc result [0 finale])
+    ::
+    ::  This renders sub-blocks where each sub-block needs to be
+    ::  prefixed by some tape. For example:
+    ::
+    ::      |%
+    ::      ++  foo
+    ::        bar
+    ::      ++  baz
+    ::        qux
+    ::      --
+    ::
+    ++  core-like
+      |=  [prelude=tape prefix=tape blocks=(list block) finale=tape]
+      ^-  block
+      =/  clear  (add 2 (lent prefix))
+      =/  result
+        ^-  block
+        %-  zing
+        ^-  (list block)
+        %+  turn  blocks
+        |=  blk=block
+        ^-  block
+        ^+  +<
+        =*  tab  ?~(blk 0 (sub clear (min clear indent.i.blk)))
+        =.  blk  (adjust tab blk)
+        ?~  blk  ~
+        :_  t.blk
+        :-  0
+        %+  weld  prefix
+        (runt [(sub indent.i.blk (lent prefix)) ' '] text.i.blk)
+      =.  result
+        ?~  finale  result
+        (snoc result [0 finale])
+      ?~  prelude  result
+      [[0 prelude] result]
   ::
   ::  +linear: Format a plum onto a single line, even if it only has a
   ::  wide form.
@@ -841,7 +865,7 @@
       ::  This is already in wide mode, so %sbrk nodes don't matter here.
       ::
       %sbrk
-        linear(plum subplum.plum)
+        linear(plum kid.plum)
       ::
       ::  %para: To write a wrappable text paragraph to a single line,
       ::  we just combine all the lines into one, interspersing single
@@ -853,14 +877,15 @@
         =/  next  $(lines.plum t.lines.plum)
         =/  this  [length=(met 3 i.lines.plum) text=(trip i.lines.plum)]
         :-  (add +(length.this) length.next)
-        (weld text.this `tape`[' ' text.next])
+        (weld text.this `tape`['╳' text.next])
+
       ::
       ::  Render a text tree to a single line.
       ::
       %tree
         |^  ^-  [length=@ud text=tape]
             ?~  wide.fmt.plum  (force-wide window)
-            =/  body  (render-body delimit.u.wide.fmt.plum nested.plum)
+            =/  body  (render-body delimit.u.wide.fmt.plum kids.plum)
             ?~  enclose.u.wide.fmt.plum  body
             (wrap-with-enclose u.enclose.u.wide.fmt.plum body)
         ::
@@ -869,12 +894,12 @@
         ::  string by interspersing the delimiter.
         ::
         ++  render-body
-           |=  [delimit=cord subplums=(list ^plum)]
+           |=  [delimit=cord kids=(list ^plum)]
            =/  stop  (trip delimit)
            |-  ^-  [length=@ud text=tape]
-           ?~  subplums  [0 ~]
-           =/  next  $(subplums t.subplums)
-           =/  this  linear(plum i.subplums)
+           ?~  kids  [0 ~]
+           =/  next  $(kids t.kids)
+           =/  this  linear(plum i.kids)
            ?~  text.next  this
            :-  :(add length.this (lent stop) length.next)
            :(weld text.this stop text.next)
@@ -885,6 +910,7 @@
         ++  wrap-with-enclose
           |=  [clamps=(pair cord cord) body=[length=@ text=tape]]
           ^-  [length=@ud text=tape]
+          ::
           =/  close  [(trip -.clamps) (trip +.clamps)]
           :-  :(add length.body (lent -.close) (lent +.close))
           :(weld -.close text.body +.close)
@@ -895,10 +921,11 @@
         ++  force-wide
           |=  render=(list [@ud text=tape])
           ^-  [length=@ud text=tape]
+          ::
           ?~  render  [0 ~]
           =/  next  (force-wide t.render)
           :-  :(add (lent text.i.render) 2 length.next)
-          ?~(text.next text.i.render :(weld text.i.render "  " text.next))
+          ?~(text.next text.i.render :(weld text.i.render "╠╣" text.next))
         --
     ==
   --
