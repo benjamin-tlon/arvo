@@ -44,10 +44,10 @@
       [%sbrk kid=plum]
   ==
 ::
-::  A `plumfmt` is a description of how to format a `plum`. A `plumfmt`
+::  A `plumfmt` is a description of how to render a `plum`. A `plumfmt`
 ::  must include a `wide`, a `tall`, or both.
 ::
-::  A `wide` is a description of how to format a plum in a single
+::  A `wide` is a description of how to render a plum in a single
 ::  line. The nested (`kids`) sub-plums will be interleaved with `delimit`
 ::  strings, and, if `enclose` is set, then the output will be enclosed
 ::  with `p.u.enclose` abnd `q.u.enclose`.
@@ -56,7 +56,7 @@
 ::
 ::      [wide=[~ '' [~ '"' '"']] tall=~]
 ::
-::  A `tall` is a description of how to format a plum accross multiple
+::  A `tall` is a description of how to render a plum accross multiple
 ::  lines. The output will be prefixed by `intro`, suffixed by
 ::  `final.u.indef`, and each subplum prefixed by `sigil.u.indef`.
 ::
@@ -162,7 +162,7 @@
 ++  tall-fixed
   |=  rune=cord
   ^-  (unit [cord (unit [cord cord])])
-  [~ rune [~ '' '']]
+  [~ rune ~]
 ::
 ++  tall-running
   |=  [rune=cord sigil=cord term=cord]
@@ -196,15 +196,19 @@
   tree/[[wide=~ tall=[~ '' ~]] kids]
 ::
 ++  rune-short-form
-  |=  [rune=cord short=(unit [cord cord])]
+  |=  [rune=cord short=(unit [fst=cord mid=cord lst=cord])]
   ^-  (unit (pair cord (unit [cord cord])))
-  :+  ~  ' '
+  :+  ~  ?~(short ' ' mid.u.short)
   :-  ~
-  ?^  short   u.short
+  ?^  short   [fst.u.short lst.u.short]
   [(cat 3 rune '(') ')']
 ::
 ++  rune-to-plum
-  |=  [rune=cord term=(unit cord) short=(unit [cord cord]) kids=(list plum)]
+  |=  $:  rune=cord
+          term=(unit cord)
+          short=(unit [cord cord cord])
+          kids=(list plum)
+      ==
   ^.  plum
   :-  %sbrk
   :+  %tree
@@ -252,8 +256,8 @@
 ::    %=  $  a  1  b  2  ==
 ::
 ::  It's important that this not be wrapped in an %sbrk, since we need
-::  to be sure that this is formatted in wide mode if-and-only-if our
-::  parent is formatted in wide mode.
+::  to be sure that this is rendered in wide mode if-and-only-if our
+::  parent is rendered in wide mode.
 ::
 ++  add-trailing-commas-to-wide-form
   |=  plums=(list (pair plum plum))
@@ -323,26 +327,26 @@
       [%brwt *]  (rune '|?' ~ ~ (hn p.x) ~)
       [%clcb *]  (rune ':_' ~ ~ (hoons ~[p q]:x))
       [%clkt *]  (rune ':^' ~ ~ (hoons ~[p q r s]:x))
-      [%clhp *]  (rune ':-' ~ `['[' ']'] (hoons ~[p q]:x))
-      [%clls *]  (rune ':+' ~ `['[' ']'] (hoons ~[p q r]:x))
-      [%clsg *]  (rune ':~' `'==' `['~[' ']'] (hoons p.x))
+      [%clhp *]  (rune ':-' ~ `['[' spc ']'] (hoons ~[p q]:x))
+      [%clls *]  (rune ':+' ~ `['[' spc ']'] (hoons ~[p q r]:x))
+      [%clsg *]  (rune ':~' `'==' `['~[' spc ']'] (hoons p.x))
       [%cltr *]  ?~  p.x    '~'
                  ?~  +.p.x  (hn -.p.x)
-                 (rune ':*' `'==' `['[' ']'] (hoons p.x))
+                 (rune ':*' `'==' `['[' spc ']'] (hoons p.x))
       [%cncb *]  (rune '%_' `'==' ~ (wing p.x) (updates q.x))
       [%cndt *]  (rune '%.' ~ ~ (hoons ~[p q]:x))
-      [%cnhp *]  (rune '%-' ~ `['(' ')'] (hoons ~[p q]:x))
-      [%cncl *]  (rune '%:' `'==' `['(' ')'] (hoons [p q]:x))
+      [%cnhp *]  (rune '%-' ~ `['(' spc ')'] (hoons ~[p q]:x))
+      [%cncl *]  (rune '%:' `'==' `['(' spc ')'] (hoons [p q]:x))
       [%cntr *]  (rune '%*' `'==' ~ (wing p.x) (hn q.x) (updates r.x))
       [%cnkt *]  (rune '%^' ~ ~ (hoons ~[p q r s]:x))
       [%cnls *]  (rune '%+' ~ ~ (hoons ~[p q r]:x))
-      [%cnsg *]  (rune '%~' `'==' `['~(' ')'] (wing p.x) (hoons [q r]:x))
+      [%cnsg *]  (rune '%~' `'==' `['~(' spc ')'] (wing p.x) (hoons [q r]:x))
       [%cnts *]  ?~  q.x  (wing p.x)
                  (rune '%=' `'==' ~ (wing p.x) (updates q.x))
       [%dtkt *]  (rune '.^' ~ ~ (spec p.x) (hn q.x) ~)
-      [%dtls *]  (rune '.+' ~ `['+(' ')'] (hoons ~[p]:x))
+      [%dtls *]  (rune '.+' ~ `['+(' spc ')'] (hoons ~[p]:x))
       [%dttr *]  (rune '.*' ~ ~ (hoons ~[p q]:x))
-      [%dtts *]  (rune '.=' ~ `['=(' ')'] (hoons ~[p q]:x))
+      [%dtts *]  (rune '.=' ~ `['=(' spc ')'] (hoons ~[p q]:x))
       [%dtwt *]  (rune '.?' ~ ~ (hoons ~[p.x]))
       [%ktbr *]  (rune '^|' ~ ~ (hoons ~[p.x]))
       [%ktcn *]  (rune '^%' ~ ~ (hoons ~[p]:x))
@@ -351,7 +355,7 @@
       [%kthp *]  (rune '^-' ~ ~ ~[(spec p.x) (hn q.x)])
       [%ktpd *]  (rune '^&' ~ ~ (hoons ~[p]:x))
       [%ktsg *]  (rune '^~' ~ ~ (hoons ~[p]:x))
-      [%ktts *]  (rune '^=' ~ ~ ~[(skin p.x) (hn q.x)])
+      [%ktts *]  (rune '^=' ~ `['' '=' ''] ~[(skin p.x) (hn q.x)])
       [%ktwt *]  (rune '^?' ~ ~ (hoons ~[p]:x))
       [%kttr *]  (rune '^*' ~ ~ ~[(spec p.x)])
       [%ktcl *]  (rune '^:' ~ ~ ~[(spec p.x)])
@@ -368,7 +372,7 @@
       [%sgwt *]  (rune '~?' ~ ~ (hoons ~[q r s]:x))     ::  Ignoring p.x
       [%sgzp *]  (rune '~!' ~ ~ (hoons ~[p q]:x))
       [%mcts *]  %ast-node-mcts
-      [%mccl *]  (rune ';:' `'==' ~ (hoons [p q]:x))
+      [%mccl *]  (rune ';:' `'==' `[':(' spc ')'] (hoons [p q]:x))
       [%mcnt *]  (rune ';/' ~ ~ (hoons ~[p]:x))
       [%mcsg *]  (rune ';~' `'==' ~ (hoons [p q]:x))
       [%mcmc *]  (rune ';;' ~ ~ (hoons ~[p q]:x))
@@ -378,7 +382,7 @@
       [%tsmc *]  (rune '=;' ~ ~ [(skin p.x) (hoons ~[q r]:x)])
       [%tsdt *]  (rune '=.' ~ ~ [(wing p.x) (hoons ~[q r]:x)])
       [%tswt *]  (rune '=?' ~ ~ [(wing p.x) (hoons ~[q r s]:x)])
-      [%tsld *]  (rune '=>' ~ ~ (hoons ~[p q]:x))
+      [%tsld *]  (rune '=>' ~ `['' ':' ''] (hoons ~[p q]:x))
       [%tshp *]  (rune '=-' ~ ~ (hoons ~[p q]:x))
       [%tsbn *]  (rune '=<' ~ ~ (hoons ~[p q]:x))
       [%tskt *]  (rune '=^' ~ ~ [(skin p.x) (wing q.x) (hoons ~[r s]:x)])
@@ -388,7 +392,7 @@
                    (rune '=*' ~ ~ p.p.x (hoons ~[q r]:x))
                  (rune '=*' ~ ~ (spec [%bsts p.p.x u.q.p.x]) (hoons ~[q r]:x))
       [%tscm *]  (rune '=,' ~ ~ (hoons ~[p q]:x))
-      [%wtbr *]  (rune '?|' `['--'] ~ (hoons p:x))
+      [%wtbr *]  (rune '?|' `'--' `['|(' ' ' ')'] (hoons p:x))
       [%wthp *]  (rune '?-' `'==' ~ (wing p.x) (matches q.x))
       [%wtcl *]  (rune '?:' ~ ~ (hoons ~[p q r]:x))
       [%wtdt *]  (rune '?.' ~ ~ (hoons ~[p q r]:x))
@@ -396,12 +400,12 @@
       [%wtld *]  (rune '?<' ~ ~ (hoons ~[p q]:x))
       [%wtbn *]  (rune '?>' ~ ~ (hoons ~[p q]:x))
       [%wtls *]  (rune '?+' `'==' ~ (wing p.x) (hn q.x) (matches r.x))
-      [%wtpd *]  (rune '?&' `'==' ~ (hoons p:x))
+      [%wtpd *]  (rune '?&' `'==' `['&(' ' ' ')'] (hoons p:x))
       [%wtvt *]  (rune '?@' ~ ~ (wing p.x) (hoons ~[q r]:x))
       [%wtsg *]  (rune '?~' ~ ~ (wing p.x) (hoons ~[q r]:x))
       [%wthx *]  (rune '?#' ~ ~ (skin p.x) (wing q.x) ~)
       [%wtts *]  (rune '?=' ~ ~ (spec p.x) (wing q.x) ~)
-      [%wtzp *]  (rune '?!' ~ ~ (hoons ~[p]:x))
+      [%wtzp *]  (rune '?!' ~ `['!' '' ''] (hoons ~[p]:x))
       [%zpcm *]  (rune '!,' ~ ~ (hoons ~[p q]:x))
       [%zpbn *]  (rune '!>' ~ ~ (hoons ~[p]:x))
       [%zpmc *]  (rune '!;' ~ ~ (hoons ~[p q]:x))
@@ -410,15 +414,16 @@
       [%zpwt *]  (hn q.x)                               ::  Ignore p.x
       [%zpzp ~]  '!!'
     ==
-    ++  hn         hoon-to-plum
     ++  battery    battery-to-plum-list
     ++  chapter    chapters-to-plum
     ++  chum       chum-to-plum
     ++  hint       hint-to-plum
+    ++  hn         hoon-to-plum
     ++  hoons      hoons-to-plum-list
     ++  matches    matches-to-plum-list
     ++  rune       rune-to-plum
     ++  skin       skin-to-plum
+    ++  spc        ' '
     ++  spec       spec-to-plum
     ++  tyre       tyre-to-plum
     ++  updates    updates-to-plum-list
@@ -683,7 +688,7 @@
       ::  %sbrk: nested subexpression
       ::
       ::  This is an opportunity to switch to wide mode. First, try
-      ::  formatting in wide mode. If that's possible and the result
+      ::  rendered in wide mode. If that's possible and the result
       ::  isn't too big, use that. Otherwise recurse into the subplum
       ::  without switching to wide mode.
       ::
@@ -699,26 +704,40 @@
             window(plum sub)
         ==
       ::
-      ::  %tree: Try to format a text tree in tall mode.
+      ::  %tree: Try to render a text tree in tall mode.
       ::
-      ::  We want to format this in tall mode. First, verify that there
-      ::  the plum has a tall format (if not, fall back to `linear`
-      ::  formatting), then render all the subplums, and then format
-      ::  them in one of two ways:
+      ::  We want to render this in tall mode. First, verify that there
+      ::  the plum has a tall render (if not, fall back to `linear`
+      ::  formatting), then render all the subplums, and then render
+      ::  them in one of three ways:
       ::
-      ::  - If the `plumfmt` contains an `indef`, then this is
-      ::    variable-arity rune with a terminator: Use vertical
-      ::    formatting.
+      ::  - If the `plumfmt` contains an `indef` and that indef has
+      ::    no prefix, then this is variable-arity rune with a terminator:
+      ::    Use vertical formatting.
       ::
-      ::  - Otherwise, this is a rune with a fixed number of arguments,
-      ::    format the subplums using backstop indentation.
+      ::  - If the `plumfmt` contains an `indef` and that indef DOES have
+      ::    a prefix, then this is something that looks like a core: Use
+      ::    `core-like` formatting.
+      ::
+      ::  - Otherwise, this is a rune with a fixed number of arguments
+      ::    Render the subplums using backstop indentation.
+      ::
+      ::  There's also a special case where something has exactly one sub-plum.
+      ::  where something has exactly one sub-block. For example, we
+      ::  want this output:
+      ::
+      ::      |-
+      ::      foo
       ::
       %tree
         ?~  tall.fmt.plum  [0 text:linear]~
         =/  prelude  (trip intro.u.tall.fmt.plum)
         |^  =/  blocks   (turn kids.plum |=(=^plum window(plum plum)))
             =/  prelude  (trip intro.u.tall.fmt.plum)
-            ?~  indef.u.tall.fmt.plum  (backstep prelude blocks)
+            ?~  indef.u.tall.fmt.plum
+              ?:  =(1 (lent blocks))
+                [[0 prelude] (zing blocks)]
+              (backstep prelude blocks)
             =/  prefix  (trip sigil.u.indef.u.tall.fmt.plum)
             =/  finale  (trip final.u.indef.u.tall.fmt.plum)
             ?~  blocks  %+  weld
@@ -739,7 +758,6 @@
     ++  backstep
       |=  [prelude=tape blocks=(list block)]
       ^-  block
-      ?:  =(~ blocks)  ?~(prelude ~ [0 prelude]~)
       %-  zing
       =/  nkids  (lent blocks)
       =/  idx  1
@@ -853,7 +871,7 @@
       ?~  prelude  result
       [[0 prelude] result]
   ::
-  ::  +linear: Format a plum onto a single line, even if it only has a
+  ::  +linear: Render a plum onto a single line, even if it only has a
   ::  wide form.
   ::
   ++  linear
