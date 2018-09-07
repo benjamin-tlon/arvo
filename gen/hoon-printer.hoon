@@ -1,26 +1,19 @@
-::  Hoon printer
-::
-::::  /hoon/hoon-printer/gen
-  ::
 /?    310
 !:
-::
-::::
-  ::
 :-  %say
-:: |=  {^ {{demo=hoon ~} ~}}
-:: :-  %txt
-:: ^-  wain
-:: =<  =/  plum=plum  (hoon-to-plum demo)
-::     ~(tall plume plum)
-|=  {^ {{demo=type ~} ~}}
+|=  {^ {{demo=hoon ~} ~}}
 :-  %txt
 ^-  wain
-=<  =/  plum=plum  (hoon-to-plum (type-to-hoon demo))
+=<  =/  plum=plum  (hoon-to-plum demo)
     ~(tall plume plum)
+:: |=  {^ {{demo=type ~} ~}}
+:: :-  %txt
+:: ^-  wain
+:: =<  =/  plum=plum  (hoon-to-plum (type-to-hoon demo))
+::     ~(tall plume plum)
 |%
 ::
-::  A `plum` is the intermediate representation of the pretty-printer. It
+::  A `plum` is the intermediate representation for the pretty-printer. It
 ::  encodes hoon-like data with the least amount of structured needed
 ::  for formating.
 ::
@@ -81,6 +74,14 @@
   |*  {a/(list) b/*}
   (weld a ^+(a [b]~))
 ::
+::  Prepend an element to the front of a list.
+::
+++  cons
+  |*  {a/* b/(list *)}
+  [a b]
+::
+::  Render an `axis`.
+::
 ++  axis-to-cord
   |=  p=@
   ^-  cord
@@ -88,6 +89,9 @@
   ?:  =(p 2)  '-'
   ?:  =(p 3)  '+'
   (cat 3 '+' (scot %ud p))
+::
+::  Render a limb.  A limb is either an empty atom (which is rendered as
+::  '$'), an axis, or a
 ::
 ++  limb-to-plum
   |=  =limb
@@ -97,8 +101,18 @@
       limb
   ?-  -.limb
     %&  (axis-to-cord p.limb)
+    ::  {%| p/@ud q/(unit term) ]
     %|  (crip (runt [0 p.limb] ?~(q.limb "," (trip u.q.limb))))
+                                                        ::  ^ TODO This `runt`
+                                                        ::  does nothing.  What
+                                                        ::  was the idea here?
+                                                        ::  TODO What is this
+                                                        ::  comma supposed
+                                                        ::  to be?
   ==
+::
+::  This is a helper function for testing out this code. It just digs
+::  through a type and finds hoon values reference within that type.
 ::
 ++  type-to-hoon
   |=  =hoon=type
@@ -142,9 +156,13 @@
   |=  [intro=knot final=knot]
   [`[' ' `[(cat 3 intro '(') ')']] `[intro `['' final]]]
 ::
+::  TODO What is this and why?
+::
 ++  fixed
   |=  @ta
   [`[' ' `[(cat 3 +< '(') ')']] `[+< ~]]
+::
+::  TODO What is this and why?
 ::
 ++  standard
   |=  =stud
@@ -154,20 +172,28 @@
     [wide=`['/' ~] tall=~]
   `(list plum)`[auth.stud type.stud]
 ::
+::  TODO What is this and why?
+::
 ++  limb-plum
   |=  =limb
   ^-  plum
   ?^  limb  %todo-wtf-is-this  limb
+::
+::  TODO What is this and why?
 ::
 ++  tall-fixed
   |=  rune=cord
   ^-  (unit [cord (unit [cord cord])])
   [~ rune ~]
 ::
+::  TODO What is this and why?
+::
 ++  tall-running
   |=  [rune=cord sigil=cord term=cord]
   ^-  (unit [cord (unit [cord cord])])
   [~ rune [~ sigil term]]
+::
+::  TODO What is this and why?
 ::
 ++  woof-plum
   |=  =woof
@@ -178,6 +204,8 @@
     :-  wide=`[' ' `['{' '}']]  tall=~
   (turn (unwrap-woof-tuple +.woof) hoon-to-plum)
 ::
+::  TODO What is this and why?
+::
 ++  unwrap-woof-tuple
   |=  =hoon
   ^-  (list ^hoon)
@@ -185,15 +213,21 @@
     p.hoon
   ~[hoon]
 ::
+::  TODO What is this and why?
+::
 ++  hoons-to-plum-list
   |=  =hoon=(list hoon)
   ^.  (list plum)
   (turn hoon-list hoon-to-plum)
 ::
+::  TODO What is this and why?
+::
 ++  raw-tall-plum
   |=  kids=(list plum)
   ^.  plum
   tree/[[wide=~ tall=[~ '' ~]] kids]
+::
+::  TODO What is this and why?
 ::
 ++  rune-short-form
   |=  [rune=cord short=(unit [fst=cord mid=cord lst=cord])]
@@ -202,6 +236,8 @@
   :-  ~
   ?^  short   [fst.u.short lst.u.short]
   [(cat 3 rune '(') ')']
+::
+::  TODO What is this and why?
 ::
 ++  rune-to-plum
   |=  $:  rune=cord
@@ -217,15 +253,21 @@
     (tall-running rune '' u.term)
   kids
 ::
+::  TODO What is this and why?
+::
 ++  chum-to-plum
   |=  =chum
   ^-  plum
   %todo-chum
 ::
+::  TODO What is this and why?
+::
 ++  tyre-to-plum
   |=  =tyre
   ^-  plum
   %todo-tyre
+::
+::  TODO What is this and why?
 ::
 ++  matches-to-plum-list
   |=  =update=(list (pair spec hoon))
@@ -235,6 +277,8 @@
   |=  [=spec =hoon]
   ^-  (pair plum plum)
   [(spec-to-plum spec) (hoon-to-plum hoon)]
+::
+::  TODO What is this and why?
 ::
 ++  updates-to-plum-list
   |=  =update=(list (pair wing hoon))
@@ -470,6 +514,8 @@
       $(rem t.rem, acc `hoon`[%tsdt `^wing`p.i.rem `hoon`q.i.rem `hoon`acc])
   --
 ::
+::  TODO What is this and why?
+::
 ++  hint-to-plum
   |=  hint=$@(term (pair term hoon))
   ^-  plum
@@ -480,6 +526,8 @@
       (hoon-to-plum q.hint)
   ==
 ::
+::  TODO What is this and why?
+::
 ++  battery-to-plum-list
   |=  =(map term hoon)
   ^-  (list plum)
@@ -488,6 +536,8 @@
   :+  %tree
     [wide=~ tall=`['' ~]]
   [term (hoon-to-plum hoon) ~]
+::
+::  TODO What is this and why?
 ::
 ++  core-to-plum
   |=  [=knot head=(unit plum) =(map term hoon)]
@@ -506,6 +556,8 @@
           (battery-to-plum-list map)
       ==
 ::
+::  TODO What is this and why?
+::
 ++  chapters-to-plum
   |=  [=knot head=(unit plum) =(map term tome)]
   ^-  plum
@@ -516,6 +568,8 @@
       (core-to-plum knot head q.q.i.chapters)
     (chapters-to-plum-verbose knot head map)
   (chapters-to-plum-verbose knot head map)
+::
+::  TODO What is this and why?
 ::
 ++  chapters-to-plum-verbose
   |=  [=knot head=(unit plum) =(map term tome)]
@@ -530,6 +584,8 @@
   ?~  head  kids
   [u.head kids]
 ::
+::  TODO What is this and why?
+::
 ++  chapter-to-plum
   |=  [nm=knot [* bat=(map term hoon)]]
   ^-  plum
@@ -541,6 +597,8 @@
       (battery-to-plum-list bat)
   ==
 ::
+::  TODO What is this and why?
+::
 ++  chapters-to-plum-list
   |=  =(map term tome)
   ^-  (list plum)
@@ -551,16 +609,22 @@
     (raw-tall-plum (battery-to-plum-list hoons))
   (rune-to-plum '+|' ~ ~ [(cat 3 '%' term) (battery-to-plum-list hoons)])
 ::
+::  TODO What is this and why?
+::
 ++  xray-to-plum
   |=  =manx:hoot
   ^-  plum
   %ast-node-xray                                        ::  XX Punt
+::
+::  TODO What is this and why?
 ::
 ++  skin-to-plum
   |=  =skin
   ^-  plum
   ?@  skin  skin
   %todo-complex-skin                                    ::  XX Punt
+::
+::  TODO What is this and why?
 ::
 ++  wingseq-to-plum
   |=  =(list wing)
@@ -569,10 +633,14 @@
     [wide=`[':' ~] tall=~]
   (turn list wing-to-plum)
 ::
+::  TODO What is this and why?
+::
 ++  subtree
   |=  [p=plumfmt q=(list plum)]
   ^-  plum
   [%sbrk [%tree p q]]
+::
+::  TODO What is this and why?
 ::
 ++  spec-to-plum
   |=  =spec
@@ -636,6 +704,8 @@
            (turn `(list ^spec)`+.spec ..$)
     %bszp  (core-spec-to-plum '$.' p.spec q.spec)
   ==
+::
+::  TODO What is this and why?
 ::
 ++  plume
   |_  =plum
