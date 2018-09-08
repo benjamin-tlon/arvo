@@ -1,17 +1,50 @@
 /?    310
 !:
 :-  %say
-|=  {^ {{demo=hoon ~} ~}}
-:-  %txt
-^-  wain
-=<  =/  plum=plum  (hoon-to-plum demo)
-    ~(tall plume plum)
-:: |=  {^ {{demo=type ~} ~}}
-:: :-  %txt
-:: ^-  wain
-:: =<  =/  plum=plum  (hoon-to-plum (type-to-hoon demo))
-::     ~(tall plume plum)
+=<  render-hoon
+::  render-all-hoons-referenced-insode-of-type
 |%
+::
++|  %entry-points-for-testing
+::
+::  Pretty-print a hoon in tall mode using `plume`.
+::
+++  render-hoon
+  |=  {^ {{demo=hoon ~} ~}}
+  :-  %txt
+  ^-  wain
+  ~(tall plume (hoon-to-plum demo))
+::
+::  This is just a helper function for testing out this code. It just digs
+::  through a type and finds hoon values referenced within that type,
+::  and then renders the result.
+::
+++  render-all-hoons-referenced-inside-of-type
+  |=  {^ {{demo=type ~} ~}}
+  :-  %txt
+  ^-  wain
+  ?.  ?=([%core *] demo)  [%zpzp ~]
+  =*  tomes=(list tome)  ~(val by q.r.q.demo)
+  =*  hoons=(list hoon)  (turn tomes |=(t=tome [%cltr ~(val by q.t)]))
+  ~(tall plume (hoon-to-plum [%cltr hoons]))
+::
+::  Map a gate over a list and then concatenate the results.
+::
+++  flat-map
+  |*  {a/(list) b/gate}
+  (zing (turn a b))
+::
+::  Append an element to the end of a list.
+::
+++  snoc
+  |*  {a/(list) b/*}
+  (weld a ^+(a [b]~))
+::
+::  Prepend an element to the front of a list.
+::
+++  cons
+  |*  {a/* b/(list *)}
+  [a b]
 ::
 ::  A `plum` is the intermediate representation for the pretty-printer. It
 ::  encodes hoon-like data with the least amount of structured needed
@@ -62,24 +95,6 @@
       tall=(unit [intro=tile indef=(unit [sigil=tile final=tile])])
   ==
 ::
-::  Map a gate over a list and then concatenate the results.
-::
-++  flat-map
-  |*  {a/(list) b/gate}
-  (zing (turn a b))
-::
-::  Append an element to the end of a list.
-::
-++  snoc
-  |*  {a/(list) b/*}
-  (weld a ^+(a [b]~))
-::
-::  Prepend an element to the front of a list.
-::
-++  cons
-  |*  {a/* b/(list *)}
-  [a b]
-::
 ::  Render an `axis`.
 ::
 ++  axis-to-cord
@@ -91,7 +106,11 @@
   (cat 3 '+' (scot %ud p))
 ::
 ::  Render a limb.  A limb is either an empty atom (which is rendered as
-::  '$'), an axis, or a
+::  '$') or an axis.
+::
+::  XX The code for handling the `%|` ("by name") case is obviously
+::  wrong (the `runt` call does nothing, for example), but I'm not sure
+::  what it was trying to do in the first place.
 ::
 ++  limb-to-plum
   |=  =limb
@@ -103,26 +122,9 @@
     %&  (axis-to-cord p.limb)
     ::  {%| p/@ud q/(unit term) ]
     %|  (crip (runt [0 p.limb] ?~(q.limb "," (trip u.q.limb))))
-                                                        ::  ^ TODO This `runt`
-                                                        ::  does nothing.  What
-                                                        ::  was the idea here?
-                                                        ::  TODO What is this
-                                                        ::  comma supposed
-                                                        ::  to be?
   ==
 ::
-::  This is a helper function for testing out this code. It just digs
-::  through a type and finds hoon values reference within that type.
-::
-++  type-to-hoon
-  |=  =hoon=type
-  ^-  hoon
-  ?+  hoon-type  [%zpzp ~]
-  [%core *]
-    =/  tomes=(list tome)  ~(val by q.r.q.hoon-type)
-    =/  hoons=(list hoon)  (turn tomes |=(t=tome [%cltr ~(val by q.t)]))
-    [%cltr hoons]
-  ==
+::  Render a wing
 ::
 ++  wing-to-plum
   |=  =wing
@@ -130,6 +132,9 @@
   :+  %tree
     [wide=`['.' ~] tall=~]
   (turn `^wing`wing limb-to-plum)
+::
+::  In the spec for a battery, there's a `(map term spec)`. This transforms one
+::  of those into a list of plums, one per `term/spec` pair.
 ::
 ++  battery-spec-to-plum-list
   |=  =(map term spec)
@@ -139,6 +144,8 @@
   :+  %tree
     [wide=~ tall=`['' ~]]
   [term (spec-to-plum spec) ~]
+::
+::  Given a rune and a spec for a core, transform that into a plum.
 ::
 ++  core-spec-to-plum
   |=  [=knot =spec =(map term spec)]
@@ -152,19 +159,23 @@
       (battery-spec-to-plum-list map)
   ==
 ::
+::  XX I'm not sure what this is. It's only used in the %bscn case.
+::
 ++  varying
   |=  [intro=knot final=knot]
   [`[' ' `[(cat 3 intro '(') ')']] `[intro `['' final]]]
 ::
-::  TODO What is this and why?
+::  Convenience function to build a `plumfmt` for a rune with a fixed
+::  number of parameters.
 ::
 ++  fixed
-  |=  @ta
-  [`[' ' `[(cat 3 +< '(') ')']] `[+< ~]]
+  |=  rune=@ta
+  ^-  plumfmt
+  [wide=`[' ' `[(cat 3 +< '(') ')']] tall=`[+< ~]]
 ::
-::  TODO What is this and why?
+::  Convert a "standard name" into a plum.
 ::
-++  standard
+++  stud-to-plum
   |=  =stud
   ^-  plum
   ?@  stud  stud
@@ -172,72 +183,57 @@
     [wide=`['/' ~] tall=~]
   `(list plum)`[auth.stud type.stud]
 ::
-::  TODO What is this and why?
-::
-++  limb-plum
-  |=  =limb
-  ^-  plum
-  ?^  limb  %todo-wtf-is-this  limb
-::
-::  TODO What is this and why?
+::  Same as `fixed` but only constructs the `tall` part of a `plumfmt`.
 ::
 ++  tall-fixed
   |=  rune=cord
   ^-  (unit [cord (unit [cord cord])])
-  [~ rune ~]
+  `[rune ~]
 ::
-::  TODO What is this and why?
+::  Convenience function to build a the `tall` part of a `plumfmt` for
+::  a running-style rune (one that takes a variable number of parameters
+::  and has a terminator).
 ::
 ++  tall-running
   |=  [rune=cord sigil=cord term=cord]
   ^-  (unit [cord (unit [cord cord])])
   [~ rune [~ sigil term]]
 ::
-::  TODO What is this and why?
+::  Convert a woof (an interpolated expression inside of a string literal)
+::  to a plum.
 ::
-++  woof-plum
+++  woof-to-plum
   |=  =woof
   ^-  plum
-  ?@  woof
-    woof
-  :+  %tree
-    :-  wide=`[' ' `['{' '}']]  tall=~
-  (turn (unwrap-woof-tuple +.woof) hoon-to-plum)
+  |^  ?@  woof  woof
+      =*  fmt  [wide=`[' ' `['{' '}']] tall=~]
+      :+  %tree  fmt
+      (turn (unwrap-woof-tuple +.woof) hoon-to-plum)
+  ::
+  ::  Woofs contain one or more hoons, and if there are more than one,
+  ::  it's encoded with a %cltr ast node. This just simplifies both
+  ::  cases down into a list of subhoons.
+  ::
+  ++  unwrap-woof-tuple
+    |=  =hoon
+    ^-  (list ^hoon)
+    ?:  ?=([%cltr *] hoon)
+      p.hoon
+    ~[hoon]
+  --
 ::
-::  TODO What is this and why?
-::
-++  unwrap-woof-tuple
-  |=  =hoon
-  ^-  (list ^hoon)
-  ?:  ?=([%cltr *] hoon)
-    p.hoon
-  ~[hoon]
-::
-::  TODO What is this and why?
+::  This is just a trivial helper function. It's only here because this
+::  pattern is used repeatedly in `hoon-to-plum`.
 ::
 ++  hoons-to-plum-list
   |=  =hoon=(list hoon)
   ^.  (list plum)
   (turn hoon-list hoon-to-plum)
 ::
-::  TODO What is this and why?
-::
-++  raw-tall-plum
-  |=  kids=(list plum)
-  ^.  plum
-  tree/[[wide=~ tall=[~ '' ~]] kids]
-::
-::  TODO What is this and why?
-::
-++  rune-short-form
-  |=  [rune=cord short=(unit [fst=cord mid=cord lst=cord])]
-  ^-  (unit (pair cord (unit [cord cord])))
-  :+  ~  ?~(short ' ' mid.u.short)
-  :-  ~
-  ?^  short   [fst.u.short lst.u.short]
-  [(cat 3 rune '(') ')']
-::
-::  TODO What is this and why?
+::  Convenience function for rendering a rune into a plum. This takes
+::  a rune, an optional tall-form terminator, optionally a short-form (if
+::  you don't supply a short-form, we'll just construct the standard
+::  wide-form (e.g. "?~(x x ~)") for you, and a list of sub-plums.
 ::
 ++  rune-to-plum
   |=  $:  rune=cord
@@ -246,39 +242,55 @@
           kids=(list plum)
       ==
   ^.  plum
-  :-  %sbrk
-  :+  %tree
-    :-  (rune-short-form rune short)
-    ?~  term  (tall-fixed rune)
-    (tall-running rune '' u.term)
-  kids
+  |^  :-  %sbrk
+      :+  %tree
+        :-  (rune-wide-form rune short)
+        ?~  term  (tall-fixed rune)
+        (tall-running rune '' u.term)
+      kids
+  ::
+  ::  If you just give this a rune, it'll build the standard wide-form.
+  ::  Otherwise, it'll just ose the one that you gave it.
+  ::
+  ++  rune-wide-form
+    |=  [rune=cord short=(unit [fst=cord mid=cord lst=cord])]
+    ^-  (unit (pair cord (unit [cord cord])))
+    =*  fst  (cat 3 rune '(')
+    =*  std  `[' ' `[fst ')']]
+    ?~  short  std
+    `[mid.u.short `[fst.u.short lst.u.short]]
+  --
 ::
-::  TODO What is this and why?
+::  XX Placeholder for rendering a chum to a plum.
 ::
 ++  chum-to-plum
   |=  =chum
   ^-  plum
   %todo-chum
 ::
-::  TODO What is this and why?
+::  XX Placeholder for rendering a tyre to a plum
 ::
 ++  tyre-to-plum
   |=  =tyre
   ^-  plum
   %todo-tyre
 ::
-::  TODO What is this and why?
+::  Generate a list of plums from a list of matches. This would be
+::  trivial, but we also need to append commas on each match (besides
+::  the last) when the match-list is rendered in wide mode.
 ::
 ++  matches-to-plum-list
-  |=  =update=(list (pair spec hoon))
+  |=  =match=(list (pair spec hoon))
   ^-  (list plum)
   %-  add-trailing-commas-to-wide-form
-  %+  turn  update-list
+  %+  turn  match-list
   |=  [=spec =hoon]
   ^-  (pair plum plum)
   [(spec-to-plum spec) (hoon-to-plum hoon)]
 ::
-::  TODO What is this and why?
+::  Generate a list of plums from a list of updates. This would be
+::  trivial, but we also need to append commas on each update (besides
+::  the last) when the update-list is rendered in wide mode.
 ::
 ++  updates-to-plum-list
   |=  =update=(list (pair wing hoon))
@@ -328,11 +340,8 @@
   ^-  plum
   :+  %tree  [wide=[~ sep [~ init end]] tall=~]  babes
 ::
-::  XX Add special wide forms for:
-::
-::    - `$(a b)`
-::    - `!x`
-::    - `:x`
+::  Render a hoon as a plum.  Given the helper functions above, this is
+::  fairly straightforward.  It is a big-ass switch, though.
 ::
 ++  hoon-to-plum
   |=  x=hoon
@@ -347,7 +356,7 @@
       [%hand *]  %ast-node-hand
       [%note *]  (hn q.x)                               ::  p.x is irrelevant
       [%fits *]  %ast-node-fits
-      [%knit *]  (simple-wide-plum '"' '' '"' (turn p.x woof-plum))
+      [%knit *]  (simple-wide-plum '"' '' '"' (turn p.x woof-to-plum))
       [%leaf *]  (spec x)
       [%limb *]  p.x
       [%lost *]  (hn p.x)                               ::  for internal use
@@ -355,7 +364,7 @@
       [%sand *]  ?^  q.x  !!  (crip (scow p.x `@`q.x))
       [%tell *]  (simple-wide-plum '<' ' ' '>' (hoons p.x))
       [%tune *]  ?@(p.x p.x %todo-tune)
-      [%wing *]  (simple-wide-plum '' '.' '' (turn p.x limb-to-plum))
+      [%wing *]  (simple-wide-plum '' '.' '' (turn p.x limb))
       [%yell *]  (simple-wide-plum '>' ' ' '<' (hoons p.x))
       [%xray *]  (xray-to-plum p.x)
       [%brcb *]  (chapter '|_' `(spec p.x) r.x)         ::  skip aliases
@@ -458,12 +467,13 @@
       [%zpwt *]  (hn q.x)                               ::  Ignore p.x
       [%zpzp ~]  '!!'
     ==
+    ++  hoons      hoons-to-plum-list
     ++  battery    battery-to-plum-list
     ++  chapter    chapters-to-plum
     ++  chum       chum-to-plum
     ++  hint       hint-to-plum
     ++  hn         hoon-to-plum
-    ++  hoons      hoons-to-plum-list
+    ++  limb       limb-to-plum
     ++  matches    matches-to-plum-list
     ++  rune       rune-to-plum
     ++  skin       skin-to-plum
@@ -514,7 +524,7 @@
       $(rem t.rem, acc `hoon`[%tsdt `^wing`p.i.rem `hoon`q.i.rem `hoon`acc])
   --
 ::
-::  TODO What is this and why?
+::  Render a hint to a plum.
 ::
 ++  hint-to-plum
   |=  hint=$@(term (pair term hoon))
@@ -526,50 +536,50 @@
       (hoon-to-plum q.hint)
   ==
 ::
-::  TODO What is this and why?
+::  Render a battery (basically a list of terms,hoon pairs to a plum).
 ::
 ++  battery-to-plum-list
   |=  =(map term hoon)
   ^-  (list plum)
   %+  turn  ~(tap by map)
   |=  [=term =hoon]
-  :+  %tree
-    [wide=~ tall=`['' ~]]
+  =*  fmt  [wide=~ tall=`['' ~]]
+  :+  %tree  fmt
   [term (hoon-to-plum hoon) ~]
 ::
-::  TODO What is this and why?
+::  XX What is this and why?
 ::
 ++  core-to-plum
   |=  [=knot head=(unit plum) =(map term hoon)]
   ^-  plum
+  =*  kids  (battery-to-plum-list map)
   :-  %sbrk
   :-  %tree
     ?~  head
-      :-
-        [~ `[knot `['++' '--']]]
-        (battery-to-plum-list map)
-    :-
-      [~ `[knot ~]]
-      :~  u.head
-          :+  %tree
-            [~ `['' `['++' '--']]]
-          (battery-to-plum-list map)
-      ==
+      :-  [~ `[knot `['++' '--']]]
+      kids
+    :-  [~ `[knot ~]]
+    :~  u.head
+        =*  battery-fmt  [~ `['' `['++' '--']]]
+        [%tree battery-fmt kids]
+    ==
 ::
-::  TODO What is this and why?
+::  XX What is this and why?
+::  XX This is still kinda gross. Is more cleanup possible?
 ::
 ++  chapters-to-plum
   |=  [=knot head=(unit plum) =(map term tome)]
   ^-  plum
   =/  chapters=(list (pair term tome))  ~(tap by map)
-  ?~  chapters  (chapters-to-plum-verbose knot head map)
+  =*  with-chapters  (chapters-to-plum-verbose knot head map)
+  =*  without-chaps  (core-to-plum knot head q.q.i.chapters)
+  ?~  chapters  with-chapters
   ?~  t.chapters
-    ?:  .=('' p.i.chapters)
-      (core-to-plum knot head q.q.i.chapters)
-    (chapters-to-plum-verbose knot head map)
-  (chapters-to-plum-verbose knot head map)
+    ?:  .=('' p.i.chapters)  without-chaps
+    with-chapters
+  with-chapters
 ::
-::  TODO What is this and why?
+::  XX What is this and why?
 ::
 ++  chapters-to-plum-verbose
   |=  [=knot head=(unit plum) =(map term tome)]
@@ -584,7 +594,7 @@
   ?~  head  kids
   [u.head kids]
 ::
-::  TODO What is this and why?
+::  XX What is this and why?
 ::
 ++  chapter-to-plum
   |=  [nm=knot [* bat=(map term hoon)]]
@@ -597,7 +607,7 @@
       (battery-to-plum-list bat)
   ==
 ::
-::  TODO What is this and why?
+::  XX What is this and why?
 ::
 ++  chapters-to-plum-list
   |=  =(map term tome)
@@ -606,17 +616,17 @@
   |=  [=term [* hoons=(^map term hoon)]]
   ^-  plum
   ?:  =(term '')
-    (raw-tall-plum (battery-to-plum-list hoons))
+    :+  %tree  [wide=~ tall=[~ '' ~]]  (battery-to-plum-list hoons)
   (rune-to-plum '+|' ~ ~ [(cat 3 '%' term) (battery-to-plum-list hoons)])
 ::
-::  TODO What is this and why?
+::  XX What is this and why?
 ::
 ++  xray-to-plum
   |=  =manx:hoot
   ^-  plum
   %ast-node-xray                                        ::  XX Punt
 ::
-::  TODO What is this and why?
+::  Render a plum to a skin.
 ::
 ++  skin-to-plum
   |=  =skin
@@ -624,23 +634,26 @@
   ?@  skin  skin
   %todo-complex-skin                                    ::  XX Punt
 ::
-::  TODO What is this and why?
+::  Render a list of wings a plum that looks something like "a:b:c"
 ::
 ++  wingseq-to-plum
   |=  =(list wing)
   ^-  plum
-  :+  %tree
-    [wide=`[':' ~] tall=~]
-  (turn list wing-to-plum)
+  =*  fmt  [wide=`[':' ~] tall=~]
+  [%tree fmt (turn list wing-to-plum)]
 ::
-::  TODO What is this and why?
+::  Convenience function that builds a plum for a subexpression. The
+::  `%sbrk` tells the pretty-printer that this is a valid place to
+::  switch from tall mode to wide mode.
 ::
 ++  subtree
   |=  [p=plumfmt q=(list plum)]
   ^-  plum
   [%sbrk [%tree p q]]
 ::
-::  TODO What is this and why?
+::  Renders a spec to a plum. Similarly to `hoon-to-plum`, given all of
+::  the helper functions this becomse quite simple. It does have a lot of
+::  cases, though.
 ::
 ++  spec-to-plum
   |=  =spec
@@ -685,7 +698,7 @@
     %bsbn  (subtree (fixed '$>') $(spec p.spec) $(spec q.spec) ~)
     %bshp  (subtree (fixed '$-') $(spec p.spec) $(spec q.spec) ~)
     %bskt  (subtree (fixed '$-') $(spec p.spec) $(spec q.spec) ~)
-    %bsls  (subtree (fixed '$+') (standard p.spec) $(spec q.spec) ~)
+    %bsls  (subtree (fixed '$+') (stud-to-plum p.spec) $(spec q.spec) ~)
     %bsnt  (core-spec-to-plum '$/' p.spec q.spec)
     %bsmc  (subtree (fixed '$;') (hoon-to-plum p.spec) ~)
     %bspd  (subtree (fixed '$&') $(spec p.spec) (hoon-to-plum q.spec) ~)
@@ -705,7 +718,13 @@
     %bszp  (core-spec-to-plum '$.' p.spec q.spec)
   ==
 ::
-::  TODO What is this and why?
+::  This is the pretty-printer.  Use the `flat` arm to render a plum
+::  into a single line and use the `tall` arm to get a nice multi-line
+::  rendering that switches to wide mode if there's enough space.
+::
+::  For details about how this works and what exactly it does in various
+::  cases, take a look at the docs for `plum`, `plumfmt`, and at the
+::  docs on the arms of this door.
 ::
 ++  plume
   |_  =plum
@@ -965,7 +984,7 @@
         =/  next  $(lines.plum t.lines.plum)
         =/  this  [length=(met 3 i.lines.plum) text=(trip i.lines.plum)]
         :-  (add +(length.this) length.next)
-        (weld text.this `tape`['╳' text.next])
+        (weld text.this `tape`[' ' text.next])
 
       ::
       ::  Render a text tree to a single line.
@@ -1013,7 +1032,7 @@
           ?~  render  [0 ~]
           =/  next  (force-wide t.render)
           :-  :(add (lent text.i.render) 2 length.next)
-          ?~(text.next text.i.render :(weld text.i.render "╠╣" text.next))
+          ?~(text.next text.i.render :(weld text.i.render "  " text.next))
         --
     ==
   --
