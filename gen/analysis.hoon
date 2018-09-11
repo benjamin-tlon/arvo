@@ -5,7 +5,7 @@
 ^-  wain
 =<  =/  =spec  specify:measure:(enter:an subject)
     =/  =plum  (spec-to-plum spec)
-    ~(tall plume plum)    
+    ~(tall plume plum)
 |%
 ::
 ::  =spec-to-plum: convert $spec to $plum
@@ -79,7 +79,7 @@
             ::  loop-map: loop dictionary
             ::
             =xray
-            =loop=(map index zray) 
+            =loop=(map index zray)
         ==
       ::  $index: loop index
       ::
@@ -96,9 +96,9 @@
                 ::  %wide: cell with cell head
                 ::
                 %atom
-                %cell 
-                %noun 
-                %void 
+                %cell
+                %noun
+                %void
                 %wide
             ==
         $%  ::  %constant: constant atom
@@ -131,9 +131,9 @@
       +$  meta
         $:  ::  shape-unit: geometric analysis
             ::
-            ::    declare well-known local structural features 
+            ::    declare well-known local structural features
             ::    of .type, including geometry and superposition.
-            ::    
+            ::
             =shape=(unit shape)
             ::
             ::  pattern-set: well-known patterns
@@ -156,7 +156,7 @@
             ::
             =recipe=(set recipe)
             ::
-            ::  comment-set: literate comments 
+            ::  comment-set: literate comments
             ::
             =comment=(set help)
         ==
@@ -175,7 +175,7 @@
       +$  pattern
         $@  $?  ::  %hoon: $hoon (hoon program)
                 ::  %json: $json (json data)
-                ::  %manx: $manx (xml node) 
+                ::  %manx: $manx (xml node)
                 ::  %nock: $nock (nock formula)
                 ::  %path: $path (list @ta)
                 ::  %plum: $plum (printable)
@@ -198,7 +198,7 @@
                 %tour
                 %type
                 %vase
-            == 
+            ==
         $%  ::  %gate: function
             ::  %gear: multifunction
             ::  %tree: n-l-r tree (including maps and sets)
@@ -261,15 +261,15 @@
     =<  =+  [xray state]=entry
         %_  +>+>+
           xray      xray
-          loop-map  %-  ~(gas by *(map index zray)) 
-                    %+  turn  
+          loop-map  %-  ~(gas by *(map index zray))
+                    %+  turn
                       ~(tap by table.state)
-                    |=  [* =index =zray] 
+                    |=  [* =index =zray]
                     [index zray]
         ==
     =|  $:  ::  trace: set of holds that current analysis is within
             ::
-            trace=(set ^type) 
+            trace=(set ^type)
             ::  state: accumulated state
             ::
             $=  state
@@ -302,7 +302,7 @@
           count  ::  (count.state incremented to the next unused index)
                  ::
                  +(count.state)
-          table  ::  (table.state with the loop index and stub) 
+          table  ::  (table.state with the loop index and stub)
                  ::
                  (~(put by table.state) type [count.state *zray])
         ==
@@ -344,7 +344,7 @@
               [%fork *]  =^  wray  state  (fork p.type)
                          [[type wray] state]
               [%hold *]  entry(type ~(repo ut type))
-          == 
+          ==
       ::
       ::  =core: convert a %core $type to an $xray
       ::
@@ -359,9 +359,9 @@
         ::  payload-xray: analyzed payload
         ::
         =^  payload-xray  state  main(type payload-type)
-        ::  chapters: analyzed chapters 
+        ::  chapters: analyzed chapters
         ::
-        ::  this code looks complicated but is just an overly 
+        ::  this code looks complicated but is just an overly
         ::  bulky monadic traverse.
         ::
         =^  chapters=(list (pair term (pair what (map term ^xray))))  state
@@ -370,7 +370,7 @@
           ?~  chapters  [~ state]
           =^  more-chapters  state  $(chapters t.chapters)
           =^  this-chapter  state
-            =-  :_  -> 
+            =-  :_  ->
                 :+  p.i.chapters
                   `what`p.q.i.chapters
                 (~(gas by *(map term ^xray)) -<)
@@ -378,7 +378,7 @@
             |-  ^-  [(list (pair term ^xray)) _state]
             ?~  arms  [~ state]
             =^  more-arms  state  $(arms t.arms)
-            =^  this-arm  state  
+            =^  this-arm  state
               main(type [%hold [%core payload-type coil] q.i.arms])
             [[[p.i.arms this-arm] more-arms] state]
           [[this-chapter more-chapters] state]
@@ -408,18 +408,18 @@
           :_  state
           +:xray(comment-set.meta (~(put in comment-set.meta.xray) p.note))
         ::
-            %know  
-          :_  state 
+            %know
+          :_  state
           +:xray(standard-set.meta (~(put in standard-set.meta.xray) p.note))
         ::
             %made
           =^  =recipe  state
             ?~  q.note
-              :_(state [%direct p.note])   
+              :_(state [%direct p.note])
             =-  [`recipe`[%synthetic p.note -<] `_state`->]
             |-  ^-  [(list ^^xray) _state]
             ?~  u.q.note  [~ state]
-            =/  part  
+            =/  part
               (~(play ut subject-type) [%tsld [%limb %$] [%wing i.u.q.note]])
             =^  this  state  entry(type part)
             =^  more  state  $(u.q.note t.u.q.note)
@@ -481,12 +481,12 @@
       ?-    -.data.xray
           %atom
         ?~  constant-unit.data.xray
-          %atom 
+          %atom
         [%constant u.constant-unit.data.xray]
       ::
           %cell
         =/  head-shape  $(xray head.data.xray)
-        ?:  ?|  ?=(?(%cell %wide) head-shape) 
+        ?:  ?|  ?=(?(%cell %wide) head-shape)
                 ?=([?(%instance %union %junction %conjunction) *] head-shape)
             ==
           %wide
@@ -527,7 +527,7 @@
       =/  this-set-unit  fresh(xray this)
       =/  that-set-unit  fresh(xray that)
       ?~  this-set-unit
-        ?~  that-set-unit 
+        ?~  that-set-unit
           (sy this that ~)
         (~(put in u.that-set-unit) this)
       ?~  that-set-unit
@@ -604,20 +604,20 @@
         ?:  ?=(%void shape.that)  this
         ?:  ?=(%noun shape.that)  that
         ?:  ?=(%atom shape.that)
-          ?+  -.shape.this  
+          ?+  -.shape.this
                        ((binary %misjunction) xray.this xray.that)
             %instance  ((binary %junction) xray.this xray.that)
             %union     ((binary %junction) xray.this xray.that)
-            %junction  %+  (binary %junction) 
-                         (merge xray.that flat.shape.this) 
+            %junction  %+  (binary %junction)
+                         (merge xray.that flat.shape.this)
                        deep.shape.this
           ==
         ?+    -.shape.this
                        ((binary %misjunction) xray.this xray.that)
             %constant  ((binary %junction) xray.that xray.this)
             %option    ((binary %junction) xray.that xray.this)
-            %junction  %+  (binary %junction) 
-                         flat.shape.this 
+            %junction  %+  (binary %junction)
+                         flat.shape.this
                        (merge xray.that deep.shape.this)
         ==
       ?:  |(?=(%misjunction -.shape.this) ?=(%misjunction -.shape.that))
@@ -625,8 +625,8 @@
       ?-    -.shape.this
           %constant
         ?-  -.shape.that
-          %constant     :_  (join xray.this xray.that) 
-                        :-  %option 
+          %constant     :_  (join xray.this xray.that)
+                        :-  %option
                         %+  collate
                           [[atom.shape.this xray.this] ~ ~]
                         [[atom.shape.that xray.that] ~ ~]
@@ -649,8 +649,8 @@
           %option       ((binary %junction) xray.this xray.that)
           %union        :_  (join xray.this xray.that)
                         :-  %union
-                        %+  collate 
-                          map.shape.that 
+                        %+  collate
+                          map.shape.that
                         [[atom.shape.this xray.this] ~ ~]
           %junction     %+  (binary %junction)
                           flat.shape.that
@@ -701,7 +701,7 @@
                           (merge wide.shape.this wide.shape.that)
                         (merge tall.shape.this tall.shape.that)
         ==
-      == 
+      ==
     ::
     ::  -analyze
     ::
@@ -709,7 +709,7 @@
       ::  afterward, record result in loop map as needed
       ::
       =<  remember
-      ::  loop-set: set of loops we are analyzing 
+      ::  loop-set: set of loops we are analyzing
       ::
       =|  loop-set=(set index)
       |-  ^+  +>
@@ -730,13 +730,13 @@
       ?^  shape-unit.meta.xray  +>
       ::  if we're currently measuring this xray, do nothing
       ::
-      ?:  ?&  ?=(^ entry-unit.meta.xray) 
+      ?:  ?&  ?=(^ entry-unit.meta.xray)
               (~(has in loop-set) u.entry-unit.meta.xray)
           ==
         +>
       ::  record any loops we enter
       ::
-      =.  loop-set  ?~  entry-unit.meta.xray  loop-set  
+      =.  loop-set  ?~  entry-unit.meta.xray  loop-set
                     (~(put in loop-set) u.entry-unit.meta.xray)
       ::  %noun and %void are their own shape
       ::
@@ -754,7 +754,7 @@
       ::
           %core
         ::
-        ::  this code looks complicated but is just an overly 
+        ::  this code looks complicated but is just an overly
         ::  bulky monadic traverse.
         ::
         =^  payload  loop-map  complete:analyze(xray xray.data.xray)
@@ -764,7 +764,7 @@
           ?~  chapters  [~ loop-map]
           =^  more-chapters  loop-map  $(chapters t.chapters)
           =^  this-chapter  loop-map
-            =-  :_  -> 
+            =-  :_  ->
                 :+  p.i.chapters
                   `what`p.q.i.chapters
                 (~(gas by *(map term ^xray)) -<)
@@ -784,7 +784,7 @@
         =.  xray.data.xray  body
         +>+(shape-unit.meta.xray `require(xray body))
       ::
-          %fork 
+          %fork
         =^  list  loop-map
           =/  list  ~(tap in set.data.xray)
           |-  ^-  [(^list ^xray) _loop-map]
@@ -815,7 +815,7 @@
   ++  specify
     =|  loop-set=(set index)
     |-  ^-  spec
-    ?@  xray  
+    ?@  xray
       ?:  (~(has in loop-set) xray)
         [%loop (synthetic xray)]
       $(xray (~(got by loop-map) xray))
@@ -828,7 +828,7 @@
       =/  =recipe  n.recipe-set.meta.xray
       ?-  -.recipe
         %direct     `spec`[%like `wing`[term.recipe ~] ~]
-        %synthetic  :+  %make 
+        %synthetic  :+  %make
                       [%limb term.recipe]
                     %+  turn  list.recipe
                     |=(=^xray `spec`^$(xray xray))
@@ -858,7 +858,7 @@
                %gold  [%bsdt payload battery]
                %zinc  [%bstc payload battery]
                %iron  [%bsnt payload battery]
-             == 
+             ==
       %face  =/  =spec  $(xray xray.data.xray)
              ::  we discard the $tune case, a $spec can't express it
              ::
@@ -872,8 +872,8 @@
                    [%junction *]     :+  %bsvt
                                        ^$(xray flat.shape)
                                      ^$(xray deep.shape)
-                   [%conjunction *]  :+  %bskt 
-                                       ^$(xray wide.shape) 
+                   [%conjunction *]  :+  %bskt
+                                       ^$(xray wide.shape)
                                      ^$(xray tall.shape)
                    [%misjunction *]  [%bswt choices]
                  ==
