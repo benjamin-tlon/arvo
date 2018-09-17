@@ -2067,3 +2067,4 @@
 :: +hoon-printer =<  -  !>  *$%([$a $?(^ @)] [$a ~])
 :: +hoon-printer =<  -  !>  *(unit ?(%a %b))
 :: +hoon-printer =<  -  !>  *(list ?(%a %b))
+:: +hoon-printer =<  -  !>  *$%([%e @] [%j (list ~)])
