@@ -1376,6 +1376,8 @@
         ^-  [wray _state]
         ::~&  'CORE'
         ::
+        :: Helper types and traversals
+        ::
         =*  chap-hoon   (pair term (pair what (map term hoon)))
         =*  chap-xray   (pair term (pair what (map term ^xray)))
         =*  arm-hoon    (pair term hoon)
@@ -1385,30 +1387,15 @@
         ::
         =^  payload-xray  state  main(type payload-type)
         =^  chapters=(list (pair term (pair what (map term ^xray))))  state
-          =/  chapters=(list (pair term tome))  ~(tap by q.r.coil)
-          |-  ^-  [(list (pair term (pair what (map term ^xray)))) _state]
-          ?~  chapters  [~ state]
-          =^  more-chapters  state  $(chapters t.chapters)
-          =^  this-chapter  state
-            =-  :_  ->
-                :+  p.i.chapters
-                  `what`p.q.i.chapters
-                (~(gas by *(map term ^xray)) -<)
-            %+  trav-arms  [~(tap by q.q.i.chapters) state]
-            |=  [arm=arm-hoon st=_state]
-            =*  type  [%hold [%core payload-type coil] q.arm]
-            =^  xray  st  main(type type)
-            [arm(q xray) st]
-          [[this-chapter more-chapters] state]
-        :: =^  chapters=(list chap) state
-        ::   %+  trav-chapters  [~(tap by q.r.coil) state]
-        ::   |=  [=chap st=_state]
-        ::   =-  :_  ->
-        ::       :+  p.chap  `what`p.q.chap  (~(gas by *(map term ^xray)) -<)
-        ::   %+  trav-arms  [~(tap by q.q.i.chapters) st]
-        ::   |=  [=arm st=_state]
-        ::   =^  new-xray  st  main(type [%hold [%core payload-type coil] q.arm])
-        ::   [arm(q new-xray) st]
+          %+  trav-chaps  [~(tap by q.r.coil) state]
+          |=  [chap=chap-hoon st=_state]
+          =-  :_  ->
+              :+  p.chap  `what`p.q.chap  (~(gas by *(map term ^xray)) -<)
+          %+  trav-arms  [~(tap by q.q.chap) state]
+          |=  [arm=arm-hoon st=_state]
+          =*  type  [%hold [%core payload-type coil] q.arm]
+          =^  xray  st  main(type type)
+          [arm(q xray) st]
         :_  state
         ^-  wray
         :-  *meta
