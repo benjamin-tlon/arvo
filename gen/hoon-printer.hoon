@@ -1448,19 +1448,17 @@
       ::
       ::  +fork: convert a %fork $type to an $xray
       ::
+      ::  set: set of union types
+      ::
       ++  fork
-        |=  ::  set: set of union types
-            ::
-            =(set ^type)
+        |=  =(set ^type)
         ::~&  'FORK'
         ^-  [wray _state]
-        =/  list  ~(tap in set)
         =-  :_(-> `wray`[*meta %fork (~(gas in *(^set ^xray)) -<)])
-        |-  ^-  [(^list ^xray) _state]
-        ?~  list  [~ state]
-        =^  this-xray  state  main(type i.list)
-        =^  more-xrays  state  $(list t.list)
-        [[this-xray more-xrays] state]
+        ^-  [(list ^xray) _state]
+        %+  trav-auto  [~(tap in set) state]
+        |=  [t=^type st=_state]
+        main(type t)
       --
     --
   ::
