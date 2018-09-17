@@ -8,11 +8,14 @@
 ::
 +|  %entry-points-for-testing
 ::
-::  This is Haskell's `traverse` specialized to
-::  work in the state monad and to run over
-::  a list.
+::  This is like `turn`, except that a state variable `st` is threaded
+::  through the entire execution. The list is processed from
+::  left-to-right.
 ::
-++  trav
+::  This is basically the same as `mapM` in Haskell, but specialized
+::  specialized for lists and the State monad.
+::
+++  traverse-left
    |*  [a=mold b=mold s=mold]
    |=  [[xs=(list a) st=s] f=$-([a s] [b s])]
    ^-  [(list b) s]
@@ -21,11 +24,33 @@
    =^  rs  st  $(xs t.xs, st st)
    [[r rs] st]
 ::
-++  trav-auto
+::  Same as `traverse-left` but executes state updates in reverse order.
+::
+++  traverse-right
+   |*  [a=mold b=mold s=mold]
+   |=  [[xs=(list a) st=s] f=$-([a s] [b s])]
+   ^-  [(list b) s]
+   ?~  xs  [~ st]
+   =^  rs  st  $(xs t.xs, st st)
+   =^  r   st  (f i.xs st)
+   [[r rs] st]
+::
+::  This is a wrapper for `traverse-left` that tries to infer it's arguments.
+::
+++  traverse-left-auto
    |*  [[xs=(list) st=*] f=$-(^ ^)]
    ^-  [(list _-:*f) _st]
    ?~  xs  [~ st]
-   =/  t  (trav _i.xs _-:*f _st)
+   =/  t  (traverse-left _i.xs _-:*f _st)
+   (t [xs st] f)
+::
+::  Same as `traverse-left-auto` but executes state updates in reverse order.
+::
+++  traverse-right-auto
+   |*  [[xs=(list) st=*] f=$-(^ ^)]
+   ^-  [(list _-:*f) _st]
+   ?~  xs  [~ st]
+   =/  t  (traverse-right _i.xs _-:*f _st)
    (t [xs st] f)
 ::
 ++  first-atom
@@ -1382,8 +1407,8 @@
         =*  chap-xray   (pair term (pair what (map term ^xray)))
         =*  arm-hoon    (pair term hoon)
         =*  arm-xray    (pair term ^xray)
-        =*  trav-chaps  (trav chap-hoon chap-xray _state)
-        =*  trav-arms   (trav arm-hoon arm-xray _state)
+        =*  trav-chaps  (traverse-right chap-hoon chap-xray _state)
+        =*  trav-arms   (traverse-right arm-hoon arm-xray _state)
         ::
         =^  payload-xray  state  main(type payload-type)
         =^  chapters=(list (pair term (pair what (map term ^xray))))  state
@@ -1456,7 +1481,7 @@
         ^-  [wray _state]
         =-  :_(-> `wray`[*meta %fork (~(gas in *(^set ^xray)) -<)])
         ^-  [(list ^xray) _state]
-        %+  trav-auto  [~(tap in set) state]
+        %+  traverse-right-auto  [~(tap in set) state]
         |=  [t=^type st=_state]
         main(type t)
       --
@@ -1793,8 +1818,8 @@
         =/  recipes=(list recipe)
           ~(tap in ^-((set recipe) recipe-set.meta.xray))
         =^  finished-items  loop-map
-          =*  trav-recipes  (trav recipe recipe _loop-map)
-          =*  trav-xrays    (trav ^xray ^xray _loop-map)
+          =*  trav-recipes  (traverse-right recipe recipe _loop-map)
+          =*  trav-xrays    (traverse-right ^xray ^xray _loop-map)
           ^-  [(list recipe) _loop-map]
           %+  trav-recipes  [recipes loop-map]
           |=  [r=recipe st=_loop-map]
@@ -1842,8 +1867,8 @@
           %core
         =*  arm   (pair term ^xray)
         =*  chap  (pair term (pair what (map term ^xray)))
-        =*  trav-chapters  (trav chap chap _loop-map)
-        =*  trav-arms      (trav arm arm _loop-map)
+        =*  trav-chapters  (traverse-right chap chap _loop-map)
+        =*  trav-arms      (traverse-right arm arm _loop-map)
         =^  payload  loop-map  complete:remember:$(xray xray.data.xray)
         =^  chapters  loop-map
           %+  trav-chapters  [~(tap by battery.data.xray) loop-map]
@@ -2041,3 +2066,4 @@
 :: +hoon-printer =<  -  !>  *$@(? [a=* (unit $?(@ @ ~))])
 :: +hoon-printer =<  -  !>  *$%([$a $?(^ @)] [$a ~])
 :: +hoon-printer =<  -  !>  *(unit ?(%a %b))
+:: +hoon-printer =<  -  !>  *(list ?(%a %b))
