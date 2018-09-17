@@ -1481,7 +1481,7 @@
         ^-  [wray _state]
         =-  :_(-> `wray`[*meta %fork (~(gas in *(^set ^xray)) -<)])
         ^-  [(list ^xray) _state]
-        %+  traverse-right-auto  [~(tap in set) state]
+        %+  traverse-left-auto  [~(tap in set) state]
         |=  [t=^type st=_state]
         main(type t)
       --
