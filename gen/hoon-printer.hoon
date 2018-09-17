@@ -2,61 +2,32 @@
 !:
 :-  %say
 ::  render-hoon
-=<  ~&  trav-test
-    ~&  trav-auto-test
-    render-type
+=<  render-type
 ::  render-all-hoons-referenced-inside-of-type
 |%
 ::
 +|  %entry-points-for-testing
-    ::
-    ::  This is Haskell's `traverse` specialized to
-    ::  work in the state monad and to run over
-    ::  a list.
-    ::
-    ++  trav
-       |*  [a=mold b=mold s=mold]
-       |=  [[xs=(list a) st=s] f=$-([a s] [b s])]
-       ^-  [(list b) s]
-       ?~  xs  [~ st]
-       =^  r   st  (f i.xs st)
-       =^  rs  st  $(xs t.xs, st st)
-       [[r rs] st]
-    ::
-    ::  An example usage of `trav`.
-    ::
-    ++  trav-test
-      =/  t   (trav * * @)
-      =/  s   0
-      =/  xs  ~[%.y %.n %y %n]
-      =/  f   |=  [x=* c=@]  [x +(c)]
-      =^  rs  s  (t [xs s] f)
-      [rs s]
-    ::
-    ++  trav-auto
-       |*  [[xs=(list) st=*] f=$-(^ ^)]
-       ^-  [(list _-:*f) _st]
-       ?~  xs  [~ st]
-       =/  t  (trav _i.xs _-:*f _st)
-       (t [xs st] f)
-    ::
-    ++  trav-auto-test
-      =/  s   0
-      =/  xs  `(list @)`~[1 2 3]
-      =/  f   |=  [x=@ c=@]  [x +(c)]
-      =^  rs  s  (trav-auto [xs s] f)
-      [rs s]
-    ::
-::++  test-turn-with-state
-::  |=  [count=@ l=(list @)]
-::  (turn-with-state [count l] |=([a=@ s=@] [a +(s)]))
 ::
-:: ++  turn                                                ::  transform
-::   ~/  %turn
-::   |*  {a/(list) b/gate}
-::   |-
-::   ?~  a  ~
-::   [i=(b i.a) t=$(a t.a)]
+::  This is Haskell's `traverse` specialized to
+::  work in the state monad and to run over
+::  a list.
+::
+++  trav
+   |*  [a=mold b=mold s=mold]
+   |=  [[xs=(list a) st=s] f=$-([a s] [b s])]
+   ^-  [(list b) s]
+   ?~  xs  [~ st]
+   =^  r   st  (f i.xs st)
+   =^  rs  st  $(xs t.xs, st st)
+   [[r rs] st]
+::
+++  trav-auto
+   |*  [[xs=(list) st=*] f=$-(^ ^)]
+   ^-  [(list _-:*f) _st]
+   ?~  xs  [~ st]
+   =/  t  (trav _i.xs _-:*f _st)
+   (t [xs st] f)
+::
 ++  first-atom
   |=  x=*
   |-  ^-  @
@@ -1395,23 +1366,24 @@
       ::
       ::  =core: convert a %core $type to an $xray
       ::
+      ::  - `payload-xray`: analyzed payload
+      ::  - `chapters`: analyzed chapters
+      ::  - `payload-type`: type of payload data
+      ::  - `coil`: battery source
+      ::
       ++  core
-        |=  $:  ::  payload-type: type of payload data
-                ::  coil: battery source
-                ::
-                =payload=^type
-                =coil
-            ==
+        |=  [=payload=^type =coil]
         ^-  [wray _state]
         ::~&  'CORE'
-        ::  payload-xray: analyzed payload
+        ::
+        =*  chap-hoon   (pair term (pair what (map term hoon)))
+        =*  chap-xray   (pair term (pair what (map term ^xray)))
+        =*  arm-hoon    (pair term hoon)
+        =*  arm-xray    (pair term ^xray)
+        =*  trav-chaps  (trav chap-hoon chap-xray _state)
+        =*  trav-arms   (trav arm-hoon arm-xray _state)
         ::
         =^  payload-xray  state  main(type payload-type)
-        ::  chapters: analyzed chapters
-        ::
-        ::  this code looks complicated but is just an overly
-        ::  bulky monadic traverse.
-        ::
         =^  chapters=(list (pair term (pair what (map term ^xray))))  state
           =/  chapters=(list (pair term tome))  ~(tap by q.r.coil)
           |-  ^-  [(list (pair term (pair what (map term ^xray)))) _state]
@@ -1422,14 +1394,21 @@
                 :+  p.i.chapters
                   `what`p.q.i.chapters
                 (~(gas by *(map term ^xray)) -<)
-            =/  arms=(list (pair term hoon))  ~(tap by q.q.i.chapters)
-            |-  ^-  [(list (pair term ^xray)) _state]
-            ?~  arms  [~ state]
-            =^  more-arms  state  $(arms t.arms)
-            =^  this-arm  state
-              main(type [%hold [%core payload-type coil] q.i.arms])
-            [[[p.i.arms this-arm] more-arms] state]
+            %+  trav-arms  [~(tap by q.q.i.chapters) state]
+            |=  [arm=arm-hoon st=_state]
+            =*  type  [%hold [%core payload-type coil] q.arm]
+            =^  xray  st  main(type type)
+            [arm(q xray) st]
           [[this-chapter more-chapters] state]
+        :: =^  chapters=(list chap) state
+        ::   %+  trav-chapters  [~(tap by q.r.coil) state]
+        ::   |=  [=chap st=_state]
+        ::   =-  :_  ->
+        ::       :+  p.chap  `what`p.q.chap  (~(gas by *(map term ^xray)) -<)
+        ::   %+  trav-arms  [~(tap by q.q.i.chapters) st]
+        ::   |=  [=arm st=_state]
+        ::   =^  new-xray  st  main(type [%hold [%core payload-type coil] q.arm])
+        ::   [arm(q new-xray) st]
         :_  state
         ^-  wray
         :-  *meta
@@ -1882,13 +1861,13 @@
         =*  trav-arms      (trav arm arm _loop-map)
         =^  payload  loop-map  complete:remember:$(xray xray.data.xray)
         =^  chapters  loop-map
-          %+  trav-auto  [~(tap by battery.data.xray) loop-map]
+          %+  trav-chapters  [~(tap by battery.data.xray) loop-map]
           |=  [=chap st=_loop-map]
           =-  :_  ->
               :+  p.chap
                 `what`p.q.chap
               (~(gas by *(map term ^xray)) -<)
-          %+  trav-auto  [~(tap by q.q.chap) st]
+          %+  trav-arms  [~(tap by q.q.chap) st]
           |=  [=arm st=_loop-map]
           =^  new-xray  st  complete:remember:^^$(xray q.arm)
           [arm(q new-xray) st]
