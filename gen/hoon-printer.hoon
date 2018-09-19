@@ -1,9 +1,3 @@
-/?  310
-!:
-:-  %say
-::  render-hoon
-=<  render-type
-::  render-all-hoons-referenced-inside-of-type
 ::
 ::  Try these:
 ::
@@ -13,6 +7,15 @@
 ::                   '*(list ?(%a %b))'
 ::                   '*$%([%e @] [%j (list ~)])'
 ::               ==
+::
+/?  310
+!:
+:-  %say
+::
+::  =<  render-hoon
+::  =<  render-type
+=<  compile-and-render-type
+::  =<  render-all-hoons-referenced-inside-of-type
 ::
 |%
 ::
@@ -46,7 +49,7 @@
 ::
 ::  Pretty-print a type.
 ::
-++  render-type
+++  compile-and-render-type
   |=  {^ {{tys=(list cord) ~} ~}}
   :-  %txt
   ^-  wain
@@ -59,6 +62,16 @@
   =/  s=spec  specify:measure:(enter:ann (xray-type t))
   =/  p=plum  (spec-to-plum s)
   ^-  (list cord)
+  ~(tall plume p)
+::
+::  Pretty-print a type.
+::
+++  render-type
+  |=  {^ {{subject=type ~} ~}}
+  :-  %txt
+  ^-  wain
+  =/  s=spec  specify:measure:(enter:ann (xray-type subject))
+  =/  p=plum  (spec-to-plum s)
   ~(tall plume p)
 ::
 ::  Pretty-print a hoon in tall mode using `plume`.
