@@ -62,12 +62,19 @@
 ::  Pretty-print a type.
 ::
 ++  render-type
-  |=  {^ {{subject=type ~} ~}}
+  |=  {^ {{tys=(list cord) ~} ~}}
   :-  %txt
   ^-  wain
-  =/  =spec  specify:measure:(enter:ann subject)
-  =/  =plum  (spec-to-plum spec)
-  ~(tall plume plum)
+  =/  ctx  ..zuse
+  %-  zing
+  %+  turn  tys
+  |=  c=cord
+  ^-  (list cord)
+  =/  t=type  -:(ride -:!>(ctx) c)
+  =/  s=spec  specify:measure:(enter:ann t)
+  =/  p=plum  (spec-to-plum s)
+  ^-  (list cord)
+  ~(tall plume p)
 ::
 ::  Pretty-print a hoon in tall mode using `plume`.
 ::
@@ -1306,7 +1313,7 @@
       ?:  (~(has in tr) ty)
         =/  result  `xray`count.st
         =/  stub    [ty [count.st *zray]]
-        =.  st      ^-(state [+(count.st) (~(put by table.st) stub)])
+        =.  st      [+(count.st) (~(put by table.st) stub)]
         [result st]
       =^  result  st  (main [(~(put in tr) ty) ty] st)
       ?@  result  [result st]
@@ -1324,7 +1331,6 @@
     ++  main
       |=  [[tr=trace ty=type] st=state]
       ^-  [xray state]
-      :: ~&  [%main ty]
       ?-  ty
         %void      [[ty *meta ty] st]
         %noun      [[ty *meta ty] st]
@@ -1350,7 +1356,6 @@
     ++  core
       |=  [[tr=trace =payload=type =coil] st=state]
       ^-  [wray state]
-      :: ~&  [%core payload-type coil]
       =^  payload-xray  st  (main [tr payload-type] st)
       =^  chapters=(list (chap xray))  st
         %+  trav-chaps  [~(tap by q.r.coil) st]
@@ -1365,7 +1370,6 @@
       =*  chaps   (~(gas by *(map term (pair what (map term xray)))) chapters)
       =*  result  `wray`[*meta [%core p.coil payload-xray chaps]]
       [result st]
-    ::
     ::  Analyze a %hint type.
     ::  subject-type: subject of note
     ::  note: hint information
@@ -1374,11 +1378,8 @@
     ++  hint
       |=  [[tr=trace [=subject=type =note] =payload=type] st=state]
       ^-  [wray state]
-      :: ~&  [%hint subject-type note payload-type]
-      ::
       =*  get-xray-by-loop-index  ~(got by (build-loop-map table.st))
       =^  result=xray  st  (main [tr payload-type] st)
-      ::
       |-
       ^-  [wray state]
       ?@  result  $(result (get-xray-by-loop-index result))
@@ -1408,11 +1409,8 @@
           (~(put in recipe-set.meta.result) recipe)
         [+.result st]
       ==
-    ::
     ::  +fork: convert a %fork $type to an $xray
-    ::
     ::  set: set of union types
-    ::
     ++  fork
       |=  [[tr=trace =type=(set type)] st=state]
       ^-  [wray state]
