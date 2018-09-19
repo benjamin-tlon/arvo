@@ -1252,6 +1252,15 @@
     |=  x=xray  (find-error xt(xray x))
   --
 ::
+++  dedupe-xray
+  |=  xt=xrayed-type
+  ^-  xrayed-type
+  =/  x  xray.xt
+  ?@  x  xt
+  =/  e  entry-unit.meta.x
+  ?~  e  xt
+  xt(xray u.e)
+::
 ++  xray-type
   |^  enter
   ::
@@ -1421,20 +1430,19 @@
       :_  st  `wray`[*meta %fork (~(gas in *(set xray)) xrays)]
     --
   --
-::  _an: type analysis gear
-::
+::  _ann: type analysis gear
 ++  ann
   |_  notebook
-  ::
   ::  =enter: create with first-pass recursion analysis
-  ::
   ++  enter
     |=  ty=type
     ^+  +>
-    =/  xt=xrayed-type  (xray-type ty)
+    =/  xt=xrayed-type  (dedupe-xray (xray-type ty))
+    ~&  %xrayed-type
+    ~&  xt
     ?.  (valid-xrayed-type xt)
       ~&  'MALFORMED xrayed-type!'
-      ~&  xt
+      ~&  [%xrayed-type xt]
       !!
     =.  xray.+>+      xray.xt
     =.  loop-map.+>+  table.xt
