@@ -4,16 +4,25 @@
 ::  render-hoon
 =<  render-type
 ::  render-all-hoons-referenced-inside-of-type
+::
+::  Try these:
+::
+:: +hoon-printer :~  '*$@(? [a=* (unit $?(@ @ ~))])'
+::                   '*$%([$a $?(^ @)] [$b ~])'
+::                   '*(unit ?(%a %b))'
+::                   '*(list ?(%a %b))'
+::                   '*$%([%e @] [%j (list ~)])'
+::               ==
+::
 |%
 ::
 +|  %entry-points-for-testing
 ::
-::  This is like `turn`, except that a state variable `st` is threaded
-::  through the entire execution. The list is processed from
-::  left-to-right.
+::  This is basically a `mapM` over a list using the State monad.
 ::
-::  This is basically the same as `mapM` in Haskell, but specialized
-::  specialized for lists and the State monad.
+::  Another way to think about this is that it is the same as `turn`,
+::  except that a state variable `st` is threaded through the
+::  execution. The list is processed from left to right.
 ::
 ++  traverse-left
    |*  [a=mold b=mold s=mold]
@@ -35,30 +44,6 @@
    =^  r   st  (f i.xs st)
    [[r rs] st]
 ::
-::  This is a wrapper for `traverse-left` that tries to infer it's arguments.
-::
-++  traverse-left-auto
-   |*  [[xs=(list) st=*] f=$-(^ ^)]
-   ^-  [(list _-:*f) _st]
-   ?~  xs  [~ st]
-   =/  t  (traverse-left _i.xs _-:*f _st)
-   (t [xs st] f)
-::
-::  Same as `traverse-left-auto` but executes state updates in reverse order.
-::
-++  traverse-right-auto
-   |*  [[xs=(list) st=*] f=$-(^ ^)]
-   ^-  [(list _-:*f) _st]
-   ?~  xs  [~ st]
-   =/  t  (traverse-right _i.xs _-:*f _st)
-   (t [xs st] f)
-::
-++  first-atom
-  |=  x=*
-  |-  ^-  @
-  ?@  x  x
-  $(x -.x)
-::
 ::  Pretty-print a type.
 ::
 ++  render-type
@@ -71,7 +56,7 @@
   |=  c=cord
   ^-  (list cord)
   =/  t=type  -:(ride -:!>(ctx) c)
-  =/  s=spec  specify:measure:(enter:ann t)
+  =/  s=spec  specify:measure:(enter:ann (xray-type t))
   =/  p=plum  (spec-to-plum s)
   ^-  (list cord)
   ~(tall plume p)
@@ -99,12 +84,6 @@
 ::
 +|  %utils
 ::
-::  Map a gate over a list and then concatenate the results.
-::
-++  flat-map
-  |*  {a/(list) b/gate}
-  (zing (turn a b))
-::
 ::  Append an element to the end of a list.
 ::
 ++  snoc
@@ -117,12 +96,6 @@
   |*  {a/* b/(list *)}
   [a b]
 ::
-::  Prints a value and then returns it.
-::
-++  trace-show-id
-  |*  a/*
-  ~&  a
-  a
 +|  %types
 ::
 ::  A `plum` is the intermediate representation for the pretty-printer. It
@@ -628,7 +601,7 @@
   :+  %tree  fmt
   [term (hoon-to-plum hoon) ~]
 ::
-::  XX What is this and why?
+::  XX Document this.
 ::
 ++  core-to-plum
   |=  [=knot head=(unit plum) =(map term hoon)]
@@ -645,8 +618,9 @@
         [%tree battery-fmt kids]
     ==
 ::
-::  XX What is this and why?
-::  XX This is still kinda gross. Is more cleanup possible?
+::  XX Document this
+::
+::  XX What's a cleaner way to implement this?
 ::
 ++  chapters-to-plum
   |=  [=knot head=(unit plum) =(map term tome)]
@@ -660,7 +634,7 @@
     with-chapters
   with-chapters
 ::
-::  XX What is this and why?
+::  XX Document this.
 ::
 ++  chapters-to-plum-verbose
   |=  [=knot head=(unit plum) =(map term tome)]
@@ -675,7 +649,7 @@
   ?~  head  kids
   [u.head kids]
 ::
-::  XX What is this and why?
+::  XX Document this.
 ::
 ++  chapter-to-plum
   |=  [nm=knot [* bat=(map term hoon)]]
@@ -688,7 +662,7 @@
       (battery-to-plum-list bat)
   ==
 ::
-::  XX What is this and why?
+::  XX Document this.
 ::
 ++  chapters-to-plum-list
   |=  =(map term tome)
@@ -700,7 +674,7 @@
     :+  %tree  [wide=~ tall=[~ '' ~]]  (battery-to-plum-list hoons)
   (rune-to-plum '+|' ~ ~ [(cat 3 '%' term) (battery-to-plum-list hoons)])
 ::
-::  XX What is this and why?
+::  XX Document this.
 ::
 ++  xray-to-plum
   |=  =manx:hoot
@@ -771,7 +745,7 @@
     %bscb  (hoon-to-plum p.spec)
     %bscl  :-  %sbrk
            :+  %tree
-             [`[' ' `['[' ']']] `['$:' `['' '==']]]
+             [`[' ' `['[' ']']] `['$:' `['' '--']]]
            (turn `(list ^spec)`+.spec ..$)
     %bscn  (subtree (varying '$%' '==') (turn `(list ^spec)`+.spec ..$))
     %bsdt  (core-spec-to-plum '$.' p.spec q.spec)
@@ -1120,7 +1094,7 @@
 +$  wray  [=meta =data]
 +$  zray  [=type wray]
 +$  xray  $@(index zray)
-+$  notebook  [=xray =loop-map]
++$  notebook  [=xray xray-loops=loop-map]
 +$  index  @ud
 +$  shape
   $@  $?  %atom  %cell  %noun  %void  %wide  ==
@@ -1163,339 +1137,346 @@
       [%fork =(set xray)]
   ==
 ::
-++  valid-xrayed-type
-  |^  enter
-  ++  enter
-    |=  xt=xrayed-type
-    ^-  ?
-    =/  err  (find-error-anywhere xt)
-    ?~  err  %.y
-    ~&  err
-    %.n
-  ++  collapse-errors
-    |=  es=(list (unit @t))
-    ^-  (unit @t)
-    ?~  es    ~
-    ?^  i.es  i.es
-    $(es t.es)
-  ++  check-lookup
-    |=  [idx=@ tbl=(map index xray)]
-    ^-  (unit @t)
-    =/  mbx=(unit xray)  (~(get by tbl) idx)
-    ?~  mbx  [~ 'LOOP INDEX NOT IN TABLE']
-    =*  res  u.mbx
-    ?@  res  [~ 'LOOP INDEX RESOLVES TO ANOTHER LOOP INDEX']
-    ~
-  ++  check-entry-point
-    |=  [idx=@ xt=xrayed-type]
-    ?@  xray.xt  [~ 'ENTRY POINT IS LOOP INDEX']
-    =/  mbe  (check-lookup idx table.xt)
-    ?^  mbe  mbe
-    =/  ent  entry-unit.meta.xray.xt
-    ?~  ent  [~ 'ENTRY POINT WITH EMPTY `entry-unit`']
-    ?.  =(idx u.ent)
-      [~ 'LOOP INDEX RESOLVES TO XRAY WITH MISMATCHING `entry-unit`']
-    =/  res  (~(got by table.xt) idx)
-    ?.  =(res xray.xt)
-      [~ '`entry-unit` IS SET BUT DOES NOT SELF-RESOLVE']
-    ~
-  ::
-  ++  check-metadata
-    |=  xt=xrayed-type
-    ^-  (unit @t)
-    ?@  xray.xt  ~
-    =/  entry  entry-unit.meta.xray.xt
-    ?~  entry  ~
-    (check-entry-point u.entry xt)
-  ::
-  ++  subxrays-in-battery
-    |=  b=battery
-    ^-  (list xray)
-    %-  zing
-    %+  turn  ~(val by b)
-    |=  [* =(map term xray)]
-    ^-  (list xray)
-    ~(val by map)
-  ::
-  ++  subxrays
-    |=  x=xray
-    ^-  (list xray)
-    ?@  x  ~
-    =/  d  data.x
-    ?+    d
-        ~
-      [%cell *]  ~[head.d tail.d]
-      [%core *]  [xray.d (subxrays-in-battery battery.d)]
-      [%face *]  ~[xray.d]
-      [%fork *]  ~(tap in set.d)
-    ==
-  ::
-  ++  find-error-anywhere
-    |=  xt=xrayed-type
-    =/  mbe  (find-error xt)
-    ?^  mbe  mbe
-    %-  collapse-errors
-    %+  turn  ~(tap by table.xt)
-    |=  [idx=@ x=xray]
-    =/  mbe  (find-error xt(xray x))
-    ?^  mbe  mbe
-    (check-entry-point idx xt(xray x))
-  ::
-  ++  find-error
-    |=  xt=xrayed-type
-    ^-  (unit @t)
-    ?@  xray.xt  (check-lookup xray.xt table.xt)
-    =/  metaerr  (check-metadata xt)
-    ?^  metaerr  metaerr
-    %-  collapse-errors
-    %+  turn  (subxrays xray.xt)
-    |=  x=xray  (find-error xt(xray x))
-  --
-::
-++  dedupe-xray
-  |=  xt=xrayed-type
-  ^-  xrayed-type
-  =/  x  xray.xt
-  ?@  x  xt
-  =/  e  entry-unit.meta.x
-  ?~  e  xt
-  xt(xray u.e)
-::
 ++  xray-type
-  |^  enter
+  |^  |=  ty=type
+      ^-  xrayed-type
+      =+  [xray st]=(entry [~ ty] *state)
+      %-  validate-xrayed-type
+      %-  dedupe-xrayed-type
+      [xray (build-loop-map table.st)]
   ::
   +$  trace        (set type)
   +$  entry-table  (map type [=index =zray])
   +$  state        [count=@ud table=entry-table]
   ::
   +*  chap  [a]  (pair term (pair what (map term a)))
-  +*  arm  [a]   (pair term a)
+  +*  arm   [a]  (pair term a)
   ::
-  ++  trav-chaps  (traverse-right (chap hoon) (chap xray) state)
-  ++  trav-arms   (traverse-right (arm hoon) (arm xray) state)
-  ::
-  ++  enter
-    |=  ty=type
+  ++  validate-xrayed-type
+    |=  xt=xrayed-type
     ^-  xrayed-type
-    :: ~&  [%enter ty]
-    |^  =+  [xray st]=(entry [~ ty] *state)
-        [xray (build-loop-map table.st)]
-    ::
-    ::  Given an `entry-table` (which we use to check if a given type is
-    ::  an entry-point), produce a `loop-map`. In following analysis phases,
-    ::  we will be traversing xrays and we need to lookup looks when we
-    ::  come across them.  The `loop-map` structure encodes that.
-    ::
-    ++  build-loop-map
-      |=  table=entry-table
-      :: ~&  [%build-loop-map table]
-      ^-  (map index zray)
-      %-  ~(gas by *(map index zray))
-      %+  turn  ~(tap by table)
-      |=  [type [=index =zray]]
-      [index zray]
-    ::
-    ::  -entry: analyze at possible entry point
-    ::
-    ::  This analyzes a type that might be the entry-point for a loop.
-    ::
-    ::  - If this is already in the `loop-table`, just return it's index.
-    ::  - If the type is in the type-trace then , further up the call stack,
-    ::    we're already trying analyzing this same type. We found a
-    ::    loop! Create a stub entry in the loop-table, and the code
-    ::    further up the call stack (the one that's trying to analyze this
-    ::    same type) will see the stub entry and replace it with the actual
-    ::    xray value.
-    ::  - Otherwise jump to `main`, the code that handles the rest of the
-    ::    analysis logic.
-    ::  - Finally, if main returned something besides a loop index but
-    ::    somewhere further down the call added this type to the table, then
-    ::    replace the stub xray that they put there, and set the `entry-unit`
-    ::    value on the result xray to the loop index.
-    ::
-    ++  entry
-      |=  [[tr=trace ty=type] st=state]
-      ^-  [xray state]
-      :: ~&  [%entry ty]
-      =/  old  (~(get by table.st) ty)
-      ?^  old  [index.u.old st]
-      ?:  (~(has in tr) ty)
-        =/  result  `xray`count.st
-        =/  stub    [ty [count.st *zray]]
-        =.  st      [+(count.st) (~(put by table.st) stub)]
-        [result st]
-      =^  result  st  (main [(~(put in tr) ty) ty] st)
-      ?@  result  [result st]
-      =/  new  (~(get by table.st) ty)
-      ?~  new  [result st]
-      =*  idx  index.u.new
-      =.  entry-unit.meta.result  `idx
-      ?<  (~(has by table.st) idx)
-      =.  table.st  (~(put by table.st) ty [idx result])
+    ?.  (valid-xrayed-type xt)  !!
+    xt
+  ::
+  ::  Given an `entry-table` (which we use to check if a given type is
+  ::  an entry-point), produce a `loop-map`. In following analysis phases,
+  ::  we will be traversing xrays and we need to lookup looks when we
+  ::  come across them.  The `loop-map` structure encodes that.
+  ::
+  ++  build-loop-map
+    |=  table=entry-table
+    ^-  (map index zray)
+    %-  ~(gas by *(map index zray))
+    %+  turn  ~(tap by table)
+    |=  [type [=index =zray]]
+    [index zray]
+  ::
+  ::  This is just a small change to reduce the size of xrays. There is
+  ::  no semantic change, but there's probably a performance win to be
+  ::  had by doing this everywhere (instead of just at the top-level
+  ::  node) since xrays often end up having a fair amount of duplicated
+  ::  structure.
+  ::
+  ++  dedupe-xrayed-type
+    |=  xt=xrayed-type
+    ^-  xrayed-type
+    =/  x  xray.xt
+    ?@  x  xt
+    =/  e  entry-unit.meta.x
+    ?~  e  xt
+    xt(xray u.e)
+  ::
+  ::  -entry: analyze at possible entry point
+  ::
+  ::  This analyzes a type that might be the entry-point for a loop.
+  ::
+  ::  - If this is already in the `loop-table`, just return it's index.
+  ::  - If the type is in the type-trace then , further up the call stack,
+  ::    we're already trying analyzing this same type. We found a
+  ::    loop! Create a stub entry in the loop-table, and the code
+  ::    further up the call stack (the one that's trying to analyze this
+  ::    same type) will see the stub entry and replace it with the actual
+  ::    xray value.
+  ::  - Otherwise jump to `main`, the code that handles the rest of the
+  ::    analysis logic.
+  ::  - Finally, if main returned something besides a loop index but
+  ::    somewhere further down the call added this type to the table, then
+  ::    replace the stub xray that they put there, and set the `entry-unit`
+  ::    value on the result xray to the loop index.
+  ::
+  ++  entry
+    |=  [[tr=trace ty=type] st=state]
+    ^-  [xray state]
+    =/  old  (~(get by table.st) ty)
+    ?^  old  [index.u.old st]
+    ?:  (~(has in tr) ty)
+      =/  result  `xray`count.st
+      =/  stub    [ty [count.st *zray]]
+      =.  st      [+(count.st) (~(put by table.st) stub)]
       [result st]
+    =^  result  st  (main [(~(put in tr) ty) ty] st)
+    ?@  result  [result st]
+    =/  new  (~(get by table.st) ty)
+    ?~  new  [result st]
+    =*  idx  index.u.new
+    =.  entry-unit.meta.result  `idx
+    ?<  (~(has by table.st) idx)
+    =.  table.st  (~(put by table.st) ty [idx result])
+    [result st]
+  ::
+  ::  The main analysis code. This basically just calls out to other
+  ::  helper functions based on which type of type this is.
+  ::
+  ++  main
+    |=  [[tr=trace ty=type] st=state]
+    ^-  [xray state]
+    ?-  ty
+      %void      [[ty *meta ty] st]
+      %noun      [[ty *meta ty] st]
+      [%atom *]  [[ty *meta ty] st]
+      [%cell *]  =^  hed  st  $(ty p.ty)
+                 =^  tyl  st  $(ty q.ty)
+                 =*  wray  [*meta [%cell hed tyl]]
+                 [[ty wray] st]
+      [%core *]  =^  wray  st  (core [tr p.ty q.ty] st)
+                 [[ty wray] st]
+      [%face *]  =^  xray  st  $(ty q.ty)
+                 =*  wray  [*meta %face p.ty xray]
+                 [[ty wray] st]
+      [%hint *]  =^  wray  st  (hint [tr p.ty q.ty] st)
+                 [[ty wray] st]
+      [%fork *]  =^  wray  st  (fork [tr p.ty] st)
+                 [[ty wray] st]
+      [%hold *]  (entry [tr ~(repo ut ty)] st)
+    ==
+  ::
+  ::  Analyze a core.
+  ::
+  ++  core
+    |=  [[tr=trace =payload=type =coil] st=state]
+    ^-  [wray state]
+    =^  payload-xray  st  (main [tr payload-type] st)
+    =^  chapters=(list (chap xray))  st
+      %+  (traverse-right (chap hoon) (chap xray) state)
+        [~(tap by q.r.coil) st]
+      |=  [chap=(chap hoon) st=state]
+      =-  :_  ->
+          :+  p.chap  `what`p.q.chap  (~(gas by *(map term xray)) -<)
+      %+  (traverse-right (arm hoon) (arm xray) state)
+        [~(tap by q.q.chap) st]
+      |=  [arm=(arm hoon) st=state]
+      =*  hold-type  [%hold [%core payload-type coil] q.arm]
+      =^  xray  st  (main [tr hold-type] st)
+      [arm(q xray) st]
+    =*  chaps   (~(gas by *(map term (pair what (map term xray)))) chapters)
+    =*  result  `wray`[*meta [%core p.coil payload-xray chaps]]
+    [result st]
+  ::
+  ::  Analyze a %hint type.
+  ::
+  ::    subject-type: subject of note
+  ::    note: hint information
+  ::    content-type: type of hinted content
+  ::
+  ++  hint
+    |=  [[tr=trace [=subject=type =note] =payload=type] st=state]
+    ^-  [wray state]
+    =*  get-xray-by-loop-index  ~(got by (build-loop-map table.st))
+    =^  result=xray  st  (main [tr payload-type] st)
+    |-
+    ^-  [wray state]
+    ?@  result  $(result (get-xray-by-loop-index result))
+    ?-    -.note
+        %help
+      =.  comment-set.meta.result
+        (~(put in comment-set.meta.result) p.note)
+      [+.result st]
+        %know
+      =.  standard-set.meta.result
+        (~(put in standard-set.meta.result) p.note)
+      [+.result st]
+        %made
+      =^  =recipe  st
+        ?~  q.note  [[%direct p.note] st]
+        =-  [`recipe`[%synthetic p.note -<] `state`->]
+        |-
+        ^-  [(list xray) state]
+        ?~  u.q.note  [~ st]
+        =*  tsld  [%tsld [%limb %$] [%wing i.u.q.note]]
+        =*  part  (~(play ut subject-type) tsld)
+        =^  this  st  (entry [tr part] st)
+        =^  more  st  $(u.q.note t.u.q.note)
+        [[this more] st]
+      =.  recipe-set.meta.result
+        (~(put in recipe-set.meta.result) recipe)
+      [+.result st]
+    ==
+  ::
+  ::  +fork: convert a %fork $type to an $xray
+  ::
+  ::  set: set of union types
+  ::
+  ++  fork
+    |=  [[tr=trace =type=(set type)] st=state]
+    ^-  [wray state]
+    =^  xrays  st
+      %+  (traverse-left type xray state)
+        [~(tap in type-set) st]
+      |=  [ty=type st=state]
+      (main [tr ty] st)
+    :_  st  `wray`[*meta %fork (~(gas in *(set xray)) xrays)]
+  ::
+  ::  Validates that an `xrayed-type` is internally consistent.
+  ::  For example, validate that all loop references resolve.
+  ::
+  ++  valid-xrayed-type
+    |^  |=  xt=xrayed-type
+        ^-  ?
+        =/  err  (find-error-anywhere xt)
+        ?~  err  %.y
+        ~&  err
+        %.n
     ::
-    ::  The main analysis code. This basically just calls out to other
-    ::  helper functions based on which type of type this is.
+    ++  collapse-errors
+      |=  es=(list (unit @t))
+      ^-  (unit @t)
+      ?~  es    ~
+      ?^  i.es  i.es
+      $(es t.es)
     ::
-    ++  main
-      |=  [[tr=trace ty=type] st=state]
-      ^-  [xray state]
-      ?-  ty
-        %void      [[ty *meta ty] st]
-        %noun      [[ty *meta ty] st]
-        [%atom *]  [[ty *meta ty] st]
-        [%cell *]  =^  hed  st  $(ty p.ty)
-                   =^  tyl  st  $(ty q.ty)
-                   =*  wray  [*meta [%cell hed tyl]]
-                   [[ty wray] st]
-        [%core *]  =^  wray  st  (core [tr p.ty q.ty] st)
-                   [[ty wray] st]
-        [%face *]  =^  xray  st  $(ty q.ty)
-                   =*  wray  [*meta %face p.ty xray]
-                   [[ty wray] st]
-        [%hint *]  =^  wray  st  (hint [tr p.ty q.ty] st)
-                   [[ty wray] st]
-        [%fork *]  =^  wray  st  (fork [tr p.ty] st)
-                   [[ty wray] st]
-        [%hold *]  (entry [tr ~(repo ut ty)] st)
+    ++  check-lookup
+      |=  [idx=@ tbl=(map index xray)]
+      ^-  (unit @t)
+      =/  mbx=(unit xray)  (~(get by tbl) idx)
+      ?~  mbx  [~ %loop-index-not-in-table]
+      =*  res  u.mbx
+      ?@  res  [~ %loop-index-resolves-to-another-loop-index]
+      ~
+    ::
+    ++  check-entry-point
+      |=  [idx=@ xt=xrayed-type]
+      ?@  xray.xt  [~ %entry-point-is-loop-index]
+      =/  mbe  (check-lookup idx table.xt)
+      ?^  mbe  mbe
+      =/  ent  entry-unit.meta.xray.xt
+      ?~  ent  [~ %reference-to-non-entry-point]
+      ?.  =(idx u.ent)
+        [~ %reference-to-invalid-entry-point]
+      =/  res  (~(got by table.xt) idx)
+      ?.  =(res xray.xt)
+        [~ %inconsistent-entry-point]
+      ~
+    ::
+    ++  check-metadata
+      |=  xt=xrayed-type
+      ^-  (unit @t)
+      ?@  xray.xt  ~
+      =/  entry  entry-unit.meta.xray.xt
+      ?~  entry  ~
+      (check-entry-point u.entry xt)
+    ::
+    ++  subxrays-in-battery
+      |=  b=battery
+      ^-  (list xray)
+      %-  zing
+      %+  turn  ~(val by b)
+      |=  [* =(map term xray)]
+      ^-  (list xray)
+      ~(val by map)
+    ::
+    ++  subxrays
+      |=  x=xray
+      ^-  (list xray)
+      ?@  x  ~
+      =/  d  data.x
+      ?+    d
+          ~
+        [%cell *]  ~[head.d tail.d]
+        [%core *]  [xray.d (subxrays-in-battery battery.d)]
+        [%face *]  ~[xray.d]
+        [%fork *]  ~(tap in set.d)
       ==
     ::
-    ::  Analyze a core.
+    ++  find-error-anywhere
+      |=  xt=xrayed-type
+      =/  mbe  (find-error xt)
+      ?^  mbe  mbe
+      %-  collapse-errors
+      %+  turn  ~(tap by table.xt)
+      |=  [idx=@ x=xray]
+      =/  mbe  (find-error xt(xray x))
+      ?^  mbe  mbe
+      (check-entry-point idx xt(xray x))
     ::
-    ++  core
-      |=  [[tr=trace =payload=type =coil] st=state]
-      ^-  [wray state]
-      =^  payload-xray  st  (main [tr payload-type] st)
-      =^  chapters=(list (chap xray))  st
-        %+  trav-chaps  [~(tap by q.r.coil) st]
-        |=  [chap=(chap hoon) st=state]
-        =-  :_  ->
-            :+  p.chap  `what`p.q.chap  (~(gas by *(map term xray)) -<)
-        %+  trav-arms  [~(tap by q.q.chap) st]
-        |=  [arm=(arm hoon) st=state]
-        =*  hold-type  [%hold [%core payload-type coil] q.arm]
-        =^  xray  st  (main [tr hold-type] st)
-        [arm(q xray) st]
-      =*  chaps   (~(gas by *(map term (pair what (map term xray)))) chapters)
-      =*  result  `wray`[*meta [%core p.coil payload-xray chaps]]
-      [result st]
-    ::  Analyze a %hint type.
-    ::  subject-type: subject of note
-    ::  note: hint information
-    ::  content-type: type of hinted content
-    ::  content-type: type of hinted content
-    ++  hint
-      |=  [[tr=trace [=subject=type =note] =payload=type] st=state]
-      ^-  [wray state]
-      =*  get-xray-by-loop-index  ~(got by (build-loop-map table.st))
-      =^  result=xray  st  (main [tr payload-type] st)
-      |-
-      ^-  [wray state]
-      ?@  result  $(result (get-xray-by-loop-index result))
-      ?-    -.note
-          %help
-        =.  comment-set.meta.result
-          (~(put in comment-set.meta.result) p.note)
-        [+.result st]
-          %know
-        =.  standard-set.meta.result
-          (~(put in standard-set.meta.result) p.note)
-        [+.result st]
-          %made
-        =^  =recipe  st
-          ?~  q.note
-            [[%direct p.note] st]
-          =-  [`recipe`[%synthetic p.note -<] `state`->]
-          |-
-          ^-  [(list xray) state]
-          ?~  u.q.note  [~ st]
-          =*  wut  [%tsld [%limb %$] [%wing i.u.q.note]]
-          =*  part  (~(play ut subject-type) wut)
-          =^  this  st  (entry [tr part] st)
-          =^  more  st  $(u.q.note t.u.q.note)
-          [[this more] st]
-        =.  recipe-set.meta.result
-          (~(put in recipe-set.meta.result) recipe)
-        [+.result st]
-      ==
-    ::  +fork: convert a %fork $type to an $xray
-    ::  set: set of union types
-    ++  fork
-      |=  [[tr=trace =type=(set type)] st=state]
-      ^-  [wray state]
-      =^  xrays  st
-        %+  traverse-left-auto  [~(tap in type-set) st]
-        |=  [ty=type st=state]
-        (main [tr ty] st)
-      :_  st  `wray`[*meta %fork (~(gas in *(set xray)) xrays)]
+    ++  find-error
+      |=  xt=xrayed-type
+      ^-  (unit @t)
+      ?@  xray.xt  (check-lookup xray.xt table.xt)
+      =/  metaerr  (check-metadata xt)
+      ?^  metaerr  metaerr
+      %-  collapse-errors
+      %+  turn  (subxrays xray.xt)
+      |=  x=xray  (find-error xt(xray x))
     --
   --
+::
 ::  _ann: type analysis gear
+::
 ++  ann
   |_  notebook
-  ::  =enter: create with first-pass recursion analysis
+  ::
+  ::  =enter: xray a type to initialize the `notebook`.
+  ::
   ++  enter
-    |=  ty=type
+    |=  xt=xrayed-type
     ^+  +>
-    =/  xt=xrayed-type  (dedupe-xray (xray-type ty))
-    ~&  %xrayed-type
-    ~&  xt
-    ?.  (valid-xrayed-type xt)
-      ~&  'MALFORMED xrayed-type!'
-      ~&  [%xrayed-type xt]
-      !!
-    =.  xray.+>+      xray.xt
-    =.  loop-map.+>+  table.xt
-    +>+
+    =.  xray.+>        xray.xt
+    =.  xray-loops.+>  table.xt
+    +>
   ::
   ::  -measure: add shape to metadata, possibly restructuring
   ::
   ++  measure
-    ::~&  'MEASURE'
     |-  ^+  +
     =<  +>(+< complete:analyze)
     |%
     ++  complete  `notebook`+>+<
     ::
     ::  -remember: If we updated an xray that's an entry point, it needs
-    ::  to be udpated in `loop-map` as well.
+    ::  to be udpated in `xray-loops` as well.
     ::
     ++  remember
       ^+  .
       ?:  ?=(@ xray)  .
       ?~  entry-unit.meta.xray  .
-      .(loop-map (~(put by loop-map) u.entry-unit.meta.xray xray))
+      .(xray-loops (~(put by xray-loops) u.entry-unit.meta.xray xray))
     ::
     ::  -require: produce best currently available shape
     ::
     ++  require
-      ::~&  'REQUIRE'
-      |-  ^-  shape
+      |-
+      ^-  shape
+      ::
       ::  resolve indirections
       ::
-      :: ~&  'require-loop'
-      :: ~&  [%xray xray]
-      ?@  xray  :: ~&  %xray-is-loop-index
-                $(xray (~(got by loop-map) xray))
+      ?@  xray  $(xray (~(got by xray-loops) xray))
+      ::
       ::  produce already-computed shape
       ::
-      ?^  shape-unit.meta.xray  :: ~&  %xray-is-known-shape
-                                u.shape-unit.meta.xray
+      ?^  shape-unit.meta.xray  u.shape-unit.meta.xray
+      ::
       ::  (minimal shape which has not angered the recursion gods)
       ::
       ^-  shape
-      :: ~&  [%xray xray]
       ?@  data.xray
         data.xray
       ?-  -.data.xray
           %atom
-        :: ~&  %measure-atom-case
         ?~  constant-unit.data.xray
           %atom
         [%constant u.constant-unit.data.xray]
       ::
           %cell
-        :: ~&  %measure-cell-case
         =/  head-shape  $(xray head.data.xray)
         ?:  ?|  ?=(?(%cell %wide) head-shape)
                 ?=([?(%instance %union %junction %conjunction) *] head-shape)
@@ -1505,25 +1486,23 @@
           [%instance atom.head-shape]
         %cell
       ::
-          %core  :: ~&  %measure-core-case
+          %core
             %cell
-          %face  :: ~&  %measure-face-case
+          %face
             $(xray xray.data.xray)
-          %fork  :: ~&  %measure-fork-case
+          %fork
             $(xray (forge ~(tap in set.data.xray)))
       ==
     ::
     ::  -original: produce $type of xray
     ::
     ++  original
-      ::~&  'ORIGINAL'
       |-  ^-  type
-      ?@(xray $(xray (~(got by loop-map) xray)) type.xray)
+      ?@(xray $(xray (~(got by xray-loops) xray)) type.xray)
     ::
     ::  -fresh: produce trivial fork set if any
     ::
     ++  fresh
-      ::~&  'FRESH'
       ^-  (unit (set ^xray))
       ?@  xray  ~
       ?@  data.xray  ~
@@ -1535,7 +1514,6 @@
     ::
     ++  join
       |=  [this=^xray that=^xray]
-      ::~&  'JOIN'
       ^-  ^xray
       :-  (fork original(xray this) original(xray that) ~)
       :-  *meta
@@ -1557,21 +1535,19 @@
     ++  binary
       |*  joint=?(%junction %conjunction %misjunction)
       |=  [this=^xray that=^xray]
-      ::~&  'BINARY'
       ^-  [shape ^xray]
       [[joint this that] (join this that)]
     ::
     ::  -frame: computed shape with xray
     ::
-    ++  frame  ::~&  'FRAME'
-               `[shape ^xray]`[require xray]
+    ++  frame
+      `[shape ^xray]`[require xray]
     ::
     ::  =merge: merge two xrays intelligently, using shape
     ::
     ++  merge
       |=  [this=^xray that=^xray]
       ^-  ^xray
-      ::~&  'MERGE'
       ?:  ?&(?=(^ this) =(%void type.this))  that
       ?:  ?&(?=(^ that) =(%void type.that))  this
       =+  (combine frame(xray this) frame(xray that))
@@ -1581,7 +1557,6 @@
     ::
     ++  collate
       |=  [thick=(map atom ^xray) thin=(map atom ^xray)]
-      ::~&  'COLLATE'
       =/  list  ~(tap by thin)
       |-  ^-  (map atom ^xray)
       ?~  list  thick
@@ -1601,7 +1576,6 @@
     ::
     ++  forge
       |=  =(list ^xray)
-      ::~&  'FORGE'
       =/  new-xray  `^xray`[%void *meta %void]
       |-  ^-  ^xray
       ?~  list  new-xray
@@ -1612,8 +1586,6 @@
     ++  combine
       |=  [this=[=shape =^xray] that=[=shape =^xray]]
       ^-  [shape ^xray]
-      ::~&  'COMBINE'
-      :: ~&  [p=this q=that]
       ?:  =(this that)  this
       ?@  shape.this
         ?^  shape.that  $(this that, that this)
@@ -1643,7 +1615,10 @@
                          (merge xray.that flat.shape.this)
                        deep.shape.this
           ==
-        ::  At this point, shape.that is either %cell, %wide, %union, or some kind of junction.
+        ::
+        ::  At this point, shape.that is either %cell, %wide, %union,
+        ::  or some kind of junction.
+        ::
         ?+    -.shape.this
                        ((binary %misjunction) xray.this xray.that)
             %constant  ((binary %junction) xray.this xray.that)
@@ -1735,19 +1710,22 @@
         ==
       ==
     ::
-    ::  -analyze
+    ::  Analyze an xray.
     ::
     ++  analyze
       =<  remember
       =|  loop-set=(set index)
-      |-  ^+  +>
+      |-
+      ^+  +>
+      ::
       ::  If our xray is a loop reference, analyze the xray that the
       ::  reference resolves to and replace that slot in the loop map
       ::  with the analyzed version
+      ::
       ?@  xray
-        =/  =zray  (~(got by loop-map) xray)
+        =/  =zray  (~(got by xray-loops) xray)
         ?^  shape-unit.meta.zray  +>+
-        +>+(loop-map loop-map:complete:remember:$(xray zray))
+        +>+(xray-loops xray-loops:complete:remember:$(xray zray))
       ::
       :: If we've already measured this xray, do nothing
       ::
@@ -1762,24 +1740,23 @@
         ^-  (list recipe)
         =/  recipes=(list recipe)
           ~(tap in ^-((set recipe) recipe-set.meta.xray))
-        =^  finished-items  loop-map
-          =*  trav-recipes  (traverse-right recipe recipe _loop-map)
-          =*  trav-xrays    (traverse-right ^xray ^xray _loop-map)
-          ^-  [(list recipe) _loop-map]
-          %+  trav-recipes  [recipes loop-map]
-          |=  [r=recipe st=_loop-map]
+        =^  finished-items  xray-loops
+          ^-  [(list recipe) loop-map]
+          %+  (traverse-right recipe recipe loop-map)
+            [recipes xray-loops]
+          |=  [r=recipe st=loop-map]
           ?-    -.r
               %direct
             [r st]
               %synthetic
             =^  new-xrays  st
-              %+  trav-xrays  [list.r st]
-              |=  [x=^xray st=_loop-map]
-              complete:remember:^^$(xray x, loop-map st)
+              %+  (traverse-right ^xray ^xray loop-map)
+                [list.r st]
+              |=  [x=^xray st=loop-map]
+              complete:remember:^^$(xray x, xray-loops st)
             [r(list new-xrays) st]
           ==
         finished-items
-      =.  recipe-set.meta.xray  ~  :: XX Delete me
       ::
       ::  If this is a loop entry point, then we're already in the process
       ::  of analyzing this or we're not. If we are, then the index will
@@ -1791,7 +1768,6 @@
         +>
       =.  loop-set  ?~  ent  loop-set
                     (~(put in loop-set) u.ent)
-
       ::
       ::  If data is %noun or %void, then shape will also be %noun or %void.
       ::
@@ -1805,102 +1781,92 @@
           %atom
         +>(shape-unit.meta.xray `require)
           %cell
-        =^  head  loop-map  complete:remember:$(xray head.data.xray)
-        =^  tail  loop-map  complete:remember:$(xray tail.data.xray)
+        =^  head  xray-loops  complete:remember:$(xray head.data.xray)
+        =^  tail  xray-loops  complete:remember:$(xray tail.data.xray)
         =.  head.data.xray  head
         =.  tail.data.xray  tail
         +>+>(shape-unit.meta.xray `require)
           %core
-        =*  arm   (pair term ^xray)
-        =*  chap  (pair term (pair what (map term ^xray)))
-        =*  trav-chapters  (traverse-right chap chap _loop-map)
-        =*  trav-arms      (traverse-right arm arm _loop-map)
-        =^  payload  loop-map  complete:remember:$(xray xray.data.xray)
-        =^  chapters  loop-map
-          %+  trav-chapters  [~(tap by battery.data.xray) loop-map]
-          |=  [=chap st=_loop-map]
+        =^  payload  xray-loops  complete:remember:$(xray xray.data.xray)
+        =^  chapters  xray-loops
+          =*  chap  (pair term (pair what (map term ^xray)))
+          %+  (traverse-right chap chap loop-map)
+            [~(tap by battery.data.xray) xray-loops]
+          |=  [=chap st=loop-map]
           =-  :_  ->
               :+  p.chap
                 `what`p.q.chap
               (~(gas by *(map term ^xray)) -<)
-          %+  trav-arms  [~(tap by q.q.chap) st]
-          |=  [=arm st=_loop-map]
+          =*  arm   (pair term ^xray)
+          %+  (traverse-right arm arm loop-map)
+            [~(tap by q.q.chap) st]
+          |=  [=arm st=loop-map]
           =^  new-xray  st  complete:remember:^^$(xray q.arm)
           [arm(q new-xray) st]
         =.  xray.data.xray     payload
         =.  battery.data.xray  (~(gas by *battery) chapters)
         +>+>(shape-unit.meta.xray `%cell)
           %face
-        =^  body  loop-map  complete:remember:$(xray xray.data.xray)
+        =^  body  xray-loops  complete:remember:$(xray xray.data.xray)
         =.  xray.data.xray  body
         +>+(shape-unit.meta.xray `require(xray body))
           %fork
-        =^  list  loop-map
+        =^  list  xray-loops
           =/  list  ~(tap in set.data.xray) :: list of possible types.
-          |-  ^-  [(^list ^xray) _loop-map]
-          ?~  list  [~ loop-map]
-          =^  this  loop-map  complete:remember:^$(xray i.list)
-          =^  rest  loop-map  $(list t.list)
-          [[this rest] loop-map]
+          |-  ^-  [(^list ^xray) loop-map]
+          ?~  list  [~ xray-loops]
+          =^  this  xray-loops  complete:remember:^$(xray i.list)
+          =^  rest  xray-loops  $(list t.list)
+          [[this rest] xray-loops]
         =/  new-xray  (forge list)
         ?@  new-xray  +>+>(xray new-xray)
         =.  new-xray  new-xray(entry-unit.meta entry-unit.meta.xray)
         =.  new-xray  new-xray(recipe-set.meta recipe-set.meta.xray)
-        =.  new-xray  new-xray(recipe-set.meta ~) :: XX Deleteme
         +>+>(xray new-xray)
       ==
     --
-  ::
-  ::  -match: refine pattern analysis
-  ::
-  ::  TODO (self with $pattern metadata on every relevant $xray)
-  ++  match  !!
   ::
   ::  -specify: convert to spec
   ::
   ++  specify
     =|  =loop=(set index)
-    ::  [=loop=(set index) loops=(map index spec)]
     |-  ^-  spec
-
-    ~&  'SPECIFY'
-    ~&  ?@  xray  [%loop-ref xray]
-        ?^  entry-unit.meta.xray  :-  [%loop-entry u.entry-unit.meta.xray]
-                                  ?@  data.xray  [%xray-data data.xray]
-                                  [%xray-data-head -.data.xray]
-        ?@  data.xray  [%xray-data data.xray]
-        [%xray-data-head -.data.xray]
-
+    ::
+    ::  If an xray is a an atom, it's either already being processed
+    ::  or not. If it is, it'll be in the `loop-set`: Just return a
+    ::  reference to that loop. Otherwise, just process the actual `zray`
+    ::  for this type instead.
+    ::
     ?@  xray
       ?:  (~(has in loop-set) xray)
         [%loop (synthetic xray)]
-      $(xray (~(got by loop-map) xray))
-
+      $(xray (~(got by xray-loops) xray))
+    ::
+    ::  If the xray has a recipe, we can produce nicer output.
+    ::
     ?^  recipe-set.meta.xray
-      ::~&  'XRAY-HAS-RECIPE'
       =/  =recipe  n.recipe-set.meta.xray
       ?-  -.recipe
         %direct     `spec`[%like `wing`[term.recipe ~] ~]
-        %synthetic  ::~&  'FOUND SYNTHETIC RECEIPE!'
-                    :+  %make
+        %synthetic  :+  %make
                       [%limb term.recipe]
                     %+  turn  list.recipe
                     |=(=^xray `spec`^$(xray xray))
       ==
-
+    ::
     ::  If this is a loop, then add ourselves to the loop set and recurse,
-    ::  pretending that this is actually not a loop. Then, we will return
-    ::  a spec that looks something like this:
+    ::  pretending that this is actually not a loop. Given the result of that,
+    ::  pretending that this is actually not a loop. Given the result of that,
+    ::  produce a spec that looks something like:
     ::
     ::      $$  alf  ++  alf  spec  --
     ::
     ?^  entry-unit.meta.xray
       =/  idx  u.entry-unit.meta.xray
-      =/  =spec  $(loop-set (~(put in loop-set) idx), entry-unit.meta.xray ~)
+      =/  new-loop-set  (~(put in loop-set) idx)
+      =/  =spec  $(loop-set new-loop-set, entry-unit.meta.xray ~)
       :+  %bsbs  `^spec`[%loop (synthetic idx)]
       [[(synthetic idx) spec] ~ ~]
-      :: =.  loops  (~(put by loops) idx spec)
-      :: [%loop (synthetic idx)]
     ?@  data.xray  [%base data.xray]
     ?-  -.data.xray
       %atom  ?~  constant-unit.data.xray
@@ -1928,76 +1894,51 @@
                %iron  [%bsnt payload battery]
              ==
       %face  =/  =spec  $(xray xray.data.xray)
-             ::  we discard the $tune case, a $spec can't express it
+             ::
+             ::  We discard the $tune case, a $spec can't express it.
              ::
              ::  XX: should exist a %misjunction spec
              ::
              ?^(face.data.xray spec [%bsts face.data.xray spec])
       %fork  =/  =shape  (need shape-unit.meta.xray)
              |^  ?+  shape
-                     ::~&  [%unexpected-fork-shape shape]
-                     !!
+                     ~&  %unexpected-fork-shape  !!
                    [%option *]       [%bswt choices]
                    [%union *]        [%bscn choices]
+                   %cell             [%bswt choices] :: XX bskt?
+                   %noun             [%bswt choices]
+                   [%misjunction *]  [%bswt choices]
                    [%junction *]     :+  %bsvt
                                        ^$(xray flat.shape)
                                      ^$(xray deep.shape)
                    [%conjunction *]  :+  %bskt
                                        ^$(xray wide.shape)
                                      ^$(xray tall.shape)
-                   %cell             [%bswt choices] :: TODO bskt
-                   %noun             [%bswt choices] :: TODO type system should reject this?
-                   [%misjunction *]  [%bswt choices]
                  ==
              ::
              ++  choices
-               ::~&  'CHOICES'
                ^-  [i=spec t=(list spec)]
                =-  ?>(?=(^ -) -)
                (turn ~(tap in set.data.xray) |=(=^xray ^^$(xray xray)))
              --
     ==
   ::
-  ::  -display: convert to plum via spec
-  ::
-  ++  display
-    ::~&  'DISPLAY'
-    |-  ^-  plum
-    !!
-  ::  =present: convert noun to plum
-  ::
-  ++  present
-    |=  =noun
-    ^-  plum
-    ::~&  'PRESENT'
-    !!
-  ::
-  ::  |work: productions
-  ::
-  ++  foo
-     ::~&  'FOO'
-     %bar
-  ::
-  ::  |tool: functions
-  ::
-  ::
   ::  =flatten-battery: temporary function (XX)
   ::
-  ::    $spec should have chapters but it doesn't.  so we flatten.
+  ::    $spec should have chapters but it doesn't.  So we flatten.
   ::
   ++  flatten-battery
     |=  =battery
-    ::~&  'FLATTEN-BATTERY'
     =/  chapter-list  ~(tap by battery)
     |-  ^-  (map term ^xray)
     ?~  chapter-list  ~
     (~(uni by q.q.i.chapter-list) $(chapter-list t.chapter-list))
   ::
-  ::  =synthetic: convert :number to a synthetic name
+  ::  =synthetic: given a small atom (:number), construct a coresponding
+  ::  symbol using the Hebrew alphabet.
   ::
   ++  synthetic
     |=  number=@ud
-    ::~&  'SYNTHETIC'
     ^-  @tas
     =/  alf/(list term)
         ^~  :~  %alf  %bet  %gim  %dal  %hej  %vav  %zay  %het
@@ -2009,6 +1950,7 @@
     (cat 3 (snag (mod number 22) alf) $(number (div number 22)))
   --
 --
+::
 :: Partial list of edge cases found:
 ::
 :: +hoon-printer =<  -  !>  *$@(? [a=* (unit $?(@ @ ~))])
