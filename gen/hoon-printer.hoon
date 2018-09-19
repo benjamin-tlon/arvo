@@ -1455,13 +1455,12 @@
     |-  ^+  +
     =<  +>(+< complete:analyze)
     |%
-    ++  complete  ::~&  'COMPLETE'
-                  `notebook`+>+<
+    ++  complete  `notebook`+>+<
     ::
-    ::  -remember: save measured xray in loop map as needed
+    ::  -remember: If we updated an xray that's an entry point, it needs
+    ::  to be udpated in `loop-map` as well.
     ::
     ++  remember
-      ::~&  'REMEMBER'
       ^+  .
       ?:  ?=(@ xray)  .
       ?~  entry-unit.meta.xray  .
@@ -1739,34 +1738,23 @@
     ::  -analyze
     ::
     ++  analyze
-      ::~&  'ANALYSE'
-      ::  afterward, record result in loop map as needed
-      ::
       =<  remember
-      ::  loop-set: set of loops we are analyzing
-      ::
       =|  loop-set=(set index)
       |-  ^+  +>
-      ::~&  'analysis-loop'
-      ::  if .xray is a loop reference
-      ::
-      ::~&  'THIS ONE'
-      ::~&  [%xray xray]
+      ::  If our xray is a loop reference, analyze the xray that the
+      ::  reference resolves to and replace that slot in the loop map
+      ::  with the analyzed version
       ?@  xray
-        ::~&  %xray-atom
-        ::  zray: direct target of indirect .xray
-        ::
         =/  =zray  (~(got by loop-map) xray)
-        ::  if we have already measured .zray, do nothing
-        ::
         ?^  shape-unit.meta.zray  +>+
-        ::  otherwise, measure it eagerly; it will save itself
-        ::
         +>+(loop-map loop-map:complete:remember:$(xray zray))
-      ::  if we've already measured this xray, do nothing
       ::
-      ?^  shape-unit.meta.xray  ::~&  %xray-already-measured
-                                +>
+      :: If we've already measured this xray, do nothing
+      ::
+      ?^  shape-unit.meta.xray  +>
+      ::
+      ::  Analyze the xrays in the recipes as well.
+      ::
       =.  recipe-set.meta.xray
         ?~  recipe-set.meta.xray  recipe-set.meta.xray
         ^-  (set recipe)
@@ -1791,36 +1779,37 @@
             [r(list new-xrays) st]
           ==
         finished-items
-      ::  if we're currently measuring this xray, do nothing
+      =.  recipe-set.meta.xray  ~  :: XX Delete me
       ::
-      ?:  ?&  ?=(^ entry-unit.meta.xray)
-              (~(has in loop-set) u.entry-unit.meta.xray)
-          ==
-        ::~&  %xray-currently-being-measured
+      ::  If this is a loop entry point, then we're already in the process
+      ::  of analyzing this or we're not. If we are, then the index will
+      ::  be in `loop-set`: do nothing. Otherwise, store the index in the
+      ::  `loop-set` and continue.
+      ::
+      =*  ent  entry-unit.meta.xray
+      ?:  ?&  ?=(^ ent)  (~(has in loop-set) u.ent)  ==
         +>
-      ::  record any loops we enter
+      =.  loop-set  ?~  ent  loop-set
+                    (~(put in loop-set) u.ent)
+
       ::
-      =.  loop-set  ?~  entry-unit.meta.xray  loop-set
-                    :: ~&  %added-to-loop-set
-                    (~(put in loop-set) u.entry-unit.meta.xray)
-      :: ~&  [%loop-set loop-set]
-      ::  %noun and %void are their own shape
+      ::  If data is %noun or %void, then shape will also be %noun or %void.
       ::
-      ?@  data.xray  ::~&  %xray-with-data-atom
-                     +>(shape-unit.meta.xray `data.xray)
+      ?@  data.xray
+        =/  shape=shape  data.xray
+        +>+(shape-unit.meta.xray `shape)
+      ::
+      ::  Otherwise, switch on the tag.
+      ::
       ?-    -.data.xray
           %atom
-        ::~&  %atom-xray
         +>(shape-unit.meta.xray `require)
-      ::
           %cell
-        ::~&  %cell-xray
         =^  head  loop-map  complete:remember:$(xray head.data.xray)
         =^  tail  loop-map  complete:remember:$(xray tail.data.xray)
         =.  head.data.xray  head
         =.  tail.data.xray  tail
         +>+>(shape-unit.meta.xray `require)
-      ::
           %core
         =*  arm   (pair term ^xray)
         =*  chap  (pair term (pair what (map term ^xray)))
@@ -1841,15 +1830,11 @@
         =.  xray.data.xray     payload
         =.  battery.data.xray  (~(gas by *battery) chapters)
         +>+>(shape-unit.meta.xray `%cell)
-      ::
           %face
-        ::~&  %face-xray
         =^  body  loop-map  complete:remember:$(xray xray.data.xray)
         =.  xray.data.xray  body
         +>+(shape-unit.meta.xray `require(xray body))
-      ::
           %fork
-        ::~&  %fork-xray
         =^  list  loop-map
           =/  list  ~(tap in set.data.xray) :: list of possible types.
           |-  ^-  [(^list ^xray) _loop-map]
@@ -1861,6 +1846,7 @@
         ?@  new-xray  +>+>(xray new-xray)
         =.  new-xray  new-xray(entry-unit.meta entry-unit.meta.xray)
         =.  new-xray  new-xray(recipe-set.meta recipe-set.meta.xray)
+        =.  new-xray  new-xray(recipe-set.meta ~) :: XX Deleteme
         +>+>(xray new-xray)
       ==
     --
@@ -1873,17 +1859,23 @@
   ::  -specify: convert to spec
   ::
   ++  specify
-    =|  loop-set=(set index)
+    =|  =loop=(set index)
+    ::  [=loop=(set index) loops=(map index spec)]
     |-  ^-  spec
-    ::~&  'SPECIFY'
-    ::~&  xray
+
+    ~&  'SPECIFY'
+    ~&  ?@  xray  [%loop-ref xray]
+        ?^  entry-unit.meta.xray  :-  [%loop-entry u.entry-unit.meta.xray]
+                                  ?@  data.xray  [%xray-data data.xray]
+                                  [%xray-data-head -.data.xray]
+        ?@  data.xray  [%xray-data data.xray]
+        [%xray-data-head -.data.xray]
+
     ?@  xray
-      ::~&  %loop-found
       ?:  (~(has in loop-set) xray)
-        ::~&  %loop-is-in-loop-set
         [%loop (synthetic xray)]
-      ::~&  %not-in-loop-set-recurse
       $(xray (~(got by loop-map) xray))
+
     ?^  recipe-set.meta.xray
       ::~&  'XRAY-HAS-RECIPE'
       =/  =recipe  n.recipe-set.meta.xray
@@ -1895,11 +1887,20 @@
                     %+  turn  list.recipe
                     |=(=^xray `spec`^$(xray xray))
       ==
+
+    ::  If this is a loop, then add ourselves to the loop set and recurse,
+    ::  pretending that this is actually not a loop. Then, we will return
+    ::  a spec that looks something like this:
+    ::
+    ::      $$  alf  ++  alf  spec  --
+    ::
     ?^  entry-unit.meta.xray
-      =/  =spec  $(loop-set (~(put in loop-set) u.entry-unit.meta.xray), entry-unit.meta.xray ~)
-      :+  %bsbs
-        spec
-      [[(synthetic u.entry-unit.meta.xray) spec] ~ ~]
+      =/  idx  u.entry-unit.meta.xray
+      =/  =spec  $(loop-set (~(put in loop-set) idx), entry-unit.meta.xray ~)
+      :+  %bsbs  `^spec`[%loop (synthetic idx)]
+      [[(synthetic idx) spec] ~ ~]
+      :: =.  loops  (~(put by loops) idx spec)
+      :: [%loop (synthetic idx)]
     ?@  data.xray  [%base data.xray]
     ?-  -.data.xray
       %atom  ?~  constant-unit.data.xray
