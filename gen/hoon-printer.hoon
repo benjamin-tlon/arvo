@@ -1,12 +1,12 @@
 ::
-::  Try these:
+::  Here, try this:
 ::
-:: +hoon-printer :~  '*$@(? [a=* (unit $?(@ @ ~))])'
-::                   '*$%([$a $?(^ @)] [$b ~])'
-::                   '*(unit ?(%a %b))'
-::                   '*(list ?(%a %b))'
-::                   '*$%([%e @] [%j (list ~)])'
-::               ==
+::  > +hoon-printer :~  '*$@(? [a=* (unit $?(@ @ ~))])'
+::                      '*$%([$a $?(^ @)] [$b ~])'
+::                      '*(unit ?(%a %b))'
+::                      '*(list ?(%a %b))'
+::                      '*$%([%e @] [%j (list ~)])'
+::                  ==
 ::
 /?  310
 !:
@@ -47,7 +47,7 @@
    =^  r   st  (f i.xs st)
    [[r rs] st]
 ::
-::  Pretty-print a type.
+::  Pretty-print a type given as a string.
 ::
 ++  compile-and-render-type
   |=  {^ {{tys=(list cord) ~} ~}}
@@ -1963,11 +1963,3 @@
     (cat 3 (snag (mod number 22) alf) $(number (div number 22)))
   --
 --
-::
-:: Partial list of edge cases found:
-::
-:: +hoon-printer =<  -  !>  *$@(? [a=* (unit $?(@ @ ~))])
-:: +hoon-printer =<  -  !>  *$%([$a $?(^ @)] [$a ~])
-:: +hoon-printer =<  -  !>  *(unit ?(%a %b))
-:: +hoon-printer =<  -  !>  *(list ?(%a %b))
-:: +hoon-printer =<  -  !>  *$%([%e @] [%j (list ~)])
