@@ -82,6 +82,22 @@
   ^-  wain
   ~(tall plume (hoon-to-plum demo))
 ::
+++  cat-patterns
+  |=  xs=(list (unit pattern))
+  ^-  (unit pattern)
+  ?~  xs    ~
+  ?^  i.xs  i.xs
+  $(xs t.xs)
+::
+++  cat-errors
+  |*  xs=(list (unit @))
+  ^-  (unit @)
+  |-
+  ^-  (unit @)
+  ?~  xs    ~
+  ?^  i.xs  i.xs
+  $(xs t.xs)
+::
 ::  This is just a helper function for testing out this code.  It just digs
 ::  through a type and finds hoon values referenced within that type,
 ::  and then renders the result.
@@ -1155,7 +1171,7 @@
       ^-  xrayed-type
       =+  [xray st]=(entry [~ ty] *state)
       %-  validate-xrayed-type
-      %-  dedupe-xrayed-type
+      ::  %-  dedupe-xrayed-type
       [xray (build-loop-map table.st)]
   ::
   +$  trace        (set type)
@@ -1168,7 +1184,7 @@
   ++  validate-xrayed-type
     |=  xt=xrayed-type
     ^-  xrayed-type
-    ?.  (valid-xrayed-type xt)  !!
+    ?.  (valid-xrayed-type xt)  xt :: XX
     xt
   ::
   ::  Given an `entry-table` (which we use to check if a given type is
@@ -1350,13 +1366,6 @@
         ~&  err
         %.n
     ::
-    ++  collapse-errors
-      |=  es=(list (unit @t))
-      ^-  (unit @t)
-      ?~  es    ~
-      ?^  i.es  i.es
-      $(es t.es)
-    ::
     ++  check-lookup
       |=  [idx=@ tbl=(map index xray)]
       ^-  (unit @t)
@@ -1414,7 +1423,7 @@
       |=  xt=xrayed-type
       =/  mbe  (find-error xt)
       ?^  mbe  mbe
-      %-  collapse-errors
+      %-  cat-errors
       %+  turn  ~(tap by table.xt)
       |=  [idx=@ x=xray]
       =/  mbe  (find-error xt(xray x))
@@ -1427,11 +1436,68 @@
       ?@  xray.xt  (check-lookup xray.xt table.xt)
       =/  metaerr  (check-metadata xt)
       ?^  metaerr  metaerr
-      %-  collapse-errors
+      %-  cat-errors
       %+  turn  (subxrays xray.xt)
       |=  x=xray  (find-error xt(xray x))
     --
   --
+::
+++  type-nests-under
+  |=  t1=type
+  ^-  $-(type ?)
+  |=  t2=type
+  ^-  ?
+  (~(nest ut t1) | t2)
+::
+++  type-equals
+  |=  t1=type
+  ^-  $-(type ?)
+  |=  t2=type
+  ^-  ?
+  =(t1 t2)
+::
+++  is-hoon  (type-nests-under -:!>(*hoon))
+++  is-manx  (type-nests-under -:!>(*manx))
+++  is-nock  (type-nests-under -:!>(*nock))
+++  is-plum  (type-nests-under -:!>(*plum))
+++  is-skin  (type-nests-under -:!>(*skin))
+
+++  is-path  (type-nests-under -:!>(*path))
+++  is-tape  (type-nests-under -:!>(*tape))
+
+++  is-tour  (type-nests-under -:!>(*tour))
+++  is-type  (type-nests-under -:!>(*type))
+++  is-vase  (type-nests-under -:!>(*vase))
+++  is-unit  (type-nests-under -:!>(*(unit *)))
+++  is-list  (type-nests-under -:!>(*(list *)))
+++  is-tree  (type-nests-under -:!>(*(tree *)))
+++  is-gate  (type-nests-under -:!>(*$-(* *)))
+++  xray-pattern
+  |=  x=xray
+  ^-  (unit pattern)
+  ?@  x  ~
+  =/  t  type.x
+  ^-  (unit pattern)
+  %-  cat-patterns
+  ^-  (list (unit pattern))
+  :~
+      ::  Simple equality tests:
+      ?.  (is-hoon t)  ~  ~&  %found-hoon  [~ %hoon]
+      ?.  (is-manx t)  ~  ~&  %found-manx  [~ %manx]
+      ?.  (is-nock t)  ~  ~&  %found-nock  [~ %nock]
+      ?.  (is-plum t)  ~  ~&  %found-plum  [~ %plum]
+      ?.  (is-skin t)  ~  ~&  %found-skin  [~ %skin]
+      ?.  (is-tour t)  ~  ~&  %found-tour  [~ %tour]
+      ?.  (is-type t)  ~  ~&  %found-type  [~ %type]
+      ?.  (is-vase t)  ~  ~&  %found-vase  [~ %vase]
+      ?.  (is-tape t)  ~  ~&  %found-tape  [~ %tape]
+      ?.  (is-path t)  ~  ~&  %found-path  [~ %path]
+      ::  These checks require us to call `nest`:
+      ?.  (is-unit t)  ~  ~&  %found-unit  [~ %unit 0]    :: [%unit item=xray]
+      ?.  (is-list t)  ~  ~&  %found-list  [~ %list 0]    :: [%list item=xray]
+      ?.  (is-tree t)  ~  ~&  %found-tree  [~ %tree 0]    :: [%tree item=xray]
+      ?.  (is-gate t)  ~  ~&  %found-gate  [~ %gate 0 0]  :: [%gate sample=xray product=xray]
+  ==
 ::
 ::  _ann: type analysis gear
 ::
@@ -1730,6 +1796,10 @@
       =|  loop-set=(set index)
       |-
       ^+  +>
+      ::  XX This causes a bail fail:
+      ::
+      ::      ~&  ?@  xray  ~  type.xray
+      ::
       ::
       ::  If our xray is a loop reference, analyze the xray that the
       ::  reference resolves to and replace that slot in the loop map
@@ -1842,6 +1912,8 @@
   ::  -specify: convert to spec
   ::
   ++  specify
+    ~&  ?@  xray  xray  (xray-pattern xray)
+    ::
     =|  =loop=(set index)
     |-  ^-  spec
     ::
