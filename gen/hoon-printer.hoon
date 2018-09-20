@@ -53,13 +53,12 @@
   |=  {^ {{tys=(list cord) ~} ~}}
   :-  %txt
   ^-  wain
-  =/  ctx  ..zuse
   %-  zing
   %+  turn  tys
   |=  c=cord
   ^-  (list cord)
-  =/  t=type  -:(ride -:!>(ctx) c)
-  =/  s=spec  specify:measure:(enter:ann (xray-type t))
+  =/  t=type  -:(ride -:!>(..zuse) c)
+  =/  s=spec  specify:patternize:measure:(enter:ann (xray-type t))
   =/  p=plum  (spec-to-plum s)
   ^-  (list cord)
   ~(tall plume p)
@@ -70,7 +69,7 @@
   |=  {^ {{subject=type ~} ~}}
   :-  %txt
   ^-  wain
-  =/  s=spec  specify:measure:(enter:ann (xray-type subject))
+  =/  s=spec  specify:patternize:measure:(enter:ann (xray-type subject))
   =/  p=plum  (spec-to-plum s)
   ~(tall plume p)
 ::
@@ -84,10 +83,11 @@
 ::
 ++  cat-patterns
   |=  xs=(list (unit pattern))
-  ^-  (unit pattern)
+  ^-  (list pattern)
   ?~  xs    ~
-  ?^  i.xs  i.xs
-  $(xs t.xs)
+  =/  more  $(xs t.xs)
+  ?~  i.xs  more
+  [u.i.xs more]
 ::
 ++  cat-errors
   |*  xs=(list (unit @))
@@ -1174,7 +1174,6 @@
       ::  %-  dedupe-xrayed-type
       [xray (build-loop-map table.st)]
   ::
-  +$  trace        (set type)
   +$  entry-table  (map type [=index =zray])
   +$  state        [count=@ud table=entry-table]
   ::
@@ -1363,7 +1362,9 @@
         ^-  ?
         =/  err  (find-error-anywhere xt)
         ?~  err  %.y
-        ~&  err
+        ~&  `(unit cord)`err
+        :: ~&  xray.xt
+        :: ~&  table.xt
         %.n
     ::
     ++  check-lookup
@@ -1397,28 +1398,6 @@
       ?~  entry  ~
       (check-entry-point u.entry xt)
     ::
-    ++  subxrays-in-battery
-      |=  b=battery
-      ^-  (list xray)
-      %-  zing
-      %+  turn  ~(val by b)
-      |=  [* =(map term xray)]
-      ^-  (list xray)
-      ~(val by map)
-    ::
-    ++  subxrays
-      |=  x=xray
-      ^-  (list xray)
-      ?@  x  ~
-      =/  d  data.x
-      ?+    d
-          ~
-        [%cell *]  ~[head.d tail.d]
-        [%core *]  [xray.d (subxrays-in-battery battery.d)]
-        [%face *]  ~[xray.d]
-        [%fork *]  ~(tap in set.d)
-      ==
-    ::
     ++  find-error-anywhere
       |=  xt=xrayed-type
       =/  mbe  (find-error xt)
@@ -1439,6 +1418,26 @@
       %-  cat-errors
       %+  turn  (subxrays xray.xt)
       |=  x=xray  (find-error xt(xray x))
+    ++  subxrays
+      |=  x=xray
+      ^-  (list xray)
+      ?@  x  ~
+      =/  d  data.x
+      ?+    d
+          ~
+        [%cell *]  ~[head.d tail.d]
+        [%core *]  [xray.d (subxrays-in-battery battery.d)]
+        [%face *]  ~[xray.d]
+        [%fork *]  ~(tap in set.d)
+      ==
+    ++  subxrays-in-battery
+      |=  b=battery
+      ^-  (list xray)
+      %-  zing
+      %+  turn  ~(val by b)
+      |=  [* =(map term xray)]
+      ^-  (list xray)
+      ~(val by map)
     --
   --
 ::
@@ -1461,42 +1460,198 @@
 ++  is-nock  (type-nests-under -:!>(*nock))
 ++  is-plum  (type-nests-under -:!>(*plum))
 ++  is-skin  (type-nests-under -:!>(*skin))
-
-++  is-path  (type-nests-under -:!>(*path))
-++  is-tape  (type-nests-under -:!>(*tape))
-
-++  is-tour  (type-nests-under -:!>(*tour))
+::  ++  is-path  (type-nests-under -:!>(*path))
+::
+++  is-nil
+  |=  xt=xrayed-type
+  ?@  xray.xt  $(xray.xt (~(got by table.xt) xray.xt))
+  =/  d  data.xray.xt
+  ?@  d  %.n
+  ?+    -.d
+      %.n
+    %atom  =(d [%atom aura=~.n constant-unit=[~ u=0]])
+    %face  $(xray.xt xray.d)
+  ==
+::
+++  is-atom-with-aura
+  |=  [c=cord xt=xrayed-type]
+  ^-  ?
+  ?@  xray.xt  $(xray.xt (~(got by table.xt) xray.xt))
+  =/  d  data.xray.xt
+  ?@  d  %.n
+  ?+    -.d
+      %.n
+    %atom  =(d [%atom aura=c constant-unit=~])
+    %face  $(xray.xt xray.d)
+  ==
+::
+++  is-reference-to-loop
+  |=  [i=@ x=xray]
+  ?@  x  =(i x)
+  ?.  ?=([%face *] data.x)  %.n
+  $(x xray.data.x)
+::
+++  is-list-of-atoms-with-aura
+  |=  [aura=cord xt=xrayed-type]
+  =/  res  (list-of-what xt)
+  ?~  res  %.n
+  (is-atom-with-aura aura xt(xray u.res))
+::
+++  list-of-what
+  |=  xt=xrayed-type
+  ^-  (unit xray)
+  ?@  xray.xt  $(xray.xt (~(got by table.xt) xray.xt))
+  ?~  entry-unit.meta.xray.xt  ~
+  =/  idx  u.entry-unit.meta.xray.xt
+  =/  d  data.xray.xt
+  ?.  ?=([%fork *] d)  ~
+  =/  branches  ~(tap in set.d)
+  ?.  ?=([* * ~] branches)  ~
+  =/  x  i.branches
+  =/  y  i.t.branches
+  |-
+  ?:  (is-nil y table.xt)  $(y x, x y)
+  ?.  (is-nil x table.xt)  ~
+  |-
+  ?@  y  $(y (~(got by table.xt) xray.xt))
+  ?.  ?=([%cell *] data.y)  ~
+  ?.  (is-reference-to-loop idx tail.data.y)  ~
+  `head.data.y
+::
+++  is-tape
+  |=  xt=xrayed-type
+  (is-list-of-atoms-with-aura 'tD' xt)
+++  is-path
+  |=  xt=xrayed-type
+  (is-list-of-atoms-with-aura 'ta' xt)
+++  is-tour
+  |=  xt=xrayed-type
+  (is-list-of-atoms-with-aura 'c' xt)
+::
+::
 ++  is-type  (type-nests-under -:!>(*type))
 ++  is-vase  (type-nests-under -:!>(*vase))
 ++  is-unit  (type-nests-under -:!>(*(unit *)))
 ++  is-list  (type-nests-under -:!>(*(list *)))
 ++  is-tree  (type-nests-under -:!>(*(tree *)))
 ++  is-gate  (type-nests-under -:!>(*$-(* *)))
+:: ++  fast-type-equals
+::   |=  [t1=type t2=type]
+::   ?+  t1
+::       =(t1 t2)
+::     [$atom p/term q/(unit @)]                 ::  atom / constant
+::     [$cell p/type q/type]                     ::  ordered pair
+::     [$core p/type q/coil]                     ::  object
+::     [$face p/$@(term tune) q/type]            ::  namespace
+::     [$fork p/(set type)]                      ::  union
+::     [$hint p/(pair type note) q/type]         ::  annotation
+::     [$hold p/type q/hoon]                     ::  lazy evaluation
+::   --
+:: :: +$  type  $~  %noun                                  ::
+::           $@  $?  $noun                                 ::  any nouns
+::                   $void                                 ::  no noun
+::               ==                                        ::
+::           ==                                            ::
+:: ####
+:: ####
+::
++$  trace        (set type)
+::
+++  decorate-with-patterns
+  |^  |=  xt=xrayed-type
+      ^-  xrayed-type
+      (main `(set type)`~ xt)
+  ++  main
+    |=  [tr=trace xt=xrayed-type]
+    ^-  xrayed-type
+    ?@  xray.xt  $(xray.xt (~(got by table.xt) xray.xt))
+    ?:  (~(has in tr) type.xray.xt)  xt
+    =/  pat  (xray-pattern xt)
+    =.  pattern-set.meta.xray.xt  pat
+    =.  table.xt
+        ?~  pat  table.xt
+        ?~  entry-unit.meta.xray.xt  table.xt
+        (~(put by table.xt) u.entry-unit.meta.xray.xt xray.xt)
+    ::  Now, recurse, replacing subexpressions.
+    ::  Hmm, this is a lot of code, since I need to switch on the type.
+    ::  Whatever, just do it for now.
+    =.  tr  (~(put in tr) type.xray.xt)
+    ?@  data.xray.xt  xt
+    ?-  -.data.xray.xt
+      %atom  xt
+      %cell  =^  hd  table.xt  (main tr xt(xray head.data.xray.xt))
+             =^  tl  table.xt  (main tr xt(xray tail.data.xray.xt))
+             xt(head.data.xray hd, tail.data.xray tl)
+      %core  !!
+      %face  =^  xr  table.xt  (main tr xt(xray xray.data.xray.xt))
+             xt(xray.data.xray xr)
+      %fork  =^  bl  table.xt
+               %+  (traverse-left xray xray loop-map)
+                 [~(tap in set.data.xray.xt) table.xt]
+               |=  xt=xrayed-type
+               ^-  xrayed-type
+               (main tr xt)
+             =/  bs  (~(gas in *(set xray)) bl)
+             xt(set.data.xray bs)
+    ==
+::
+++  subxrays
+  ^|  |=  x=xray
+      ^-  (list xray)
+      ?@  x  ~
+      =/  d  data.x
+      ?+    d
+          ~
+        [%cell *]  ~[head.d tail.d]
+        [%core *]  [xray.d (subxrays-in-battery battery.d)]
+        [%face *]  ~[xray.d]
+        [%fork *]  ~(tap in set.d)
+      ==
+  ::
+  ++  subxrays-in-battery
+    |=  b=battery
+    ^-  (list xray)
+    %-  zing
+    %+  turn  ~(val by b)
+    |=  [* =(map term xray)]
+    ^-  (list xray)
+    ~(val by map)
+  --
+
 ++  xray-pattern
-  |=  x=xray
-  ^-  (unit pattern)
-  ?@  x  ~
+  |=  xt=xrayed-type
+  ^-  (set pattern)
+  =/  x  xray.xt
+  ?@  x  $(xray.xt (~(got by table.xt) x))
   =/  t  type.x
-  ^-  (unit pattern)
-  %-  cat-patterns
-  ^-  (list (unit pattern))
+  ^-  (set pattern)
+  %-  ~(gas in *(set pattern))
+  %-  zing
+  ?:  (is-nil xt)  ~
+  =/  elem-xray  (list-of-what xt)
   :~
       ::  Simple equality tests:
-      ?.  (is-hoon t)  ~  ~&  %found-hoon  [~ %hoon]
-      ?.  (is-manx t)  ~  ~&  %found-manx  [~ %manx]
-      ?.  (is-nock t)  ~  ~&  %found-nock  [~ %nock]
-      ?.  (is-plum t)  ~  ~&  %found-plum  [~ %plum]
-      ?.  (is-skin t)  ~  ~&  %found-skin  [~ %skin]
-      ?.  (is-tour t)  ~  ~&  %found-tour  [~ %tour]
-      ?.  (is-type t)  ~  ~&  %found-type  [~ %type]
-      ?.  (is-vase t)  ~  ~&  %found-vase  [~ %vase]
-      ?.  (is-tape t)  ~  ~&  %found-tape  [~ %tape]
-      ?.  (is-path t)  ~  ~&  %found-path  [~ %path]
+      ?.  (is-hoon t)   ~  ~&  %found-hoon  ~[%hoon]
+      ?.  (is-manx t)   ~  ~&  %found-manx  ~[%manx]
+      ?.  (is-nock t)   ~  ~&  %found-nock  ~[%nock]
+      ?.  (is-plum t)   ~  ~&  %found-plum  ~[%plum]
+      ?.  (is-skin t)   ~  ~&  %found-skin  ~[%skin]
+      :: ?.  (is-tour xt)  ~  ~&  %found-tour  ~[%tour]
+      :: ?.  (is-path xt)  ~  ~&  %found-path  ~[%path]
+      ?.  (is-type t)   ~  ~&  %found-type  ~[%type]
+      ?.  (is-vase t)   ~  ~&  %found-vase  ~[%vase]
       ::  These checks require us to call `nest`:
-      ?.  (is-unit t)  ~  ~&  %found-unit  [~ %unit 0]    :: [%unit item=xray]
-      ?.  (is-list t)  ~  ~&  %found-list  [~ %list 0]    :: [%list item=xray]
-      ?.  (is-tree t)  ~  ~&  %found-tree  [~ %tree 0]    :: [%tree item=xray]
-      ?.  (is-gate t)  ~  ~&  %found-gate  [~ %gate 0 0]  :: [%gate sample=xray product=xray]
+      ?.  (is-unit t)   ~  ~&  %found-unit  ~[[%unit 0]]    :: [%unit item=xray]
+      ?~  elem-xray  ~
+        ~&  %found-list
+        %-  zing
+        :~  ~[[%list u.elem-xray]]
+            ?.  (is-atom-with-aura 'tD' u.elem-xray table.xt)  ~  ~[%tape]
+            ?.  (is-atom-with-aura 'ta' u.elem-xray table.xt)  ~  ~[%path]
+            ?.  (is-atom-with-aura 'c' u.elem-xray table.xt)   ~  ~[%tour]
+        ==
+      ?.  (is-tree t)   ~  ~&  %found-tree  ~[[%tree 0]]    :: [%tree item=xray]
+      ?.  (is-gate t)   ~  ~&  %found-gate  ~[[%gate 0 0]]  :: [%gate sample=xray product=xray]
   ==
 ::
 ::  _ann: type analysis gear
@@ -1512,10 +1667,18 @@
     =.  xray.+>        xray.xt
     =.  xray-loops.+>  table.xt
     +>
+  ++  patternize
+    ..patternize(+< (decorate-with-patterns +<))
   ::
   ::  -measure: add shape to metadata, possibly restructuring
   ::
   ++  measure
+    :: ~&  (xray-pattern xray xray-loops)
+    :: ~&  :~  ?@  xray  xray  data.xray
+    ::         =/  xt  (xray-type -:!>(*tape))
+    ::           ?@  xray.xt  xray.xt  data.xray.xt
+    ::     ==
+    ::
     |-  ^+  +
     =<  +>(+< complete:analyze)
     |%
@@ -1912,10 +2075,12 @@
   ::  -specify: convert to spec
   ::
   ++  specify
-    ~&  ?@  xray  xray  (xray-pattern xray)
-    ::
+    ~&  xray
+    ~&  xray-loops
+    :: ~&  (xray-pattern xray xray-loops)
     =|  =loop=(set index)
     |-  ^-  spec
+    ::  ?:  %.y  `spec`[%base %void]
     ::
     ::  If an xray is a an atom, it's either already being processed
     ::  or not. If it is, it'll be in the `loop-set`: Just return a
