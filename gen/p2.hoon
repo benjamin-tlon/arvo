@@ -1809,44 +1809,86 @@
   |=  img=image
   ^-  spec
   ::
-  =|  st=(set idx)
-  =|  trace=(set idx)
+  |^  (xray-to-spec ~ 0)
   ::
-  |^  (xray-to-spec 0)
+  +$  trace  (set idx)
   ::
   ++  recipe-to-spec
-    |=  r=recipe
+    |=  [tr=trace r=recipe]
     ^-  spec
     ?-  -.r
       %direct     [%like [term.r ~] ~]
-      %synthetic  [%make [%limb term.r] (turn list.r xray-to-spec)]
+      %synthetic  =/  subs  %+  turn  list.r
+                            |=  =idx  (xray-to-spec tr idx)
+                  [%make [%limb term.r] subs]
     ==
   ::
   ++  wrap-with-loop-binding
-    |=  [i=idx s=spec]
+    |=  [xr=xray sp=spec]
     ^-  spec
-    =/  nm  (synthetic i)
-    [%bsbs [%loop nm] [[nm s] ~ ~]]
+    ?.  loop.xr  sp
+    =/  nm  (synthetic idx.xr)
+    [%bsbs [%loop nm] [[nm sp] ~ ~]]
   ::
   ::  If we see a reference to a type that we're already processing,
   ::  then we simply generate a reference to it and make a not that we
   ::  referenced this type in a loop.
   ::
   ++  xray-to-spec
-    |=  i=idx
+    |=  [tr=trace i=idx]
     ^-  spec
     =/  x=xray  (~(got by img) i)
-    =/  d  (need data.x)
-    =/  trace=(set idx)  ~
-    ?:  (~(has in trace) i)  [%loop (synthetic i)]
-    =.  trace  (~(put in trace) i)
-    ?^  recipes.x
-      (recipe-to-spec n.recipes.x)
-    (build-spec-for-xray x)
-
-  ++  build-spec-for-xray
-    |=  x=xray
-    !!
+    =/  d=data  (need data.x)
+    ?:  (~(has in tr) i)  [%loop (synthetic i)]
+    ?^  recipes.x  (recipe-to-spec tr n.recipes.x)      ::  XX This can't loop?
+    %+  wrap-with-loop-binding  x
+    =.  tr  (~(put in tr) i)
+    ^-  spec
+    ?@  d  [%base d]
+    ?-  -.d
+      %atom  ?~  constant.d  [%base %atom aura.d]
+             ?:  &(=(%n aura.d) =(`@`0 u.constant.d))  [%base %null]
+             [%leaf aura.d u.constant.d]
+      %cell  =/  hd  `spec`$(i head.d)
+             =/  tl  `spec`$(i tail.d)
+             =/  both-basic  &(=([%base %noun] hd) =([%base %noun] tl))
+             ?:  both-basic      [%base %cell]
+             ?:  ?=(%bscl -.tl)  [%bscl hd +.tl]
+             [%bscl hd tl ~]
+      %core  =/  payld  $(i xray.d)
+             =/  batt   ^-  (map term spec)
+                        %-  ~(run by (flatten-battery battery.d))
+                        |=  =idx  ^$(i idx)
+             ?-  r.garb.d
+               %lead  [%bszp payld batt]
+               %gold  [%bsdt payld batt]
+               %zinc  [%bstc payld batt]
+               %iron  [%bsnt payld batt]
+             ==
+      %face  =/  =spec  $(i xray.d)
+             ?^(face.d spec [%bsts face.d spec])
+      %fork  =/  =shape  (need shape.x)
+             |^  ?+  shape
+                     ~&  %unexpected-fork-shape  !!
+                   [%option *]       [%bswt choices]
+                   [%union *]        [%bscn choices]
+                   %cell             [%bswt choices] :: XX bskt?
+                   %noun             [%bswt choices]
+                   [%misjunction *]  [%bswt choices]
+                   [%junction *]     :+  %bsvt
+                                       ^$(i flat.shape)
+                                     ^$(i deep.shape)
+                   [%conjunction *]  :+  %bskt
+                                       ^$(i wide.shape)
+                                     ^$(i tall.shape)
+                 ==
+             ::
+             ++  choices
+               ^-  [i=spec t=(list spec)]
+               =-  ?>(?=(^ -) -)
+               (turn ~(tap in set.d) |=(=idx ^^$(i idx)))
+             --
+    ==
   ::
   ::  =synthetic: given a small atom (:number), construct a coresponding
   ::  symbol using the Hebrew alphabet.
@@ -1863,84 +1905,16 @@
       (snag number alf)
     (cat 3 (snag (mod number 22) alf) $(number (div number 22)))
   --
-      ::      ::
-      ::      ::  If this is a loop, then add ourselves to the loop set and recurse,
-      ::      ::  pretending that this is actually not a loop. Given the result of that,
-      ::      ::  produce a spec that looks something like:
-      ::      ::
-      ::      ::      $$  alf  ++  alf  spec  --
-      ::      ::
-      ::      ?^  entry-unit.meta.xray
-      ::        =/  idx  u.entry-unit.meta.xray
-      ::        =/  new-loop-set  (~(put in loop-set) idx)
-      ::        =/  =spec  $(loop-set new-loop-set, entry-unit.meta.xray ~)
-      ::        :+  %bsbs  `^spec`[%loop (synthetic idx)]
-      ::        [[(synthetic idx) spec] ~ ~]
-      ::      ::
-      ::      ?@  data.xray  [%base data.xray]
-      ::      ?-  -.data.xray
-      ::        %atom  ?~  constant-unit.data.xray
-      ::                 [%base %atom aura.data.xray]
-      ::               ?:  &(=(%n aura.data.xray) =(`@`0 u.constant-unit.data.xray))
-      ::                 [%base %null]
-      ::               [%leaf aura.data.xray u.constant-unit.data.xray]
-      ::        %cell  =/  head  $(xray head.data.xray)
-      ::               =/  tail  $(xray tail.data.xray)
-      ::               ?:  &(=([%base %noun] head) =([%base %noun] tail))
-      ::                 [%base %cell]
-      ::               ?:  ?=(%bscl -.tail)
-      ::                 [%bscl head +.tail]
-      ::               [%bscl head tail ~]
-      ::        %core  =/  payload  $(xray xray.data.xray)
-      ::               =/  battery
-      ::                 ^-  (map term spec)
-      ::                 %-  ~(run by (flatten-battery battery.data.xray))
-      ::                 |=  =^xray
-      ::                 ^$(xray xray)
-      ::               ?-  r.garb.data.xray
-      ::                 %lead  [%bszp payload battery]
-      ::                 %gold  [%bsdt payload battery]
-      ::                 %zinc  [%bstc payload battery]
-      ::                 %iron  [%bsnt payload battery]
-      ::               ==
-      ::        %face  =/  =spec  $(xray xray.data.xray)
-      ::               ::
-      ::               ::  We discard the $tune case, a $spec can't express it.
-      ::               ::
-      ::               ::  XX: should exist a %misjunction spec
-      ::               ::
-      ::               ?^(face.data.xray spec [%bsts face.data.xray spec])
-      ::        %fork  =/  =shape  (need shape-unit.meta.xray)
-      ::               |^  ?+  shape
-      ::                       ~&  %unexpected-fork-shape  !!
-      ::                     [%option *]       [%bswt choices]
-      ::                     [%union *]        [%bscn choices]
-      ::                     %cell             [%bswt choices] :: XX bskt?
-      ::                     %noun             [%bswt choices]
-      ::                     [%misjunction *]  [%bswt choices]
-      ::                     [%junction *]     :+  %bsvt
-      ::                                         ^$(xray flat.shape)
-      ::                                       ^$(xray deep.shape)
-      ::                     [%conjunction *]  :+  %bskt
-      ::                                         ^$(xray wide.shape)
-      ::                                       ^$(xray tall.shape)
-      ::                   ==
-      ::               ::
-      ::               ++  choices
-      ::                 ^-  [i=spec t=(list spec)]
-      ::                 =-  ?>(?=(^ -) -)
-      ::                 (turn ~(tap in set.data.xray) |=(=^xray ^^$(xray xray)))
-      ::               --
-      ::      ==
-      ::    ::
-      ::    ::  =flatten-battery: temporary function (XX)
-      ::    ::
-      ::    ::    $spec should have chapters but it doesn't.  So we flatten.
-      ::    ::
-      ::    ++  flatten-battery
-      ::      |=  =battery
-      ::      =/  chapter-list  ~(tap by battery)
-      ::      |-  ^-  (map term ^xray)
-      ::      ?~  chapter-list  ~
-      ::      (~(uni by q.q.i.chapter-list) $(chapter-list t.chapter-list))
+  ::
+  ::  =flatten-battery: temporary function (XX)
+  ::
+  ::    $spec should have chapters but it doesn't.  So we flatten.
+  ::
+  ++  flatten-battery
+    |=  batt=(battery idx)
+    ^-  (map term idx)
+    =/  chapter-list  ~(tap by batt)
+    |-  ^-  (map term idx)
+    ?~  chapter-list  ~
+    (~(uni by q.q.i.chapter-list) $(chapter-list t.chapter-list))
 --
