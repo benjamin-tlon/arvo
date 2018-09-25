@@ -21,6 +21,16 @@
 ::
 +|  %entry-points-for-testing
 ::
+::  Left-fold over a list.
+::
+++  foldl
+   |*  [state=mold elem=mold]
+   |=  [[st=state xs=(list elem)] f=$-([state elem] state)]
+   ^-  state
+   ?~  xs  st
+   =.  st  (f st i.xs)
+   $(xs t.xs, st st)
+::
 ::  This is basically a `mapM` over a list using the State monad.
 ::
 ::  Another way to think about this is that it is the same as `turn`,
@@ -58,7 +68,9 @@
   |=  c=cord
   ^-  (list cord)
   =/  t=type  -:(ride -:!>(..zuse) c)
-  =/  s=spec  (specify (find-patterns (measure (xray-type t))))
+  =/  s=spec  %-  xray-image-to-spec
+              %-  analyze-type
+              t
   =/  p=plum  (spec-to-plum s)
   ^-  (list cord)
   ~(tall plume p)
@@ -69,7 +81,11 @@
   |=  {^ {{t=type ~} ~}}
   :-  %txt
   ^-  wain
-  =/  s=spec  (specify (find-patterns (measure (xray-type t))))
+  =/  s=spec  %-  xray-image-to-spec
+              %-  decorate-xray-image-with-patterns
+              %-  decorate-xray-image-with-shapes
+              %-  xray-type
+              t
   =/  p=plum  (spec-to-plum s)
   ~(tall plume p)
 ::
@@ -1145,7 +1161,7 @@
   ==
 +$  data
   $@  ?(%noun %void)
-  $%  [%atom =aura =constant=(unit @)]
+  $%  [%atom =aura constant=(unit @)]
       [%cell head=idx tail=idx]
       [%core =garb xray=idx =(battery idx)]
       [%face face=$@(term tune) xray=idx]
@@ -1160,8 +1176,10 @@
       studs=(set stud)
       recipes=(set recipe)
       helps=(set help)
+      loop=?
   ==
 +$  image  (map idx xray) :: 0 is the top-level type.
+::
 ++  xray-type
   |^  |=  ty=type
       ^-  image
@@ -1203,7 +1221,7 @@
       =.  count.st  +(count.st)
       ~&  [%allocating-new-xray-at newidx ty]
       [newidx st]
-    =/  res  `xray`[idx ty d ~ ~ ~ ~ ~]
+    =/  res  `xray`[idx ty d ~ ~ ~ ~ ~ %.n]
     =.  table.st  (~(put by table.st) ty res)
     [idx st]
   ::
@@ -1329,24 +1347,600 @@
     [d st]
   --
 ::
-++  find-patterns
-  |=  i=image
+++  decorate-xray-image-with-loops
+  |=  img=image
   ^-  image
-  !!
+  =/  i=idx  0
+  =/  trace=(set idx)  ~
+  |-  ^-  image
+  =/  x    (~(got by img) i)
+  =/  dat  (need data.x)
+  ?:  (~(has in trace) i)  (~(put by img) idx.x x(loop %.y))
+  ?@  data.x  img
+  =.  trace  (~(put in trace) i)
+  ?-  -.dat
+    %atom  img
+    %cell  =.  img  $(i head.dat)
+           $(i tail.dat)
+    %core  =.  img  $(i xray.dat)
+           %+  (foldl image idx)
+             [img (battery-refs battery.dat)]
+           |=  [img=image i=idx]
+           ^$(img img, i i)
+    %face  $(i xray.dat)
+    %fork  %+  (foldl image idx)
+             [img ~(tap in set.dat)]
+           |=  [img=image i=idx]
+           ^$(img img, i i)
+  ==
 ::
-++  specify
-  |=  i=image
-  ^-  spec
-  !!
+++  battery-refs
+  |=  b=(battery idx)
+  ^-  (list idx)
+  %-  zing
+  %+  turn  ~(val by b)
+  |=  [=what =(map term idx)]
+  ^-  (list idx)
+  ~(val by map)
 ::
-::  -measure: calculate `shape` information on xrays.
+++  decorate-xray-image-with-patterns
+  |=  img=image
+  ^-  image
+  ~&  %+  sort  ~(val by img)
+      |=  {x=xray y=xray}
+      (lth idx.x idx.y)
+  img ::  XX
 ::
-++  measure
-  |^  |=  i=image
+++  decorate-xray-image-with-shapes
+  |^  |=  img=image
       ^-  image
-      ~&  %+  sort  ~(val by i)
-          |=  {x=xray y=xray}
-          (lth idx.x idx.y)
-      !!
+      %-  ~(gas by *image)
+      %+  turn  ~(tap by img)
+      |=  [i=idx x=xray]
+      ^-  [idx xray]
+      [i x(shape [~ (simple-shape img x)])]
+  ::
+  ++  simple-shape
+    |=  [img=image x=xray]
+    ^-  shape
+    =/  dat  (need data.x)
+    ?^  shape.x  u.shape.x
+    ?@  dat  `shape`dat
+    ?-  -.dat
+      %atom  ?~  constant.dat  %atom
+             [%constant u.constant.dat]
+      %cell  =/  head-shape  $(x (~(got by img) head.dat))
+             ?:  ?|  ?=(?(%cell %wide) head-shape)
+                     ?=([?(%instance %union %junction %conjunction) *] head-shape)
+                 ==
+               %wide
+             ?:  ?=([%constant *] head-shape)
+               [%instance atom.head-shape]
+             %cell
+      %core  %cell
+      %face  $(x (~(got by img) xray.dat))
+      %fork  $(x (forge x ~(tap in set.dat)))
+    ==
+  ::
+  ++  forge
+    |=  [x=xray l=(list idx)]
+    ^-  xray
+    x(shape `%void)
   --
+      ::      ?-  -.data.xray
+
+      ::  ::
+      ::  ::  -measure: calculate `shape` information on xrays.
+      ::  ::
+      ::  ++  measure
+      ::    ::
+      ::    ::  -require: produce best currently available shape
+      ::    ::
+      ::    ++  require
+      ::      |=  [i=idx st=image]
+      ::      ^-  shape
+      ::      =/  x=xray  (~(got by st) i)
+      ::      ?^  shape.x  u.shape.x
+      ::      ?@  data.xray  `shape`data.xray
+      ::      ?-  -.data.xray
+      ::        %atom  ?~  constant.data.x  %atom
+      ::               [%constant u.constant.data.xray]
+      ::        %cell  =/  head-shape  $(xray head.data.xray)
+      ::               ?:  ?|  ?=(?(%cell %wide) head-shape)
+      ::                       ?=([?(%instance %union %junction %conjunction) *] head-shape)
+      ::                   ==
+      ::                 %wide
+      ::               ?:  ?=([%constant *] head-shape)
+      ::                 [%instance atom.head-shape]
+      ::               %cell
+      ::        %core  %cell
+      ::        %face  ($ xray.data.x st)
+      ::        %fork  ($ (forge ~(tap in set.data.x)))
+      ::      ==
+      ::    ::
+      ::    ::  -original: produce $type of xray
+      ::    ::
+      ::    ++  original
+      ::      |=  [i=idx st=image]
+      ::      ^-  type
+      ::      type:(~(got by st) i)
+      ::    ::
+      ::    ::  -fresh: produce trivial fork set if any
+      ::    ::
+      ::    ++  fresh
+      ::      ^-  (unit (set ^xray))
+      ::      ?@  xray  ~
+      ::      ?@  data.xray  ~
+      ::      ?.  ?=(%fork -.data.xray)  ~
+      ::      ?^  entry-unit.meta.xray  ~
+      ::      `set.data.xray
+      ::    ::
+      ::    ::  =join: compose union of two xrays, collapsing simple forks
+      ::    ::
+      ::    ++  join
+      ::      |=  [this=^xray that=^xray]
+      ::      ^-  ^xray
+      ::      :-  (fork (original this) (original that) ~)
+      ::      :-  *meta
+      ::      ^-  data
+      ::      :-  %fork
+      ::      ^-  (set ^xray)
+      ::      =/  this-set-unit  fresh(xray this)
+      ::      =/  that-set-unit  fresh(xray that)
+      ::      ?~  this-set-unit
+      ::        ?~  that-set-unit
+      ::          (sy this that ~)
+      ::        (~(put in u.that-set-unit) this)
+      ::      ?~  that-set-unit
+      ::        (~(put in u.this-set-unit) that)
+      ::      (~(uni in u.this-set-unit) u.that-set-unit)
+      ::    ::
+      ::    ::  =binary: compose binary junction/conjunction/misjunction
+      ::    ::
+      ::    ++  binary
+      ::      |*  joint=?(%junction %conjunction %misjunction)
+      ::      |=  [this=^xray that=^xray]
+      ::      ^-  [shape ^xray]
+      ::      [[joint this that] (join this that)]
+      ::    ::
+      ::    ::  -frame: computed shape with xray
+      ::    ::
+      ::    ++  frame
+      ::      `[shape ^xray]`[require xray]
+      ::    ::
+      ::    ::  =merge: merge two xrays intelligently, using shape
+      ::    ::
+      ::    ++  merge
+      ::      |=  [this=^xray that=^xray]
+      ::      ^-  ^xray
+      ::      ?:  ?&(?=(^ this) =(%void type.this))  that
+      ::      ?:  ?&(?=(^ that) =(%void type.that))  this
+      ::      =+  (combine frame(xray this) frame(xray that))
+      ::      ?@(-> -> ->(shape-unit.meta `-<))                                :: TODO Wtf is this?
+      ::    ::
+      ::    ::  =collate: merge option maps
+      ::    ::
+      ::    ++  collate
+      ::      |=  [thick=(map atom ^xray) thin=(map atom ^xray)]
+      ::      =/  list  ~(tap by thin)
+      ::      |-  ^-  (map atom ^xray)
+      ::      ?~  list  thick
+      ::      =/  item  (~(get by thick) p.i.list)
+      ::      %=    $
+      ::          list  t.list
+      ::          thick
+      ::        %+  ~(put by thick)
+      ::          p.i.list
+      ::        ?~(item q.i.list (merge u.item q.i.list))
+      ::      ==
+      ::    ::
+      ::    ::  =forge: combine list of shape-described xrays
+      ::    ::
+      ::    ::  forge :: [XRay] -> XRay
+      ::    ::  forge = foldl' merge [%void *meta %void]
+      ::    ::
+      ::    ++  forge
+      ::      |=  =(list ^xray)
+      ::      =/  new-xray  `^xray`[%void *meta %void]
+      ::      |-  ^-  ^xray
+      ::      ?~  list  new-xray
+      ::      $(list t.list, new-xray (merge i.list new-xray))
+      ::    ::
+      ::    ::  =combine: combine shape-described xrays
+      ::    ::
+      ::    ++  combine
+      ::      |=  [this=[=shape =^xray] that=[=shape =^xray]]
+      ::      ^-  [shape ^xray]
+      ::      ?:  =(this that)  this
+      ::      ?@  shape.this
+      ::        ?^  shape.that  $(this that, that this)
+      ::        :_  (join xray.this xray.that)
+      ::        ?:  =(shape.this shape.that)  shape.this
+      ::        ?:  ?=(%void shape.this)  shape.that
+      ::        ?:  ?=(%void shape.that)  shape.this
+      ::        ?:  |(?=(%noun shape.this) ?=(%noun shape.that))  %noun
+      ::        ?-  shape.this
+      ::          %atom  [%junction xray.this xray.that]
+      ::          %cell  ?:  ?=(%wide shape.that)
+      ::                   %cell
+      ::                 [%junction xray.that xray.this]
+      ::          %wide  ?:  ?=(%cell shape.that)
+      ::                   %cell
+      ::                 [%junction xray.that xray.this]
+      ::        ==
+      ::      ?@  shape.that :: cell wide
+      ::        ?:  ?=(%void shape.that)  this
+      ::        ?:  ?=(%noun shape.that)  that
+      ::        ?:  ?=(%atom shape.that)
+      ::          ?+  -.shape.this
+      ::                       ((binary %misjunction) xray.that xray.this)
+      ::            %instance  ((binary %junction) xray.that xray.this)
+      ::            %union     ((binary %junction) xray.that xray.this)
+      ::            %junction  %+  (binary %junction)
+      ::                         (merge xray.that flat.shape.this)
+      ::                       deep.shape.this
+      ::          ==
+      ::        ::
+      ::        ::  At this point, shape.that is either %cell, %wide, %union,
+      ::        ::  or some kind of junction.
+      ::        ::
+      ::        ?+    -.shape.this
+      ::                       ((binary %misjunction) xray.this xray.that)
+      ::            %constant  ((binary %junction) xray.this xray.that)
+      ::            %option    ((binary %junction) xray.this xray.that)
+      ::            %junction  %+  (binary %junction)
+      ::                         flat.shape.this
+      ::                       (merge xray.that deep.shape.this)
+      ::        ==
+      ::      ?:  |(?=(%misjunction -.shape.this) ?=(%misjunction -.shape.that))
+      ::        ((binary %misjunction) xray.this xray.that)
+      ::      ?-    -.shape.this
+      ::          %constant
+      ::        ?-  -.shape.that
+      ::          %constant     :_  (join xray.this xray.that)
+      ::                        :-  %option
+      ::                        %+  collate
+      ::                          [[atom.shape.this xray.this] ~ ~]
+      ::                        [[atom.shape.that xray.that] ~ ~]
+      ::          %instance     ((binary %junction) xray.this xray.that)
+      ::          %option       ((binary %misjunction) xray.this xray.that)
+      ::          %union        ((binary %junction) xray.this xray.that)
+      ::          %junction     %+  (binary %junction)
+      ::                          (merge xray.this flat.shape.that)
+      ::                        deep.shape.that
+      ::          %conjunction  ((binary %junction) xray.this xray.that)
+      ::        ==
+      ::      ::
+      ::          %instance
+      ::        ?+  -.shape.that  $(this that, that this)
+      ::          %instance     :_  (join xray.this xray.that)
+      ::                        :-  %union
+      ::                        %+  collate
+      ::                          [[atom.shape.this xray.this] ~ ~]
+      ::                        [[atom.shape.that xray.that] ~ ~]
+      ::          %option       ((binary %junction) xray.this xray.that)
+      ::          %union        :_  (join xray.this xray.that)
+      ::                        :-  %union
+      ::                        %+  collate
+      ::                          map.shape.that
+      ::                        [[atom.shape.this xray.this] ~ ~]
+      ::          %junction     %+  (binary %junction)
+      ::                          flat.shape.that
+      ::                        (merge xray.this deep.shape.that)
+      ::          %conjunction  %+  (binary %junction)
+      ::                          wide.shape.that
+      ::                        (merge xray.this tall.shape.that)
+      ::        ==
+      ::      ::
+      ::          %option
+      ::        ?+  -.shape.that  $(this that, that this)
+      ::          %option       :_  (join xray.this xray.that)
+      ::                        :-  %option
+      ::                        (collate map.shape.this map.shape.that)
+      ::          %union        ((binary %junction) xray.this xray.that)
+      ::          %junction     %+  (binary %junction)
+      ::                          (merge xray.this flat.shape.that)
+      ::                        deep.shape.that
+      ::          %conjunction  ((binary %junction) xray.this xray.that)
+      ::        ==
+      ::      ::
+      ::          %union
+      ::        ?+  -.shape.that  $(this that, that this)
+      ::          %union        :_  (join xray.this xray.that)
+      ::                        :-  %union
+      ::                        (collate map.shape.this map.shape.that)
+      ::          %junction     %+  (binary %junction)
+      ::                          flat.shape.that
+      ::                        (merge xray.this deep.shape.that)
+      ::          %conjunction  %+  (binary %conjunction)
+      ::                          wide.shape.that
+      ::                        (merge xray.this tall.shape.that)
+      ::        ==
+      ::      ::
+      ::          %junction
+      ::        ?+  -.shape.that  $(this that, that this)
+      ::          %junction     %+  (binary %junction)
+      ::                          (merge flat.shape.this flat.shape.that)
+      ::                        (merge deep.shape.this deep.shape.that)
+      ::          %conjunction  %+  (binary %junction)
+      ::                          flat.shape.this
+      ::                        (merge deep.shape.this xray.that)
+      ::        ==
+      ::      ::
+      ::          %conjunction
+      ::        ?+  -.shape.that  $(this that, that this)
+      ::          %conjunction  %+  (binary %conjunction)
+      ::                          (merge wide.shape.this wide.shape.that)
+      ::                        (merge tall.shape.this tall.shape.that)
+      ::        ==
+      ::      ==
+      ::    ::
+      ::    ::  Analyze an xray.
+      ::    ::
+      ::    ++  analyze
+      ::      =<  remember
+      ::      =|  loop-set=(set index)
+      ::      |-
+      ::      ^+  +>
+      ::      ::  XX This causes a bail fail:
+      ::      ::
+      ::      ::      ~&  ?@  xray  ~  type.xray
+      ::      ::
+      ::      ::
+      ::      ::  If our xray is a loop reference, analyze the xray that the
+      ::      ::  reference resolves to and replace that slot in the loop map
+      ::      ::  with the analyzed version
+      ::      ::
+      ::      ?@  xray
+      ::        =/  =zray  (~(got by img) xray)
+      ::        ?^  shape-unit.meta.zray  +>+
+      ::        +>+(img img:complete:remember:$(xray zray))
+      ::      ::
+      ::      :: If we've already measured this xray, do nothing
+      ::      ::
+      ::      ?^  shape-unit.meta.xray  +>
+      ::      ::
+      ::      ::  Analyze the xrays in the recipes as well.
+      ::      ::
+      ::      =.  recipe-set.meta.xray
+      ::        ?~  recipe-set.meta.xray  recipe-set.meta.xray
+      ::        ^-  (set recipe)
+      ::        %-  ~(gas in *(set recipe))
+      ::        ^-  (list recipe)
+      ::        =/  recipes=(list recipe)
+      ::          ~(tap in ^-((set recipe) recipe-set.meta.xray))
+      ::        =^  finished-items  img
+      ::          ^-  [(list recipe) loop-map]
+      ::          %+  (traverse-right recipe recipe loop-map)
+      ::            [recipes img]
+      ::          |=  [r=recipe st=loop-map]
+      ::          ?-    -.r
+      ::              %direct
+      ::            [r st]
+      ::              %synthetic
+      ::            =^  new-xrays  st
+      ::              %+  (traverse-right ^xray ^xray loop-map)
+      ::                [list.r st]
+      ::              |=  [x=^xray st=loop-map]
+      ::              complete:remember:^^$(xray x, img st)
+      ::            [r(list new-xrays) st]
+      ::          ==
+      ::        finished-items
+      ::      ::
+      ::      ::  If this is a loop entry point, then we're already in the process
+      ::      ::  of analyzing this or we're not. If we are, then the index will
+      ::      ::  be in `loop-set`: do nothing. Otherwise, store the index in the
+      ::      ::  `loop-set` and continue.
+      ::      ::
+      ::      =*  ent  entry-unit.meta.xray
+      ::      ?:  ?&  ?=(^ ent)  (~(has in loop-set) u.ent)  ==
+      ::        +>
+      ::      =.  loop-set  ?~  ent  loop-set
+      ::                    (~(put in loop-set) u.ent)
+      ::      ::
+      ::      ::  If data is %noun or %void, then shape will also be %noun or %void.
+      ::      ::
+      ::      ?@  data.xray
+      ::        =/  shape=shape  data.xray
+      ::        +>+(shape-unit.meta.xray `shape)
+      ::      ::
+      ::      ::  Otherwise, switch on the tag.
+      ::      ::
+      ::      ?-    -.data.xray
+      ::          %atom
+      ::        +>(shape-unit.meta.xray `require)
+      ::          %cell
+      ::        =^  head  img  complete:remember:$(xray head.data.xray)
+      ::        =^  tail  img  complete:remember:$(xray tail.data.xray)
+      ::        =.  head.data.xray  head
+      ::        =.  tail.data.xray  tail
+      ::        +>+>(shape-unit.meta.xray `require)
+      ::          %core
+      ::        =^  payload  img  complete:remember:$(xray xray.data.xray)
+      ::        =^  chapters  img
+      ::          =*  chap  (pair term (pair what (map term ^xray)))
+      ::          %+  (traverse-right chap chap loop-map)
+      ::            [~(tap by battery.data.xray) img]
+      ::          |=  [=chap st=loop-map]
+      ::          =-  :_  ->
+      ::              :+  p.chap
+      ::                `what`p.q.chap
+      ::              (~(gas by *(map term ^xray)) -<)
+      ::          =*  arm   (pair term ^xray)
+      ::          %+  (traverse-right arm arm loop-map)
+      ::            [~(tap by q.q.chap) st]
+      ::          |=  [=arm st=loop-map]
+      ::          =^  new-xray  st  complete:remember:^^$(xray q.arm)
+      ::          [arm(q new-xray) st]
+      ::        =.  xray.data.xray     payload
+      ::        =.  battery.data.xray  (~(gas by *battery) chapters)
+      ::        +>+>(shape-unit.meta.xray `%cell)
+      ::          %face
+      ::        =^  body  img  complete:remember:$(xray xray.data.xray)
+      ::        =.  xray.data.xray  body
+      ::        +>+(shape-unit.meta.xray `require(xray body))
+      ::          %fork
+      ::        =^  list  img
+      ::          =/  list  ~(tap in set.data.xray) :: list of possible types.
+      ::          |-  ^-  [(^list ^xray) loop-map]
+      ::          ?~  list  [~ img]
+      ::          =^  this  img  complete:remember:^$(xray i.list)
+      ::          =^  rest  img  $(list t.list)
+      ::          [[this rest] img]
+      ::        =/  new-xray  (forge list)
+      ::        ?@  new-xray  +>+>(xray new-xray)
+      ::        =.  new-xray  new-xray(entry-unit.meta entry-unit.meta.xray)
+      ::        =.  new-xray  new-xray(recipe-set.meta recipe-set.meta.xray)
+      ::        +>+>(xray new-xray)
+      ::      ==
+      ::    --
+++  analyze-type
+  |=  t=type
+  ^-  image
+  %-  decorate-xray-image-with-patterns
+  %-  decorate-xray-image-with-shapes
+  %-  decorate-xray-image-with-loops
+  %-  xray-type
+  t
+::
+::  -xray-image-to-spec: convert to spec
+::
+++  xray-image-to-spec
+  |=  img=image
+  ^-  spec
+  ::
+  =|  st=(set idx)
+  =|  trace=(set idx)
+  ::
+  |^  (xray-to-spec 0)
+  ::
+  ++  recipe-to-spec
+    |=  r=recipe
+    ^-  spec
+    ?-  -.r
+      %direct     [%like [term.r ~] ~]
+      %synthetic  [%make [%limb term.r] (turn list.r xray-to-spec)]
+    ==
+  ::
+  ++  wrap-with-loop-binding
+    |=  [i=idx s=spec]
+    ^-  spec
+    =/  nm  (synthetic i)
+    [%bsbs [%loop nm] [[nm s] ~ ~]]
+  ::
+  ::  If we see a reference to a type that we're already processing,
+  ::  then we simply generate a reference to it and make a not that we
+  ::  referenced this type in a loop.
+  ::
+  ++  xray-to-spec
+    |=  i=idx
+    ^-  spec
+    =/  x=xray  (~(got by img) i)
+    =/  d  (need data.x)
+    =/  trace=(set idx)  ~
+    ?:  (~(has in trace) i)  [%loop (synthetic i)]
+    =.  trace  (~(put in trace) i)
+    ?^  recipes.x
+      (recipe-to-spec n.recipes.x)
+    (build-spec-for-xray x)
+
+  ++  build-spec-for-xray
+    |=  x=xray
+    !!
+  ::
+  ::  =synthetic: given a small atom (:number), construct a coresponding
+  ::  symbol using the Hebrew alphabet.
+  ::
+  ++  synthetic
+    |=  number=@ud
+    ^-  @tas
+    =/  alf/(list term)
+        ^~  :~  %alf  %bet  %gim  %dal  %hej  %vav  %zay  %het
+                %tet  %yod  %kaf  %lam  %mem  %nun  %sam  %ayn
+                %pej  %sad  %qof  %res  %sin  %tav
+            ==
+    ?:  (lth number 22)
+      (snag number alf)
+    (cat 3 (snag (mod number 22) alf) $(number (div number 22)))
+  --
+      ::      ::
+      ::      ::  If this is a loop, then add ourselves to the loop set and recurse,
+      ::      ::  pretending that this is actually not a loop. Given the result of that,
+      ::      ::  produce a spec that looks something like:
+      ::      ::
+      ::      ::      $$  alf  ++  alf  spec  --
+      ::      ::
+      ::      ?^  entry-unit.meta.xray
+      ::        =/  idx  u.entry-unit.meta.xray
+      ::        =/  new-loop-set  (~(put in loop-set) idx)
+      ::        =/  =spec  $(loop-set new-loop-set, entry-unit.meta.xray ~)
+      ::        :+  %bsbs  `^spec`[%loop (synthetic idx)]
+      ::        [[(synthetic idx) spec] ~ ~]
+      ::      ::
+      ::      ?@  data.xray  [%base data.xray]
+      ::      ?-  -.data.xray
+      ::        %atom  ?~  constant-unit.data.xray
+      ::                 [%base %atom aura.data.xray]
+      ::               ?:  &(=(%n aura.data.xray) =(`@`0 u.constant-unit.data.xray))
+      ::                 [%base %null]
+      ::               [%leaf aura.data.xray u.constant-unit.data.xray]
+      ::        %cell  =/  head  $(xray head.data.xray)
+      ::               =/  tail  $(xray tail.data.xray)
+      ::               ?:  &(=([%base %noun] head) =([%base %noun] tail))
+      ::                 [%base %cell]
+      ::               ?:  ?=(%bscl -.tail)
+      ::                 [%bscl head +.tail]
+      ::               [%bscl head tail ~]
+      ::        %core  =/  payload  $(xray xray.data.xray)
+      ::               =/  battery
+      ::                 ^-  (map term spec)
+      ::                 %-  ~(run by (flatten-battery battery.data.xray))
+      ::                 |=  =^xray
+      ::                 ^$(xray xray)
+      ::               ?-  r.garb.data.xray
+      ::                 %lead  [%bszp payload battery]
+      ::                 %gold  [%bsdt payload battery]
+      ::                 %zinc  [%bstc payload battery]
+      ::                 %iron  [%bsnt payload battery]
+      ::               ==
+      ::        %face  =/  =spec  $(xray xray.data.xray)
+      ::               ::
+      ::               ::  We discard the $tune case, a $spec can't express it.
+      ::               ::
+      ::               ::  XX: should exist a %misjunction spec
+      ::               ::
+      ::               ?^(face.data.xray spec [%bsts face.data.xray spec])
+      ::        %fork  =/  =shape  (need shape-unit.meta.xray)
+      ::               |^  ?+  shape
+      ::                       ~&  %unexpected-fork-shape  !!
+      ::                     [%option *]       [%bswt choices]
+      ::                     [%union *]        [%bscn choices]
+      ::                     %cell             [%bswt choices] :: XX bskt?
+      ::                     %noun             [%bswt choices]
+      ::                     [%misjunction *]  [%bswt choices]
+      ::                     [%junction *]     :+  %bsvt
+      ::                                         ^$(xray flat.shape)
+      ::                                       ^$(xray deep.shape)
+      ::                     [%conjunction *]  :+  %bskt
+      ::                                         ^$(xray wide.shape)
+      ::                                       ^$(xray tall.shape)
+      ::                   ==
+      ::               ::
+      ::               ++  choices
+      ::                 ^-  [i=spec t=(list spec)]
+      ::                 =-  ?>(?=(^ -) -)
+      ::                 (turn ~(tap in set.data.xray) |=(=^xray ^^$(xray xray)))
+      ::               --
+      ::      ==
+      ::    ::
+      ::    ::  =flatten-battery: temporary function (XX)
+      ::    ::
+      ::    ::    $spec should have chapters but it doesn't.  So we flatten.
+      ::    ::
+      ::    ++  flatten-battery
+      ::      |=  =battery
+      ::      =/  chapter-list  ~(tap by battery)
+      ::      |-  ^-  (map term ^xray)
+      ::      ?~  chapter-list  ~
+      ::      (~(uni by q.q.i.chapter-list) $(chapter-list t.chapter-list))
 --
