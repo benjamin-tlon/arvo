@@ -78,14 +78,10 @@
 ::  Pretty-print a type.
 ::
 ++  render-type
-  |=  {^ {{t=type ~} ~}}
+  |=  {^ {{=type ~} ~}}
   :-  %txt
   ^-  wain
-  =/  s=spec  %-  xray-image-to-spec
-              %-  decorate-xray-image-with-patterns
-              %-  decorate-xray-image-with-shapes
-              %-  xray-type
-              t
+  =/  s=spec  (xray-image-to-spec (analyze-type type))
   =/  p=plum  (spec-to-plum s)
   ~(tall plume p)
 ::
@@ -1211,15 +1207,15 @@
   ++  with-new-xray
     |=  [ty=type d=(unit data) st=state]
     ^-  [idx state]
-    ~&  [%with-new-xray ^-(cord ?@(ty ty -.ty)) ty d]
+    ::  ~&  [%with-new-xray ^-(cord ?@(ty ty -.ty)) ty d]
     =/  old  (~(get by table.st) ty)
     =^  idx  st
       ?^  old
-        ~&  [%replacing-xray-at idx.u.old %with-type type.u.old]
+        ::  ~&  [%replacing-xray-at idx.u.old %with-type type.u.old]
         [idx.u.old st]
       =/  newidx  count.st
       =.  count.st  +(count.st)
-      ~&  [%allocating-new-xray-at newidx ty]
+      ::  ~&  [%allocating-new-xray-at newidx ty]
       [newidx st]
     =/  res  `xray`[idx ty d ~ ~ ~ ~ ~ %.n]
     =.  table.st  (~(put by table.st) ty res)
@@ -1231,7 +1227,7 @@
   ++  main
     |=  [ty=type st=state]
     ^-  [idx state]
-    ~&  ['main' ?@(ty ty -.ty) ty]
+    ::  ~&  ['main' ?@(ty ty -.ty) ty]
     =/  old  (~(get by table.st) ty)                    ::  don't loop
     ?^  old  [idx.u.old st]
     ?-  ty
@@ -1383,13 +1379,123 @@
   ^-  (list idx)
   ~(val by map)
 ::
-++  decorate-xray-image-with-patterns
+++  trace-xray-image
   |=  img=image
   ^-  image
   ~&  %+  sort  ~(val by img)
-      |=  {x=xray y=xray}
+      |=  [x=xray y=xray]
       (lth idx.x idx.y)
-  img ::  XX
+  img
+::
+++  decorate-xray-image-with-patterns
+  |=  img=image
+  ^-  image
+  |^  %-  ~(gas by *image)
+      %+  turn  ~(tap by img)
+      |=  [i=idx x=xray]
+      ^-  [idx xray]
+      [i x(pats (xray-pats img idx.x))]
+  ::
+  ++  type-nests-under
+    |=  t1=type
+    ^-  $-(type ?)
+    |=  t2=type
+    ^-  ?
+    (~(nest ut t1) | t2)
+  ::
+  ++  is-hoon  (type-nests-under -:!>(*hoon))
+  ++  is-manx  (type-nests-under -:!>(*manx))
+  ++  is-nock  (type-nests-under -:!>(*nock))
+  ++  is-plum  (type-nests-under -:!>(*plum))
+  ++  is-skin  (type-nests-under -:!>(*skin))
+  ::  ++  is-path  (type-nests-under -:!>(*path))
+  ::
+  ++  reflect  ~(got by img)
+  ++  is-nil
+    |=  i=idx
+    ^-  ?
+    =/  =data  (need data:(reflect i))
+    ?+  data  %.n
+      [%atom *]  =(data [%atom ~.n `0])
+      [%face *]  $(i xray.data)
+    ==
+  ::
+  ++  is-atom-with-aura
+    |=  [c=cord i=idx]
+    ^-  ?
+    =/  =data  (need data:(reflect i))
+    ?+  data  %.n
+      [%atom *]  =(data [%atom aura=c constant-unit=~])
+      [%face *]  $(i xray.data)
+    ==
+  ::
+  ++  list-of-what
+    |^  |=  =input=xray
+        ^-  (unit idx)
+        ?.  loop.input-xray  ~
+        =/  input-idx=idx  idx.input-xray
+        =/  indata=data    (need data.input-xray)
+        ?.  ?=([%fork *] indata)  ~
+        =/  branches  ~(tap in set.indata)
+        ?.  ?=([* * ~] branches)  ~
+        =/  nil   i.branches
+        =/  node  i.t.branches
+        |-
+        ?:  (is-nil node)  $(node nil, nil node)
+        ?.  (is-nil nil)  ~
+        =/  node-data=data  (need data:(reflect node))
+        ?.  ?=([%cell *] node-data)  ~
+        ?.  (is-reference-to-loop input-idx tail.node-data)  ~
+        =/  elem-data  (need data:(reflect head.node-data))
+        ?.  ?=([%face *] elem-data)  ~
+        `xray.elem-data
+    ::
+    ++  is-reference-to-loop
+      |=  [=loop=idx =ref=idx]
+      ^-  ?
+      ?:  =(loop-idx ref-idx)  %.y
+      =/  =data  (need data:(reflect ref-idx))
+      ?.  ?=([%face *] data)  %.n
+      $(ref-idx xray.data)
+    --
+  ::
+  ++  is-type  (type-nests-under -:!>(*type))
+  ++  is-vase  (type-nests-under -:!>(*vase))
+  ++  is-unit  (type-nests-under -:!>(*(unit *)))
+  ++  is-list  (type-nests-under -:!>(*(list *)))
+  ++  is-tree  (type-nests-under -:!>(*(tree *)))
+  ++  is-gate  (type-nests-under -:!>(*$-(* *)))
+  ::
+  ++  xray-pats
+    |=  [img=image i=idx]
+    ^-  (set pattern)
+    =/  x=xray  (reflect i)
+    =/  t=type  type.x
+    ^-  (set pattern)
+    %-  ~(gas in *(set pattern))
+    %-  zing
+    ?:  (is-nil i)  ~                                   ::  no useless matches
+    =/  elem-xray  (list-of-what x)
+    :~  ?.  (is-unit t)   ~  ~&  %found-unit  ~[[%unit 0]]    :: XX
+        ?.  (is-tree t)   ~  ~&  %found-tree  ~[[%tree 0]]    :: XX
+        ?.  (is-gate t)   ~  ~&  %found-gate  ~[[%gate 0 0]]  :: XX
+        ?.  (is-hoon t)   ~  ~&  %found-hoon  ~[%hoon]
+        ?.  (is-manx t)   ~  ~&  %found-manx  ~[%manx]
+        ?.  (is-nock t)   ~  ~&  %found-nock  ~[%nock]
+        ?.  (is-plum t)   ~  ~&  %found-plum  ~[%plum]
+        ?.  (is-skin t)   ~  ~&  %found-skin  ~[%skin]
+        ?.  (is-type t)   ~  ~&  %found-type  ~[%type]
+        ?.  (is-vase t)   ~  ~&  %found-vase  ~[%vase]
+        ?~  elem-xray  ~
+          ~&  %found-list
+          %-  zing
+          :~  ~[[%list u.elem-xray]]
+              ?.  (is-atom-with-aura 'tD' u.elem-xray)  ~  ~[%tape]
+              ?.  (is-atom-with-aura 'ta' u.elem-xray)  ~  ~[%path]
+              ?.  (is-atom-with-aura 'c' u.elem-xray)   ~  ~[%tour]
+          ==
+    ==
+  --
 ::
 ++  decorate-xray-image-with-shapes
   |^  |=  img=image
@@ -1506,12 +1612,11 @@
       ^-  (map atom idx)
       =/  list  ~(tap by thin)
       |-  ^-  (map atom idx)
-      !!
-      ::  ?~  list  thick
-      ::  =/  item=(unit idx)  (~(get by thick) p.i.list)
-      ::  =/  merged=idx       ?~(item q.i.list (merge-by-idx u.item q.i.list))
-      ::  =/  new-thick        (~(put by thick) p.i.list merged)
-      ::  $(list t.list, thick new-thick)
+      ?~  list  thick
+      =/  item=(unit idx)  (~(get by thick) p.i.list)
+      =/  merged=idx       ?~(item q.i.list (merge-by-idx u.item q.i.list))
+      =/  new-thick        (~(put by thick) p.i.list merged)
+      $(list t.list, thick new-thick)
     ::
     ++  combine
       |=  [this=xray that=xray]
@@ -1571,9 +1676,8 @@
           %constant     %-  this-that-with-shape
                         ^-  shape
                         :-  %option
-                        (collate ~ ~)
-                        ::  %+  collate  !!  ::  [[atom.this-shape this] ~ ~] XX
-                        ::  !!  ::  [[atom.that-shape that] ~ ~]
+                        %+  collate  [[atom.this-shape idx.this] ~ ~]
+                        [[atom.that-shape idx.that] ~ ~]
           %instance     ((binary %junction) this that)
           %option       ((binary %misjunction) this that)
           %union        ((binary %junction) this that)
@@ -1588,15 +1692,13 @@
           %instance     %-  this-that-with-shape
                         ^-  shape
                         :-  %union
-                        (collate ~ ~)
-                        ::  %+  collate  [[atom.this-shape this] ~ ~]  XX
-                        ::  [[atom.that-shape that] ~ ~]
+                        %+  collate  [[atom.this-shape idx.this] ~ ~]
+                        [[atom.that-shape idx.that] ~ ~]
           %option       ((binary %junction) this that)
           %union        %-  this-that-with-shape
                         :-  %union
-                        (collate ~ ~)
-                        ::  %+  collate  map.that-shape
-                        ::  [[atom.this-shape this] ~ ~]
+                        %+  collate  map.that-shape
+                        [[atom.this-shape idx.this] ~ ~]
           %junction     %+  (binary %junction)
                           (reflect flat.that-shape)
                         (merge this (reflect deep.that-shape))
@@ -1984,8 +2086,10 @@
 ++  analyze-type
   |=  t=type
   ^-  image
-  %-  decorate-xray-image-with-patterns
+  %-  trace-xray-image
   %-  decorate-xray-image-with-shapes
+  %-  trace-xray-image
+  %-  decorate-xray-image-with-patterns
   %-  decorate-xray-image-with-loops
   %-  xray-type
   t
