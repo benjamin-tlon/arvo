@@ -1497,6 +1497,13 @@
     ==
   --
 ::
++$  focused-image  [xrays=image focus=idx]
+::
+++  zoom                                                ::  XX rename
+  |=  fi=xray-image
+  ^-  xray
+  (~(got by xrays.fi) focus.fi)
+::
 ++  decorate-xray-image-with-shapes
   |^  |=  img=image
       ^-  image
