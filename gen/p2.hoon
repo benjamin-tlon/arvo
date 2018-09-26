@@ -1513,6 +1513,19 @@
       ^-  [idx xray]
       [i x(shape [~ (xray-shape img idx.x)])]
   ::
+  +$  thing  [focus=idx next=idx =image =type=(map type idx)]
+  ::
+  ++  the-thing
+    |=  img=image
+    ^-  thing
+    %+  (traverse-left xray xray thing)
+      [~(val by img) [0 0 img ~]]
+    |=  [x=xray acc=thing]
+    ^-  xray
+    =.  type-map.acc  (~(put by acc.type-map) type.x idx.x)
+    =.  next-idx.acc  (max +(idx.x) next-idx.acc)
+    thing
+  ::
   ++  xray-shape
     |=  [img=image i=idx]
     ^-  shape
@@ -1559,9 +1572,9 @@
       ^-  xray
       (~(got by img) i)
     ::
-    ::  -fresh: produce trivial fork set if any
+    ::  -trivial-forks: produce trivial fork set if any
     ::
-    ++  fresh
+    ++  trivial-forks
       |=  x=xray
       ^-  (unit (set idx))
       =/  d=data  (need data.x)
@@ -1575,8 +1588,8 @@
       ^-  xray
       =/  ty=type  (fork ~[type.this type.that])
       =/  subrays  ^-  (set idx)
-                   =/  these=(unit (set idx))  (fresh this)
-                   =/  those=(unit (set idx))  (fresh that)
+                   =/  these  (trivial-forks this)
+                   =/  those  (trivial-forks that)
                    ?~  these
                      ?~  those  (sy idx.this idx.that ~)
                      (~(put in u.those) idx.this)
@@ -1635,7 +1648,13 @@
         ^-  xray
         =/  res  (join this that)
         res(shape `s)
+      ::
+      ::  Let's get into it!
+      ::
       ?:  =(this that)  this
+      ::
+      ::  The xrays are not the same.
+      ::
       ?@  this-shape
         ?^  that-shape  $(this that, that this)
         ^-  xray
@@ -1651,7 +1670,10 @@
           %wide  ?:  ?=(%cell that-shape)  %cell
                  [%junction idx.that idx.this]
         ==
-      ?@  that-shape :: cell wide
+      ::
+      ::  `this-shape` is either a constant, an instance, or some kind of fork.
+      ::
+      ?@  that-shape
         ?:  ?=(%void that-shape)  this
         ?:  ?=(%noun that-shape)  that
         ?:  ?=(%atom that-shape)
@@ -1664,17 +1686,20 @@
                        (reflect deep.this-shape)
           ==
         ::
-        ::  At this point, that-shape is either %cell, %wide, %union,
-        ::  or some kind of junction.
+        ::  At this point, that-shape is either %cell or a %wide and this-shape is
         ::
         ?+    -.this-shape
-                       ((binary %misjunction) this that)
+                       ((binary %misjunction) this that)  :: TODO
             %constant  ((binary %junction) this that)
             %option    ((binary %junction) this that)
             %junction  %+  (binary %junction)
                          (reflect flat.this-shape)
                        (merge that (reflect deep.this-shape))
         ==
+      ::
+      ::  At this point both shapes are either a constant, and instance,
+      ::  or some kind of fork.
+      ::
       ?:  |(?=(%misjunction -.this-shape) ?=(%misjunction -.that-shape))
         ((binary %misjunction) this that)
       ?-    -.this-shape
@@ -2173,12 +2198,8 @@
                    %cell             [%bswt choices] :: XX bskt?
                    %noun             [%bswt choices]
                    [%misjunction *]  [%bswt choices]
-                   [%junction *]     :+  %bsvt
-                                       ^$(i flat.shape)
-                                     ^$(i deep.shape)
-                   [%conjunction *]  :+  %bskt
-                                       ^$(i wide.shape)
-                                     ^$(i tall.shape)
+                   [%junction *]     [%bsvt ^$(i flat.shape) ^$(i deep.shape)]
+                   [%conjunction *]  [%bskt ^$(i wide.shape) ^$(i tall.shape)]
                  ==
              ::
              ++  choices
