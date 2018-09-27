@@ -1517,6 +1517,76 @@
   ^-  xray
   (~(got by xrays.xi) focus.xi)
 ::
+++  gc-image
+  |=  input=image
+  ^-  image
+  |^  =/  result  *image
+      =/  i=idx   0
+      |-
+      ?:  (~(has by result) i)  result
+      =/  x=xray  (~(got by input) i)
+      =.  result  (~(put by result) i x)
+      %+  (foldl image idx)
+        [result (xray-refs i)]
+      |=  [=image =idx]
+      ^$(result image, i idx)
+  ::
+  ++  xray-refs
+    |=  i=idx
+    ^-  (list idx)
+    =/  x=xray  (~(got by input) i)
+    %-  zing
+    ^-  (list (list idx))
+    :~  ?~(data.x ~ (data-refs u.data.x))
+        (zing (turn ~(tap in recipes.x) recipe-refs))
+        ?~(shape.x ~ (shape-refs u.shape.x))
+    ==
+  ::
+  ++  recipe-refs
+    |=  r=recipe
+    ^-  (list idx)
+    ?-  r
+      [%direct *]     ~
+      [%synthetic *]  list.r
+    ==
+  ::
+  ++  battery-refs
+    |=  b=(battery idx)
+    ^-  (list idx)
+    %-  zing
+    %+  turn  ~(val by b)
+    |=  [=what =(map term idx)]
+    ^-  (list idx)
+    ~(val by map)
+  ::
+  ++  shape-refs
+    |=  s=shape
+    ^-  (list idx)
+    ?@  s  ~
+    ?-  -.s
+      %constant     ~
+      %instance     ~
+      %option       ~(val by map.s)
+      %union        ~(val by map.s)
+      %junction     ~[flat.s deep.s]
+      %conjunction  ~[wide.s tall.s]
+      %misjunction  ~[one.s two.s]
+    ==
+  ::
+  ++  data-refs
+    |=  d=data
+    ^-  (list idx)
+    ?-  d
+      %noun      ~
+      %void      ~
+      [%atom *]  ~
+      [%cell *]  ~[head.d tail.d]
+      [%core *]  [xray.d (battery-refs battery.d)]
+      [%face *]  ~[xray.d]
+      [%fork *]  ~(tap in set.d)
+    ==
+  --
+::
 ++  decorate-xray-image-with-shapes
   |^  |=  img=image
       ^-  image
@@ -2214,10 +2284,12 @@
   |=  t=type
   ^-  image
   %-  trace-xray-image
-  %-  decorate-xray-image-with-shapes
+  %-  gc-image
   %-  trace-xray-image
+  %-  decorate-xray-image-with-shapes
   %-  decorate-xray-image-with-patterns
   %-  decorate-xray-image-with-loops
+  %-  trace-xray-image
   %-  xray-type
   t
 ::
