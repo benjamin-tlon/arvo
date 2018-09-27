@@ -1497,292 +1497,375 @@
     ==
   --
 ::
-+$  focused-image  [xrays=image focus=idx]
++$  ximage  [focus=idx next=idx xrays=image =type=(map type idx)]
 ::
-++  zoom                                                ::  XX rename
-  |=  fi=xray-image
+::  Builds the ximage.
+::
+++  image-to-ximage
+  |=  img=image
+  ^-  ximage
+  %+  (foldl ximage xray)
+    [init=[0 0 img ~] elems=~(val by img)]
+  |=  [acc=ximage x=xray]
+  ^-  ximage
+  =.  type-map.acc  (~(put by type-map.acc) type.x idx.x)
+  =.  next.acc      (max +(idx.x) next.acc)
+  acc
+::
+++  focus                                               ::  XX rename
+  |=  xi=ximage
   ^-  xray
-  (~(got by xrays.fi) focus.fi)
+  (~(got by xrays.xi) focus.xi)
 ::
 ++  decorate-xray-image-with-shapes
   |^  |=  img=image
       ^-  image
-      %-  ~(gas by *image)
-      %+  turn  ~(tap by img)
-      |=  [i=idx x=xray]
-      ^-  [idx xray]
-      [i x(shape [~ (xray-shape img idx.x)])]
+      =<  xrays
+      ^-  ximage
+      %+  (foldl ximage idx)
+        [(image-to-ximage img) ~(tap by img)]
+      |=  [acc=ximage =idx]
+      (shape-xray ximage(focus idx))
   ::
-  +$  thing  [focus=idx next=idx =image =type=(map type idx)]
+  ::  Produce an ximage focused on the xray for a given type. If the
+  ::  type isn't already in the ximage, create it first.
   ::
-  ++  the-thing
-    |=  img=image
-    ^-  thing
-    %+  (traverse-left xray xray thing)
-      [~(val by img) [0 0 img ~]]
-    |=  [x=xray acc=thing]
-    ^-  xray
-    =.  type-map.acc  (~(put by acc.type-map) type.x idx.x)
-    =.  next-idx.acc  (max +(idx.x) next-idx.acc)
-    thing
+  ++  with-new-xray
+    |=  [st=ximage ty=type d=data]
+    ^-  ximage
+    =/  old  (~(get by type-map.st) ty)
+    ?^  old  [(~(got by xrays.st) idx.u.old) st]
+    =/  idx  count.st
+    =/  res=xray     [idx ty `d ~ ~ ~ ~ ~ %.n]
+    =.  count.st     +(idx)
+    =.  xrays.st     (~(put by xrays.st) idx.res res)
+    =.  type-map.st  (~(put by type-map.st) ty.res idx.res)
+    =.  focus.st     idx
+    st(focus idx)
   ::
-  ++  xray-shape
-    |=  [img=image i=idx]
-    ^-  shape
-    ::
-    =/  x    (~(got by img) i)
-    =/  dat  (need data.x)
-    ::
-    ?^  shape.x  u.shape.x                              ::  Already computed.
-    ::
-    ?@  dat  `shape`dat
-    ?-  -.dat
-      %atom  ?~  constant.dat  %atom
-             [%constant u.constant.dat]
-      %cell  =/  hd=shape
-               $(i head.dat)
-             ?:  ?|  ?=(?(%cell %wide) hd)
+  ::  Return an ximage modified to be focus on the %void type. If no
+  ::  void type exists, one will be created.
+  ::
+  ++  void-xray
+    |=  st=ximage
+    (with-new-xray st %void %void)
+  ::
+  ::  Determines the shape of an atom xray.
+  ::
+  ::  This is trivial enough that it should probably be done inline,
+  ::  but it's a nice first example of what the *-shape arms do.
+  ::
+  ++  atom-shape
+    |=  [st=ximage =constant=(unit @)]
+    ^-  [shape ximage]
+    ?~  constant.dat  [%atom st]
+    [[%constant u.constant.dat] st]
+  ::
+  ::  Determine the shape of %fork type.
+  ::
+  ::  First, find (or create) an xray for the union type, then call back
+  ::  into `shape-xray` to get it's type.
+  ::
+  ::  The focused xray of the resulting ximage *will* be decorated with
+  ::  shape information, the shape is just return for convenience.
+  ::
+  ++  fork-shape
+    |=  [st=ximage fork=(set idx)]
+    ^-  [shape ximage]
+    (xray-shape (fork-xray fork))
+  ::
+  ::  Calculate the shape of a %cell xray.
+  ::
+  ++  cell-shape
+    |=  [st=ximage head=idx tail=idx]
+    ^-  [shape ximage]
+    =^  hd=shape  st  (xray-shape st(focus head.dat))
+    =/  is-wide  ?|  ?=(?(%cell %wide) hd)
                      ?=([?(%instance %union %junction %conjunction) *] hd)
                  ==
-               %wide
-             ?:  ?=([%constant *] hd)
-               [%instance atom.hd]
-             %cell
-      %core  %cell
-      %face  $(i xray.dat)
-      %fork  =/  x=xray  (fork-xray img x set.dat) :: XX
-             (need shape.x)
+    :_  st
+    ?:  ?=([%constant *] hd)  [%instance atom.hd]
+    ?:  is-wide  %wide
+    %cell
+  ::
+  ::  Produces an ximage updated to have shape information for the xray
+  ::
+  ::  Produces an ximage updated to have shape information for the xray
+  ::  in focus.
+  ::
+  ::  The focused xray of the resulting image *will* be decorated with
+  ::  shape information, the shape is just return for convenience.
+  ::
+  ++  xray-shape
+    |=  st=ximage
+    ^-  [shape ximage]
+    =/  x=xray  (focus st)
+    ?^  shape.x  [u.shape.x ximage]
+    %-  |=  [res=shape st=ximage]
+        =.  xrays.st  (~(put by xrays.st) idx.x x(shape `res))
+        =.  focus.st  idx.x
+        [res st]
+    =/  dat  (need data.x)
+    ?-  -.dat
+      %noun      [%noun st]
+      %void      [%void st]
+      [%atom *]  (atom-shape constant.dat)
+      [%cell *]  (cell-shape head.dat tail.dat)
+      [%core *]  [%cell st]
+      [%face *]  (xray-shape st(focus xray.dat))        ::  same as nested shape
+      [%fork *]  (fork-shape st set.dat)
     ==
   ::
+  ::  Create a new xray from a union type.  Returns an ximage focused
+  ::  on the result.
+  ::
   ++  fork-xray
-    |=  [img=image result=xray branches=(set idx)]
-    ^-  xray
-    |^  =.  type.result  %void
-        =.  data.result  `%void
-        =/  branches=(list xray)  (turn ~(tap in branches) ~(got by img))
-        ((foldl xray xray) [result branches] merge)
-    ::
-    ::  Get an xray given an index.
-    ::
-    ::  XX This needs to be rewritten to thread the map throughout the
-    ::  entire execution. It's gonna be fucking ugly.
-    ::
-    ++  reflect
-      |=  i=idx
-      ^-  xray
-      (~(got by img) i)
-    ::
-    ::  -trivial-forks: produce trivial fork set if any
-    ::
-    ++  trivial-forks
-      |=  x=xray
-      ^-  (unit (set idx))
-      =/  d=data  (need data.x)
-      ?.  ?=([%fork *] d)  ~
-      `set.d
-    ::
-    ::  =join: compose union of two xrays, collapsing simple forks
-    ::
-    ++  join
-      |=  [this=xray that=xray]
-      ^-  xray
-      =/  ty=type  (fork ~[type.this type.that])
-      =/  subrays  ^-  (set idx)
-                   =/  these  (trivial-forks this)
-                   =/  those  (trivial-forks that)
-                   ?~  these
-                     ?~  those  (sy idx.this idx.that ~)
-                     (~(put in u.those) idx.this)
+    |=  [st=ximage fork=(set idx)]
+    ^-  ximage
+    =.  st  (void-xray st)
+    %+  (foldl ximage idx)
+      [st ~(tap in fork)]
+    |=  [=ximage =idx]
+    (merge ximage focus.ximage idx)
+  ::
+  ::  Combine two xrays in an ximage (the one in focus and the one
+  ::  referenced by `i`, producing a new ximage focused on the resulting
+  ::  union.
+  ::
+  ::  First, we compute the shape of both xrays, and then we `combine`
+  ::  them.
+  ::
+  ++  merge
+    |=  [st=ximage x=idx y=idx]
+    ^-  ximage
+    =/  this=xray  (focus st(focus x))
+    =/  that=xray  (focus st(focus y))
+    ^=  this-shape  st  (xray-shape st(focus x))        ::  Is this needed?
+    ^=  that-shape  st  (xray-shape st(focus y))        ::  Is this needed?
+    ?:  =(%void type.this)  that
+    ?:  =(%void type.that)  this
+    (combine this that)
+  ::
+  ::  `combine` is complicated. Let's introduce it's helper-functions first:
+  ::
+  ::  -simple-forks: produce a simple fork set if any.
+  ::
+  ::  XX In the old code, we didn't produce one for loop entry points. Why
+  ::  was that? Do we need to reintroduce that logic?
+  ::
+  ++  simple-forks
+    |=  xi=ximage
+    ^-  (unit (set idx))
+    =/  d=data  (need data:(focus xi))
+    ?.  ?=([%fork *] d)  ~
+    `set.d
+  ::
+  ::  Given two xrays, construct their union type and return it's xray.
+  ::
+  ::  Returns an `ximage` focused on the resulting xray.
+  ::
+  ::  Using the `fork` primitive to construct a new type, get the xray
+  ::  for that type. If we already have an xray for that, just return
+  ::  it. Otherwise we need to create one. The `data` field for the new
+  ::  xray will be (basically) the result of doing a set-merge on the
+  ::  trivial-forks of both xrays.
+  ::
+  ++  join
+    |=  [st=ximage i=idx]
+    ^-  ximage
+    ?:  =(focus.st i)  st
+    =/  this=xray  (focus st)
+    =/  that=xray  (focus st(focus i))
+    =/  ty=type    (fork `(list type)`~[type.this type.that])
+    =/  dat=data   :-  %fork
+                   ^-  (set idx)
+                   =/  these  (simple-forks st(focus idx.this))
+                   =/  those  (simple-forks st(focus idx.that))
+                   ?~  these  ?~  those  (sy idx.this idx.that ~)
+                              (~(put in u.those) idx.this)
                    ?~  those  (~(put in u.these) idx.that)
-                   (~(uni in u.these) u.those)
-      =/  dat=data  [%fork subrays]
-      =/  d=data  [%fork subrays]
-      =/  idx  99                                       ::  XX TODO
-      [idx ty `d ~ ~ ~ ~ ~ %.n]
+                   (~(uni in u.these) u.those)          ::  XX uni? Eh?
+    (with-new-xray st ty dat)
+  ::
+  ::  =collate: merge option maps
+  ::
+  ++  collate
+    |=  [st=ximage thick=(map atom idx) thin=(map atom idx)]
+    ^-  [(map atom idx) ximage]
+    =/  list  ~(tap by thin)
+    |-
+    ^-  (map atom idx)
+    ?~  list  [thick st]
+    =/  item=(unit idx)  (~(get by thick) p.i.list)
+    =^  merged=idx  st  ?~  item  [q.i.list st]
+                        =.  st  (merge st u.item q.i.list)
+                        [focus.st st]
+    =/  new-thick  (~(put by thick) p.i.list merged)
+    $(list t.list, thick new-thick)
+  ::
+  ::  Huge amounts of nasty-ass logic that is probably wrong.
+  ::
+  ++  combine
+    |=  [st=ximage target=idx]
+    ^-  ximage
     ::
-    ::  =binary: compose binary junction/conjunction/misjunction
+    ::  First let's do some setup. Get indicies for this, that, and the
+    ::  joined type.
     ::
-    ++  binary
+    =/  this      focus.st
+    =/  that      target
+    ::
+    |-
+    ::
+    ?:  =(this that)  st
+    =.  st  (join st(focus this) that)
+    =/  joint  focus.st
+    =^  this-shape  st  (xray-shape st(focus this))
+    =^  that-shape  st  (xray-shape st(focus that))
+    ::
+    =/  join-with-shape
+      |=  [st=ximage x=idx y=idx =shape]
+      ^-  ximage
+      =.  st       (join st(focus x) y)
+      =/  x=xray   (focus st)
+      =.  shape.x  `shape
+      =.  xrays.st  (~(put by xrays.st) idx.x x)
+      st
+    ::
+    =/  thisthat :: XX Figure out what this is FOR and give it better name.
+      |=  [st=ximage =shape]
+      ^-  ximage
+      =.  st  (join-with-shape st this that shape)
+    ::
+    =/  binary
       |*  joint=?(%junction %conjunction %misjunction)
-      |=  [this=xray that=xray]
-      ^-  xray
-      =/  res  (join this that)
-      res(shape `[joint idx.this idx.that])
+      |=  [st=ximage small=idx big=idx]
+      ^-  ximage
+      (join-with-shape st small big [joint small big])
     ::
-    ::  =merge: merge two xrays intelligently, using shape
+    ::  Alright, let's get into it! Are you ready?
     ::
-    ++  merge
-      |=  [this=xray that=xray]
-      ^-  xray
-      ?:  =(%void type.this)  that
-      ?:  =(%void type.that)  this
-      =.  shape.this  `(xray-shape img idx.this)
-      =.  shape.that  `(xray-shape img idx.that)
-      (combine this that)
-    ::
-    ++  merge-by-idx
-      |=  [this=idx that=idx]
-      ^-  idx
-      idx:(merge (reflect this) (reflect that))
-    ::
-    ::  =collate: merge option maps
-    ::
-    ++  collate
-      |=  [thick=(map atom idx) thin=(map atom idx)]
-      ^-  (map atom idx)
-      =/  list  ~(tap by thin)
-      |-  ^-  (map atom idx)
-      ?~  list  thick
-      =/  item=(unit idx)  (~(get by thick) p.i.list)
-      =/  merged=idx       ?~(item q.i.list (merge-by-idx u.item q.i.list))
-      =/  new-thick        (~(put by thick) p.i.list merged)
-      $(list t.list, thick new-thick)
-    ::
-    ++  combine
-      |=  [this=xray that=xray]
-      ^-  xray
-      =/  this-shape  (need shape.this)
-      =/  that-shape  (need shape.that)
-      =/  this-that-with-shape
-        |=  s=shape
-        ^-  xray
-        =/  res  (join this that)
-        res(shape `s)
-      ::
-      ::  Let's get into it!
-      ::
-      ?:  =(this that)  this
-      ::
-      ::  The xrays are not the same.
-      ::
-      ?@  this-shape
-        ?^  that-shape  $(this that, that this)
-        ^-  xray
-        %-  this-that-with-shape
-        ?:  =(this-shape that-shape)  this-shape
-        ?:  ?=(%void this-shape)  that-shape
-        ?:  ?=(%void that-shape)  this-shape
-        ?:  |(?=(%noun this-shape) ?=(%noun that-shape))  %noun
-        ?-  this-shape
-          %atom  [%junction idx.this idx.that]
-          %cell  ?:  ?=(%wide that-shape)  %cell
-                 [%junction idx.that idx.this]
-          %wide  ?:  ?=(%cell that-shape)  %cell
-                 [%junction idx.that idx.this]
-        ==
-      ::
-      ::  `this-shape` is either a constant, an instance, or some kind of fork.
-      ::
-      ?@  that-shape
-        ?:  ?=(%void that-shape)  this
-        ?:  ?=(%noun that-shape)  that
-        ?:  ?=(%atom that-shape)
-          ?+  -.this-shape
-                       ((binary %misjunction) that this)
-            %instance  ((binary %junction) that this)
-            %union     ((binary %junction) that this)
-            %junction  %+  (binary %junction)
-                         (merge that (reflect flat.this-shape))
-                       (reflect deep.this-shape)
-          ==
-        ::
-        ::  At this point, that-shape is either %cell or a %wide and this-shape is
-        ::
-        ?+    -.this-shape
-                       ((binary %misjunction) this that)  :: TODO
-            %constant  ((binary %junction) this that)
-            %option    ((binary %junction) this that)
-            %junction  %+  (binary %junction)
-                         (reflect flat.this-shape)
-                       (merge that (reflect deep.this-shape))
-        ==
-      ::
-      ::  At this point both shapes are either a constant, and instance,
-      ::  or some kind of fork.
-      ::
-      ?:  |(?=(%misjunction -.this-shape) ?=(%misjunction -.that-shape))
-        ((binary %misjunction) this that)
-      ?-    -.this-shape
-          %constant
-        ?-  -.that-shape
-          %constant     %-  this-that-with-shape
-                        ^-  shape
-                        :-  %option
-                        %+  collate  [[atom.this-shape idx.this] ~ ~]
-                        [[atom.that-shape idx.that] ~ ~]
-          %instance     ((binary %junction) this that)
-          %option       ((binary %misjunction) this that)
-          %union        ((binary %junction) this that)
-          %junction     %+  (binary %junction)
-                          (merge this (reflect flat.that-shape))
-                        (reflect deep.that-shape)
-          %conjunction  ((binary %junction) this that)
-        ==
-      ::
-          %instance
-        ?+  -.that-shape  $(this that, that this)
-          %instance     %-  this-that-with-shape
-                        ^-  shape
-                        :-  %union
-                        %+  collate  [[atom.this-shape idx.this] ~ ~]
-                        [[atom.that-shape idx.that] ~ ~]
-          %option       ((binary %junction) this that)
-          %union        %-  this-that-with-shape
-                        :-  %union
-                        %+  collate  map.that-shape
-                        [[atom.this-shape idx.this] ~ ~]
-          %junction     %+  (binary %junction)
-                          (reflect flat.that-shape)
-                        (merge this (reflect deep.that-shape))
-          %conjunction  %+  (binary %junction)
-                          (reflect wide.that-shape)
-                        (merge this (reflect tall.that-shape))
-        ==
-      ::
-          %option
-        ?+  -.that-shape  $(this that, that this)
-          %option       %-  this-that-with-shape
-                        :-  %option
-                        (collate map.this-shape map.that-shape)
-          %union        ((binary %junction) this that)
-          %junction     %+  (binary %junction)
-                          (merge this (reflect flat.that-shape))
-                        (reflect deep.that-shape)
-          %conjunction  ((binary %junction) this that)
-        ==
-      ::
-          %union
-        ?+  -.that-shape  $(this that, that this)
-          %union        %-  this-that-with-shape
-                        :-  %union
-                        (collate map.this-shape map.that-shape)
-          %junction     %+  (binary %junction)
-                          (reflect flat.that-shape)
-                        (merge this (reflect deep.that-shape))
-          %conjunction  %+  (binary %conjunction)
-                          (reflect wide.that-shape)
-                        (merge this (reflect tall.that-shape))
-        ==
-      ::
-          %junction
-        ?+  -.that-shape  $(this that, that this)
-          %junction     %+  (binary %junction)
-                          (merge (reflect flat.this-shape) (reflect flat.that-shape))
-                        (merge (reflect deep.this-shape) (reflect deep.that-shape))
-          %conjunction  %+  (binary %junction)
-                          (reflect flat.this-shape)
-                        (merge (reflect deep.this-shape) that)
-        ==
-      ::
-          %conjunction
-        ?+  -.that-shape  $(this that, that this)
-          %conjunction  %+  (binary %conjunction)
-                          (merge (reflect wide.this-shape) (reflect wide.that-shape))
-                        (merge (reflect tall.this-shape) (reflect tall.that-shape))
-        ==
+    ?@  this-shape
+      ?^  that-shape  $(this that, that this)
+      %+  thisthat  st
+      ^-  shape
+      ?:  =(this-shape that-shape)                      this-shape
+      ?:  ?=(%void this-shape)                          that-shape
+      ?:  ?=(%void that-shape)                          this-shape
+      ?:  |(?=(%noun this-shape) ?=(%noun that-shape))  %noun
+      ?-  this-shape
+        %atom  [%junction this that]
+        %cell  ?:  ?=(%wide that-shape)  %cell
+               [%junction that this]
+        %wide  ?:  ?=(%cell that-shape)  %cell
+               [%junction that this]
       ==
-    --
+    ::
+    ::  We now know that `this-shape` is either a constant, an instance,
+    ::  or one of the fork shapes.
+    ::
+    ?@  that-shape
+      ?:  ?=(%void that-shape)  (thisthat st this-shape)
+      ?:  ?=(%noun that-shape)  (thisthat st that-shape)
+      ?:  ?=(%atom that-shape)
+        ?+  -.this-shape
+                     ((binary %misjunction) st that this)
+          %instance  ((binary %junction) st that this)
+          %union     ((binary %junction) st that this)
+          %junction  =.  st  (merge st that flat.this-shape)
+                     =/  merged  focus.st
+                     ((binary %junction) merged deep.this-shape)
+        ==
+      ::
+      ::  At this point, `that-shape` is either %cell or a %wide and
+      ::  this-shape is TODO
+      ::
+      ?+    -.this-shape
+                     ((binary %misjunction) this that)
+          %constant  ((binary %junction) this that)
+          %option    ((binary %junction) this that)
+          %junction  =.  st      (merge st that deep.this-shape)
+                     =/  merged  focus.st
+                     ((binary %junction) st flat.this-shape merged)
+      ==
+    ::
+    ::  We now know that `that-shape` is also either a constant,
+    ::  an instance, or one of the fork shapes.
+    ::
+    ?:  |(?=(%misjunction -.this-shape) ?=(%misjunction -.that-shape))
+      ((binary %misjunction) st this that)
+    ?-    -.this-shape
+        (thisthat st %constant)
+      ?-  -.that-shape
+        %constant     =/  this-arg=(map atom idx)  [[atom.this-shape this] ~ ~]
+                      =/  that-arg=(map atom idx)  [[atom.that-shape that] ~ ~]
+                      =^  res  st  (collate st this-arg that-arg)
+                      (thisthat st [%option res])
+        %instance     ((binary %junction) st this that)
+        %option       ((binary %misjunction) st this that)
+        %union        ((binary %junction) st this that)
+        %junction     =.  st  (merge st this flat.that-shape)
+                      =/  merged  focus.st
+                      ((binary %junction) st merged deep.that-shape)
+        %conjunction  ((binary %junction) st this that)
+      ==
+    ::
+        %instance
+      ?+  -.that-shape  $(this that, that this)
+        %instance     =/  this-arg=(map atom idx)  [[atom.this-shape this] ~ ~]
+                      =/  that-arg=(map atom idx)  [[atom.that-shape that] ~ ~]
+                      =^  res  st  (collate st this-arg that-arg)
+                      [[%union res] st]
+        %option       ((binary %junction) st this that)
+        %union        =/  this-arg  [[atom.this-shape idx.this] ~ ~]
+                      =^  res  st   (collate st map.that-shape this-arg)
+                      [[%union res] st]
+        %junction     =^  merged  st  (merge st this deep.that-shape)
+                      ((binary %junction) st flat.that-shape merged)
+        %conjunction  =^  merged  st  (merge st this tall.that-shape
+                      ((binary %junction) wide.that-shape merged)
+      ==
+    ::
+        %option
+      ?+  -.that-shape  $(this that, that this)
+        %option       %-  this-that-with-shape
+                      :-  %option
+                      (collate map.this-shape map.that-shape)
+        %union        ((binary %junction) this that)
+        %junction     =^  merged  st  (merge this flat.that-shape)
+                      ((binary %junction) merged deep.that-shape)
+        %conjunction  ((binary %junction) this that)
+      ==
+    ::
+        %union
+      ?+  -.that-shape  $(this that, that this)
+        %union        %-  this-that-with-shape
+                      :-  %union
+                      (collate map.this-shape map.that-shape)
+        %junction     =^  merged  st  (merge this deep.that-shape)
+                      ((binary %junction) (reflect flat.that-shape) merged)
+        %conjunction  =^  merged  st  (merge this (reflect tall.that-shape))
+                      ((binary %conjunction) wide.that-shape merged)
+      ==
+    ::
+        %junction
+      ?+  -.that-shape  $(this that, that this)
+        %junction     =^  flat  st  (merge flat.this-shape flat.that-shape)
+                      =^  deep  st  (merge deep.this-shape deep.that-shape)
+                      ((binary %junction) flat deep)
+        %conjunction  =^  merged  st  (merge st deep.this-shape that)
+                      ((binary %junction) st flat.this-shape merged)
+      ==
+    ::
+        %conjunction
+      ?+  -.that-shape  $(this that, that this)
+        %conjunction  =^  wide  st  (merge wide.this-shape wide.that-shape)
+                      =^  tall  st  (merge tall.this-shape tall.that-shape)
+                      ((binary %conjunction) wide tall)
+      ==
+    ==
   --
+--
       ::  ::
       ::  ::  -measure: calculate `shape` information on xrays.
       ::  ::
