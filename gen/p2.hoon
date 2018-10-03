@@ -43,15 +43,15 @@
   =/  armset=(set term)  (~(gas in *(set term)) arms)
   ::
   ?:  =(-:!>(..noun.naon) ty)
-    ~&  'is-zuse'
+    ::  ~&  'is-zuse'
     %.y
   ::
   ?:  (~(has in armset) 'sign-arvo')
-    ~&  'has sign-arvo'
+    ::  ~&  'has sign-arvo'
     %.y
   ::
   ?:  (~(has in armset) 'add')
-    ~&  'has add'
+    ::  ~&  'has add'
     %.y
   ::
   %.n
@@ -850,7 +850,7 @@
     %bsld  (subtree (fixed '$<') $(spec p.spec) $(spec q.spec) ~)
     %bsbn  (subtree (fixed '$>') $(spec p.spec) $(spec q.spec) ~)
     %bshp  (subtree (fixed '$-') $(spec p.spec) $(spec q.spec) ~)
-    %bskt  (subtree (fixed '$-') $(spec p.spec) $(spec q.spec) ~)
+    %bskt  (subtree (fixed '$^') $(spec p.spec) $(spec q.spec) ~)
     %bsls  (subtree (fixed '$+') (stud-to-plum p.spec) $(spec q.spec) ~)
     %bsnt  (core-spec-to-plum '$/' p.spec q.spec)
     %bsmc  (subtree (fixed '$;') (hoon-to-plum p.spec) ~)
@@ -1423,10 +1423,6 @@
                  =^  tyl=idx  st  $(ty q.ty)
                  (with-new-xray ty `[%cell hed tyl] st)
       [%core *]  =/  arms=(list term)  (battery-arms q.r.q.ty)
-                 ::  ?:  (gte (lent arms) 30)
-                   ::  (with-new-xray ty `[%atom 'tas' `%huge] st)
-                 ::  ?:  (is-kernel ty)
-                   ::  (with-new-xray ty `[%atom 'tas' `%kern] st)
                  =^  res=idx  st  (with-new-xray ty ~ st)
                  =^  d=data   st  (xray-core [p.ty q.ty] st)
                  (with-new-xray ty `d st)
@@ -1520,21 +1516,20 @@
   +*  chap  [item]  (pair term (pair what (map term item)))
   +*  arm   [item]  (pair term item)
   ::
-  ::  [%hold [%core payload-type coil] q.arm]
-  ::  [%hold [%core payload-type coil] q.arm]
-  ::
   ++  xray-arm
-    |=  [st=state =payload=type =coil x=(arm hoon) is-huge=?]
+    |=  [st=state =payload=type =coil x=(arm hoon)]
     ^-  [(arm idx) state]
-    ::  ~&  p.x
     =.  r.p.coil  %gold
-    ::  ~&  ~(tall plume (simple-type-to-plum payload-type 10))
-    ::  ~&  ~(tall plume (simple-type-to-plum q.coil 10))
-    ::  =.  q.coil  payload-type
+    =.  q.p.coil  %dry
+    ~&  'XRAY-ARM'
+    ~&  'hoon'
+    ~&  ~(tall plume (hoon-to-plum q.x))
+    ~&  'payload-type'
+    ~&  ~(tall plume (simple-type-to-plum payload-type 10))
+    ~&  'coil-context'
+    ~&  ~(tall plume (simple-type-to-plum q.coil 10))
     =/  thunk  [%hold [%core payload-type coil] q.x]
-    =^  i=idx  st
-      ?:  is-huge  (with-new-xray thunk `[%atom 'tas' `%arm] st)
-      (main thunk st)
+    =^  i=idx  st  (main thunk st)
     [x(q i) st]
   ::
   ::  Analyze a core.
@@ -1543,7 +1538,6 @@
     |=  [[=payload=type =coil] st=state]
     ^-  [data state]
     =^  payload-idx  st  (main payload-type st)
-    =/  is-huge  (gte (lent (battery-arms q.r.coil)) 90)
     =^  chapters=(list (chap idx))  st
       %+  (traverse-right (chap hoon) (chap idx) state)
         [~(tap by q.r.coil) st]
@@ -1553,11 +1547,11 @@
         %+  (traverse-right (arm hoon) (arm idx) state)
           [~(tap by q.q.c) st]
         |=  [=(arm hoon) st=state]
-        (xray-arm st payload-type coil arm is-huge)
+        (xray-arm st payload-type coil arm)
       =/  r  `(chap idx)`[p.c `what`p.q.c (~(gas by *(map term idx)) l)]
       [r st]
-      =/  chaps  (~(gas by *(batt idx)) chapters)
-    =/  d=data  [%core p.coil payload-idx ~] :: chaps
+    =/  chaps  (~(gas by *(batt idx)) chapters)
+    =/  d=data  [%core p.coil payload-idx chaps]
     [d st]
   ::
   :: XX This could be very expensive.  If this happens a lot, then we
@@ -1747,8 +1741,7 @@
         ?.  (is-references-to-tree input-idx tail.node-data)  ~
         =/  elem-data  (need data:(reflect head.node-data))
         ?.  ?=([%face *] elem-data)  ~
-        ::  ~&  ['tree-of' xray.elem-data]
-        ~&  type.input-xray
+        ::  ~&  type.input-xray
         `xray.elem-data
     ::
     ++  is-references-to-tree
@@ -1785,8 +1778,7 @@
         ?.  (is-reference-to-loop input-idx tail.node-data)  ~
         =/  elem-data  (need data:(reflect head.node-data))
         ?.  ?=([%face *] elem-data)  ~
-        ::  ~&  ['list-of' xray.elem-data]
-        ~&  type.input-xray
+        ::  ~&  type.input-xray
         `xray.elem-data
     ::
     ++  is-reference-to-loop
@@ -2001,11 +1993,9 @@
   ++  with-new-xray
     |=  [st=ximage ty=type d=data]
     ^-  ximage
-    ~&  ['with-new-xray' d]
     =/  old=(unit idx)  (~(get by type-map.st) ty)
     ?^  old  st(focus u.old)
     =/  idx          next.st
-    ::  ~&  ['with-new-xray' idx ty]
     =/  res=xray     [idx ty `d ~ ~ ~ ~ ~ ~ ~ %.n]
     =.  next.st      +(idx)
     =.  xrays.st     (~(put by xrays.st) idx.res res)
@@ -2028,7 +2018,6 @@
   ++  atom-role
     |=  [st=ximage =constant=(unit @)]
     ^-  [role ximage]
-    ~&  'atom-role'
     ?~  constant-unit  [%atom st]
     [[%constant u.constant-unit] st]
   ::
@@ -2043,7 +2032,6 @@
   ++  fork-role
     |=  [st=ximage fork=(set idx)]
     ^-  [role ximage]
-    ~&  'fork-role'
     (xray-role (fork-xray st fork))
   ::
   ::  Calculate the role of a %cell xray.
@@ -2051,7 +2039,6 @@
   ++  cell-role
     |=  [st=ximage head=idx]
     ^-  [role ximage]
-    ~&  ['cell-role' head]
    ::
     =/  x=xray  (focus st(focus head))
     =/  =shape  (need shape.x)
@@ -2092,8 +2079,8 @@
         =.  focus.st  idx.x
         [res st]
     =/  dat  (need data.x)
-    ~&  ['xray-role' focus.st]
-    ~&  ['data' dat]
+    ::  ~&  ['xray-role' focus.st]
+    ::  ~&  ['data' dat]
     ?-  dat
       %noun      [%noun st]
       %void      [%void st]
@@ -2110,7 +2097,6 @@
   ++  fork-xray
     |=  [st=ximage fork=(set idx)]
     ^-  ximage
-    ~&  'fork-xray'
     =.  st  (void-xray st)
     %+  (foldl ximage idx)
       [st ~(tap in fork)]
@@ -2127,7 +2113,6 @@
   ++  merge
     |=  [st=ximage x=idx y=idx]
     ^-  ximage
-    ~&  ['merge' x y]
     =/  this=xray  (focus st(focus x))
     =/  that=xray  (focus st(focus y))
     =^  this-role  st  (xray-role st(focus x))        ::  Is this needed?
@@ -2146,7 +2131,6 @@
   ++  simple-forks
     |=  xi=ximage
     ^-  (unit (set idx))
-    ~&  ['simple-forks']
     =/  x=xray  (focus xi)
     ?:  loop.x  ~
     =/  d=data  (need data.x)
@@ -2166,7 +2150,7 @@
   ++  join
     |=  [st=ximage i=idx]
     ^-  ximage
-    ~&  ['join' focus.st i]
+    ::  ~&  ['join' focus.st i]
     ?:  =(focus.st i)  st
     =/  this=xray  (focus st)
     =/  that=xray  (focus st(focus i))
@@ -2186,7 +2170,7 @@
   ++  collate
     |=  [st=ximage thick=(map atom idx) thin=(map atom idx)]
     ^-  [(map atom idx) ximage]
-    ~&  'collate'
+    ::  ~&  'collate'
     =/  list  ~(tap by thin)
     |-
     ^-  [(map atom idx) ximage]
@@ -2203,7 +2187,6 @@
   ++  combine
     |=  [st=ximage target=idx]
     ^-  ximage
-    ~&  ['combine' focus.st target]
     ::
     ::  First let's do some setup. Get indicies for this, that, and the
     ::  joined type.
@@ -2214,38 +2197,98 @@
     |-
     ^-  ximage
     ::
+    ::  ~&  ['combine' focus.st target]
+    ::
     ?:  =(this that)  st
 
     =^  this-role  st  (xray-role st(focus this))
     =^  that-role  st  (xray-role st(focus that))
     ::
+    ::  Create the join of two xrays with the specified `role`.
+    ::
     =/  join-with-role
       |=  [st=ximage x=idx y=idx =role]
       ^-  ximage
+      ::
+      =/  xx  (focus st(focus x))
+      =/  yy  (focus st(focus y))
+      ::  ~&  ['join-with-role' x y role]
+      ::  ~&  [x '=' (need data.xx) (need role.xx)]
+      ::  ~&  [y '=' (need data.yy) (need role.yy)]
+      ::
       =.  st       (join st(focus x) y)
       =/  x=xray   (focus st)
       =.  role.x  `role
       =.  xrays.st  (~(put by xrays.st) idx.x x)
       st
     ::
-    =/  thisthat :: XX Figure out what this is FOR and give it better name.
+    ::  Produce a joined node with the specified `role`.
+    ::
+    =/  joined
       |=  [st=ximage =role]
       ^-  ximage
       (join-with-role st this that role)
     ::
-    =/  binary
-      |*  hd=?(%junction %conjunction %misjunction)
-      |=  [st=ximage small=idx big=idx]
+    ::  Convenience functions for creating junctions
+    ::
+    =/  misjunct  |=  [st=ximage x=idx y=idx]
+                  ~&  ['MISJUNCTION' x y]
+                  =/  xx=xray  (focus st(focus x))
+                  =/  yy=xray  (focus st(focus y))
+                  ~&  [x '=' (need data.xx) (need role.xx)]
+                  ~&  [y '=' (need data.yy) (need role.yy)]
+                  ::  ?:  %.y  !!
+                  (join-with-role st x y [%misjunction x y])
+    ::
+    =/  conjunct  |=  [st=ximage wide=idx tall=idx]
+                  (join-with-role st wide tall [%conjunction wide tall])
+    ::
+    =/  junct     |=  [st=ximage flat=idx deep=idx]
+                  (join-with-role st flat deep [%junction flat deep])
+    ::
+    ::  Join a cell with a junction.
+    ::
+    =/  cell-junct
+      |=  [st=ximage cell=idx [flat=idx deep=idx]]
       ^-  ximage
-      (join-with-role st small big [hd small big])
+      =.  st  (merge st cell deep)
+      =/  deep-merged  focus.st
+      (junct st flat deep-merged)
+    ::
+    ::  Join an atom with a junction.
+    ::
+    =/  atom-junct
+      |=  [st=ximage atom=idx [flat=idx deep=idx]]
+      ^-  ximage
+      =.  st  (merge st atom flat)
+      =/  flat-merged  focus.st
+      (junct st flat-merged deep)
+    ::
+    =/  tall-conjunct
+      |=  [st=ximage out-tall=idx [wide=idx in-tall=idx]]
+      ^-  ximage
+      =.  st  (merge st out-tall in-tall)
+      =/  new-tall  focus.st
+      (conjunct st wide new-tall)
+    ::
+    =/  conjunct-conjunct
+      |=  [st=ximage [xwide=idx xtall=idx] [ywide=idx ytall=idx]]
+      =.  st  (merge st xwide ywide)
+      =/  new-wide  focus.st
+      =/  st  (merge st xtall ytall)
+      =/  new-tall  focus.st
+      :: XX Merging the talls or the wides might produce a misjunction! In
+      :: either case, the result should also be a misjunction, not a
+      :: conjunction. This is wrong.
+      (conjunct st new-wide new-tall)
     ::
     ::  Alright, let's get into it! Are you ready?
     ::
     ?@  this-role
       ?^  that-role  $(this that, that this)
-      %+  thisthat  st
+      %+  joined  st
       ^-  role
-      ?:  =(this-role that-role)                      this-role
+      ?:  =(this-role that-role)                       this-role
       ?:  ?=(%void this-role)                          that-role
       ?:  ?=(%void that-role)                          this-role
       ?:  |(?=(%noun this-role) ?=(%noun that-role))  %noun
@@ -2257,53 +2300,68 @@
                [%junction that this]
       ==
     ::
-    ::  We now know that `this-role` is either a constant, an instance,
-    ::  or one of the fork roles.
+    ::  At this point `this-role` is a constant, instance, option, union,
+    ::  junction, conjunction, or a misjunction.
     ::
     ?@  that-role
-      ?:  ?=(%void that-role)  (thisthat st this-role)
-      ?:  ?=(%noun that-role)  (thisthat st that-role)
-      ?:  ?=(%atom that-role)
-        ?+  -.this-role
-                     ((binary %misjunction) st that this)
-          %instance  ((binary %junction) st that this)
-          %union     ((binary %junction) st that this)
-          %junction  =.  st  (merge st that flat.this-role)
-                     =/  merged  focus.st
-                     ((binary %junction) st merged deep.this-role)
-        ==
-      ::
-      ::  At this point, `that-role` is either %cell or a %wide and
-      ::  this-role is TODO
-      ::
-      ?+    -.this-role
-                     ((binary %misjunction) st this that)
-          %constant  ((binary %junction) st this that)
-          %option    ((binary %junction) st this that)
-          %junction  =.  st      (merge st that deep.this-role)
-                     =/  merged  focus.st
-                     ((binary %junction) st flat.this-role merged)
+      ?-  that-role
+        %noun  (joined st this-role)
+        %void  (joined st this-role)
+        %atom  ?-  -.this-role
+                 %conjunction  (junct st that this)
+                 %constant     (joined st %atom)
+                 %instance     (junct st that this)
+                 %junction     (atom-junct st that [flat deep]:this-role)
+                 %misjunction  (misjunct st that this)
+                 %option       (joined st %atom)
+                 %union        (junct st that this)
+               ==
+        %cell  ?-  -.this-role
+                 %conjunction  (misjunct st this that)  ::  Can't discriminate
+                 %constant     (junct st this that)
+                 %instance     (misjunct st this that)  ::  Can't discriminate
+                 %junction     (cell-junct st that [flat deep]:this-role)
+                 %misjunction  (misjunct st this that)
+                 %option       (junct st this that)
+                 %union        (misjunct st this that)  ::  Invalid union
+               ==
+        %wide  ?-  -.this-role
+                 %conjunction  (misjunct st this that)  ::  Can't discriminated
+                 %constant     (junct st this that)
+                 %instance     (conjunct st that this)
+                 %junction     (cell-junct st that [flat deep]:this-role)
+                 %misjunction  (misjunct st this that)
+                 %option       (junct st this that)
+                 %union        (conjunct st that this)
+               ==
       ==
     ::
-    ::  We now know that `that-role` is also either a constant,
-    ::  an instance, or one of the fork roles.
+    ::  At this point both `this-role` and `that-role` are either a
+    ::  constant, instance, option, union, junction, conjunction, or
+    ::  a misjunction.
     ::
     ?:  |(?=(%misjunction -.this-role) ?=(%misjunction -.that-role))
-      ((binary %misjunction) st this that)
+      (misjunct st this that)
+    ::
+    ::  Now we know that neither role is a misjunction.
+    ::
     ?-    -.this-role
         %constant
       ?-  -.that-role
         %constant     =/  this-arg=(map atom idx)  [[atom.this-role this] ~ ~]
                       =/  that-arg=(map atom idx)  [[atom.that-role that] ~ ~]
                       =^  res  st  (collate st this-arg that-arg)
-                      (thisthat st [%option res])
-        %instance     ((binary %junction) st this that)
-        %option       ((binary %misjunction) st this that)
-        %union        ((binary %junction) st this that)
+                      (joined st [%option res])
+        %instance     (junct st this that)
+        %option       =/  that-arg=(map atom idx)  map.that-role
+                      =/  this-arg=(map atom idx)  [[atom.this-role this] ~ ~]
+                      =^  res  st  (collate st this-arg that-arg)
+                      (joined st [%option res])
+        %union        (junct st this that)
         %junction     =.  st  (merge st this flat.that-role)
                       =/  merged  focus.st
-                      ((binary %junction) st merged deep.that-role)
-        %conjunction  ((binary %junction) st this that)
+                      (junct st merged deep.that-role)
+        %conjunction  (junct st this that)
       ==
     ::
         %instance
@@ -2311,40 +2369,36 @@
         %instance     =/  this-arg=(map atom idx)  [[atom.this-role this] ~ ~]
                       =/  that-arg=(map atom idx)  [[atom.that-role that] ~ ~]
                       =^  res  st  (collate st this-arg that-arg)
-                      (thisthat st [%union res])
-        %option       ((binary %junction) st this that)
+                      (joined st [%union res])
+        %option       (junct st this that)
         %union        =/  this-arg  [[atom.this-role this] ~ ~]
                       =^  res  st   (collate st map.that-role this-arg)
-                      (thisthat st [%union res])
+                      (joined st [%union res])
         %junction     =.  st  (merge st this deep.that-role)
                       =/  merged  focus.st
-                      ((binary %junction) st flat.that-role merged)
-        %conjunction  =.  st  (merge st this tall.that-role)
-                      =/  merged  focus.st
-                      ((binary %junction) st wide.that-role merged)
+                      (junct st flat.that-role merged)
+        %conjunction  (tall-conjunct st this [wide tall]:that-role)
       ==
     ::
         %option
       ?+  -.that-role  $(this that, that this)
         %option       =^  res  st  (collate st map.this-role map.that-role)
-                      (thisthat st [%option res])
-        %union        ((binary %junction) st this that)
+                      (joined st [%option res])
+        %union        (junct st this that)
         %junction     =.  st  (merge st this flat.that-role)
                       =/  merged  focus.st
-                      ((binary %junction) st merged deep.that-role)
-        %conjunction  ((binary %junction) st this that)
+                      (junct st merged deep.that-role)
+        %conjunction  (junct st this that)
       ==
     ::
         %union
       ?+  -.that-role  $(this that, that this)
         %union        =^  res  st  (collate st map.this-role map.that-role)
-                      (thisthat st [%union res])
+                      (joined st [%union res])
         %junction     =.  st  (merge st this deep.that-role)
                       =/  merged  focus.st
-                      ((binary %junction) st flat.that-role merged)
-        %conjunction  =.  st  (merge st this tall.that-role)
-                      =/  merged  focus.st
-                      ((binary %conjunction) st wide.that-role merged)
+                      (junct st flat.that-role merged)
+        %conjunction  (tall-conjunct st this [tall wide]:that-role)
       ==
     ::
         %junction
@@ -2353,19 +2407,15 @@
                       =/  flat  focus.st
                       =.  st  (merge st deep.this-role deep.that-role)
                       =/  deep  focus.st
-                      ((binary %junction) st flat deep)
+                      (junct st flat deep)
         %conjunction  =.  st  (merge st deep.this-role that)
                       =/  merged  focus.st
-                      ((binary %junction) st flat.this-role merged)
+                      (junct st flat.this-role merged)
       ==
     ::
         %conjunction
       ?+  -.that-role  $(this that, that this)
-        %conjunction  =.  st  (merge st wide.this-role wide.that-role)
-                      =/  wide  focus.st
-                      =.  st  (merge st tall.this-role tall.that-role)
-                      =/  tall  focus.st
-                      ((binary %conjunction) st wide tall)
+        %conjunction  (conjunct-conjunct st [wide tall]:this-role [wide tall]:that-role)
       ==
     ==
   --
@@ -2373,13 +2423,13 @@
 ++  analyze-type
   |=  t=type
   ^-  image
+  ::  %-  trace-xray-image
   %-  gc-image
-  %-  trace-xray-image
   %-  decorate-xray-image-with-roles
   %-  decorate-xray-image-with-shapes
-  %-  gc-image
   %-  decorate-xray-image-with-patterns
   %-  decorate-xray-image-with-loops
+  ::  %-  trace-xray-image
   %-  (xray-type 999.999 999.999)
   t
 ::
@@ -2527,16 +2577,6 @@
      =^  rs  st  $(xs t.xs, st st)
      =^  r   st  (f i.xs st)
      [[r rs] st]
-  ::
-  ::  Pretty-print a type.
-  ::
-  ++  render-type
-    |=  {^ {{subject=type ~} ~}}
-    :-  %txt
-    ^-  wain
-    =/  s=spec  specify:patternize:measure:(enter:ann (xray-type subject))
-    =/  p=plum  (spec-to-plum s)
-    ~(tall plume p)
   ::
   ++  hoon-to-wain
     |=  =hoon
@@ -3251,7 +3291,7 @@
       %bsld  (subtree (fixed '$<') $(spec p.spec) $(spec q.spec) ~)
       %bsbn  (subtree (fixed '$>') $(spec p.spec) $(spec q.spec) ~)
       %bshp  (subtree (fixed '$-') $(spec p.spec) $(spec q.spec) ~)
-      %bskt  (subtree (fixed '$-') $(spec p.spec) $(spec q.spec) ~)
+      %bskt  (subtree (fixed '$^') $(spec p.spec) $(spec q.spec) ~)
       %bsls  (subtree (fixed '$+') (stud-to-plum p.spec) $(spec q.spec) ~)
       %bsnt  (core-spec-to-plum '$/' p.spec q.spec)
       %bsmc  (subtree (fixed '$;') (hoon-to-plum p.spec) ~)
@@ -4014,27 +4054,8 @@
   ++  is-list  (type-nests-under -:!>(*(list *)))
   ++  is-tree  (type-nests-under -:!>(*(tree *)))
   ++  is-gate  (type-nests-under -:!>(*$-(* *)))
-  :: ++  fast-type-equals
-  ::   |=  [t1=type t2=type]
-  ::   ?+  t1
-  ::       =(t1 t2)
-  ::     [$atom p/term q/(unit @)]                 ::  atom / constant
-  ::     [$cell p/type q/type]                     ::  ordered pair
-  ::     [$core p/type q/coil]                     ::  object
-  ::     [$face p/$@(term tune) q/type]            ::  namespace
-  ::     [$fork p/(set type)]                      ::  union
-  ::     [$hint p/(pair type note) q/type]         ::  annotation
-  ::     [$hold p/type q/hoon]                     ::  lazy evaluation
-  ::   --
-  :: :: +$  type  $~  %noun                                  ::
-  ::           $@  $?  $noun                                 ::  any nouns
-  ::                   $void                                 ::  no noun
-  ::               ==                                        ::
-  ::           ==                                            ::
-  :: ####
-  :: ####
   ::
-  +$  trace        (set type)
+  +$  trace  (set type)
   ::
   ++  decorate-with-patterns
     |^  |=  xt=xrayed-type
@@ -4130,555 +4151,6 @@
         ?.  (is-tree t)   ~  ~&  %found-tree  ~[[%tree 0]]    :: [%tree item=xray]
         ?.  (is-gate t)   ~  ~&  %found-gate  ~[[%gate 0 0]]  :: [%gate sample=xray product=xray]
     ==
-  ::
-  ::  _ann: type analysis gear
-  ::
-  ++  ann
-    |_  notebook
-    ::
-    ::  =enter: xray a type to initialize the `notebook`.
-    ::
-    ++  enter
-      |=  xt=xrayed-type
-      ^+  +>
-      =.  xray.+>        xray.xt
-      =.  xray-loops.+>  table.xt
-      +>
-    ++  patternize
-      ..patternize(+< (decorate-with-patterns +<))
-    ::
-    ::  -measure: add role to metadata, possibly restructuring
-    ::
-    ++  measure
-      :: ~&  (xray-pattern xray xray-loops)
-      :: ~&  :~  ?@  xray  xray  data.xray
-      ::         =/  xt  (xray-type -:!>(*tape))
-      ::           ?@  xray.xt  xray.xt  data.xray.xt
-      ::     ==
-      ::
-      |-  ^+  +
-      =<  +>(+< complete:analyze)
-      |%
-      ++  complete  `notebook`+>+<
-      ::
-      ::  -remember: If we updated an xray that's an entry point, it needs
-      ::  to be udpated in `xray-loops` as well.
-      ::
-      ++  remember
-        ^+  .
-        ?:  ?=(@ xray)  .
-        ?~  entry-unit.meta.xray  .
-        .(xray-loops (~(put by xray-loops) u.entry-unit.meta.xray xray))
-      ::
-      ::  -require: produce best currently available role
-      ::
-      ++  require
-        |-
-        ^-  role
-        ::
-        ::  resolve indirections
-        ::
-        ?@  xray  $(xray (~(got by xray-loops) xray))
-        ::
-        ::  produce already-computed role
-        ::
-        ?^  role-unit.meta.xray  u.role-unit.meta.xray
-        ::
-        ::  (minimal role which has not angered the recursion gods)
-        ::
-        ^-  role
-        ?@  data.xray
-          data.xray
-        ?-  -.data.xray
-            %atom
-          ?~  constant-unit.data.xray
-            %atom
-          [%constant u.constant-unit.data.xray]
-        ::
-            %cell
-          =/  head-role  $(xray head.data.xray)
-          ?:  ?|  ?=(?(%cell %wide) head-role)
-                  ?=([?(%instance %union %junction %conjunction) *] head-role)
-              ==
-            %wide
-          ?:  ?=([%constant *] head-role)
-            [%instance atom.head-role]
-          %cell
-        ::
-            %core
-              %cell
-            %face
-              $(xray xray.data.xray)
-            %fork
-              $(xray (forge ~(tap in set.data.xray)))
-        ==
-      ::
-      ::  -original: produce $type of xray
-      ::
-      ++  original
-        |-  ^-  type
-        ?@(xray $(xray (~(got by xray-loops) xray)) type.xray)
-      ::
-      ::  -fresh: produce trivial fork set if any
-      ::
-      ++  fresh
-        ^-  (unit (set ^xray))
-        ?@  xray  ~
-        ?@  data.xray  ~
-        ?.  ?=(%fork -.data.xray)  ~
-        ?^  entry-unit.meta.xray  ~
-        `set.data.xray
-      ::
-      ::  =join: compose union of two xrays, collapsing simple forks
-      ::
-      ++  join
-        |=  [this=^xray that=^xray]
-        ^-  ^xray
-        :-  (fork original(xray this) original(xray that) ~)
-        :-  *meta
-        ^-  data
-        :-  %fork
-        ^-  (set ^xray)
-        =/  this-set-unit  fresh(xray this)
-        =/  that-set-unit  fresh(xray that)
-        ?~  this-set-unit
-          ?~  that-set-unit
-            (sy this that ~)
-          (~(put in u.that-set-unit) this)
-        ?~  that-set-unit
-          (~(put in u.this-set-unit) that)
-        (~(uni in u.this-set-unit) u.that-set-unit)
-      ::
-      ::  =binary: compose binary junction/conjunction/misjunction
-      ::
-      ++  binary
-        |*  joint=?(%junction %conjunction %misjunction)
-        |=  [this=^xray that=^xray]
-        ^-  [role ^xray]
-        [[joint this that] (join this that)]
-      ::
-      ::  -frame: computed role with xray
-      ::
-      ++  frame
-        `[role ^xray]`[require xray]
-      ::
-      ::  =merge: merge two xrays intelligently, using role
-      ::
-      ++  merge
-        |=  [this=^xray that=^xray]
-        ^-  ^xray
-        ?:  ?&(?=(^ this) =(%void type.this))  that
-        ?:  ?&(?=(^ that) =(%void type.that))  this
-        =+  (combine frame(xray this) frame(xray that))
-        ?@(-> -> ->(role-unit.meta `-<))                                :: TODO Wtf is this?
-      ::
-      ::  =collate: merge option maps
-      ::
-      ++  collate
-        |=  [thick=(map atom ^xray) thin=(map atom ^xray)]
-        =/  list  ~(tap by thin)
-        |-  ^-  (map atom ^xray)
-        ?~  list  thick
-        =/  item  (~(get by thick) p.i.list)
-        %=    $
-            list  t.list
-            thick
-          %+  ~(put by thick)
-            p.i.list
-          ?~(item q.i.list (merge u.item q.i.list))
-        ==
-      ::
-      ::  =forge: combine list of role-described xrays
-      ::
-      ::  forge :: [XRay] -> XRay
-      ::  forge = foldl' merge [%void *meta %void]
-      ::
-      ++  forge
-        |=  =(list ^xray)
-        =/  new-xray  `^xray`[%void *meta %void]
-        |-  ^-  ^xray
-        ?~  list  new-xray
-        $(list t.list, new-xray (merge i.list new-xray))
-      ::
-      ::  =combine: combine role-described xrays
-      ::
-      ++  combine
-        |=  [this=[=role =^xray] that=[=role =^xray]]
-        ^-  [role ^xray]
-        ?:  =(this that)  this
-        ::
-        ::  Shapes are now unequal.
-        ::
-        ?@  role.this
-          ?^  role.that  $(this that, that this)
-          :_  (join xray.this xray.that)
-          ?:  =(role.this role.that)  role.this
-          ?:  ?=(%void role.this)  role.that
-          ?:  ?=(%void role.that)  role.this
-          ?:  |(?=(%noun role.this) ?=(%noun role.that))  %noun
-          ?-  role.this
-            %atom  [%junction xray.this xray.that]
-            %cell  ?:  ?=(%wide role.that)
-                     %cell
-                   [%junction xray.that xray.this]
-            %wide  ?:  ?=(%cell role.that)
-                     %cell
-                   [%junction xray.that xray.this]
-          ==
-        ?@  role.that :: cell wide
-          ?:  ?=(%void role.that)  this
-          ?:  ?=(%noun role.that)  that
-          ?:  ?=(%atom role.that)
-            ?+  -.role.this
-                         ((binary %misjunction) xray.that xray.this)
-              %instance  ((binary %junction) xray.that xray.this)
-              %union     ((binary %junction) xray.that xray.this)
-              %junction  %+  (binary %junction)
-                           (merge xray.that flat.role.this)
-                         deep.role.this
-            ==
-          ::
-          ::  At this point, role.that is either %cell, %wide, %union,
-          ::  or some kind of junction.
-          ::
-          ?+    -.role.this
-                         ((binary %misjunction) xray.this xray.that)
-              %constant  ((binary %junction) xray.this xray.that)
-              %option    ((binary %junction) xray.this xray.that)
-              %junction  %+  (binary %junction)
-                           flat.role.this
-                         (merge xray.that deep.role.this)
-          ==
-        ?:  |(?=(%misjunction -.role.this) ?=(%misjunction -.role.that))
-          ((binary %misjunction) xray.this xray.that)
-        ?-    -.role.this
-            %constant
-          ?-  -.role.that
-            %constant     :_  (join xray.this xray.that)
-                          :-  %option
-                          %+  collate
-                            [[atom.role.this xray.this] ~ ~]
-                          [[atom.role.that xray.that] ~ ~]
-            %instance     ((binary %junction) xray.this xray.that)
-            %option       ((binary %misjunction) xray.this xray.that)
-            %union        ((binary %junction) xray.this xray.that)
-            %junction     %+  (binary %junction)
-                            (merge xray.this flat.role.that)
-                          deep.role.that
-            %conjunction  ((binary %junction) xray.this xray.that)
-          ==
-        ::
-            %instance
-          ?+  -.role.that  $(this that, that this)
-            %instance     :_  (join xray.this xray.that)
-                          :-  %union
-                          %+  collate
-                            [[atom.role.this xray.this] ~ ~]
-                          [[atom.role.that xray.that] ~ ~]
-            %option       ((binary %junction) xray.this xray.that)
-            %union        :_  (join xray.this xray.that)
-                          :-  %union
-                          %+  collate
-                            map.role.that
-                          [[atom.role.this xray.this] ~ ~]
-            %junction     %+  (binary %junction)
-                            flat.role.that
-                          (merge xray.this deep.role.that)
-            %conjunction  %+  (binary %junction)
-                            wide.role.that
-                          (merge xray.this tall.role.that)
-          ==
-        ::
-            %option
-          ?+  -.role.that  $(this that, that this)
-            %option       :_  (join xray.this xray.that)
-                          :-  %option
-                          (collate map.role.this map.role.that)
-            %union        ((binary %junction) xray.this xray.that)
-            %junction     %+  (binary %junction)
-                            (merge xray.this flat.role.that)
-                          deep.role.that
-            %conjunction  ((binary %junction) xray.this xray.that)
-          ==
-        ::
-            %union
-          ?+  -.role.that  $(this that, that this)
-            %union        :_  (join xray.this xray.that)
-                          :-  %union
-                          (collate map.role.this map.role.that)
-            %junction     %+  (binary %junction)
-                            flat.role.that
-                          (merge xray.this deep.role.that)
-            %conjunction  %+  (binary %conjunction)
-                            wide.role.that
-                          (merge xray.this tall.role.that)
-          ==
-        ::
-            %junction
-          ?+  -.role.that  $(this that, that this)
-            %junction     %+  (binary %junction)
-                            (merge flat.role.this flat.role.that)
-                          (merge deep.role.this deep.role.that)
-            %conjunction  %+  (binary %junction)
-                            flat.role.this
-                          (merge deep.role.this xray.that)
-          ==
-        ::
-            %conjunction
-          ?+  -.role.that  $(this that, that this)
-            %conjunction  %+  (binary %conjunction)
-                            (merge wide.role.this wide.role.that)
-                          (merge tall.role.this tall.role.that)
-          ==
-        ==
-      ::
-      ::  Analyze an xray.
-      ::
-      ++  analyze
-        =<  remember
-        =|  loop-set=(set index)
-        |-
-        ^+  +>
-        ::  XX This causes a bail fail:
-        ::
-        ::      ~&  ?@  xray  ~  type.xray
-        ::
-        ::
-        ::  If our xray is a loop reference, analyze the xray that the
-        ::  reference resolves to and replace that slot in the loop map
-        ::  with the analyzed version
-        ::
-        ?@  xray
-          =/  =zray  (~(got by xray-loops) xray)
-          ?^  role-unit.meta.zray  +>+
-          +>+(xray-loops xray-loops:complete:remember:$(xray zray))
-        ::
-        :: If we've already measured this xray, do nothing
-        ::
-        ?^  role-unit.meta.xray  +>
-        ::
-        ::  Analyze the xrays in the recipes as well.
-        ::
-        =.  recipe-set.meta.xray
-          ?~  recipe-set.meta.xray  recipe-set.meta.xray
-          ^-  (set recipe)
-          %-  ~(gas in *(set recipe))
-          ^-  (list recipe)
-          =/  recipes=(list recipe)
-            ~(tap in ^-((set recipe) recipe-set.meta.xray))
-          =^  finished-items  xray-loops
-            ^-  [(list recipe) loop-map]
-            %+  (traverse-right recipe recipe loop-map)
-              [recipes xray-loops]
-            |=  [r=recipe st=loop-map]
-            ?-    -.r
-                %direct
-              [r st]
-                %synthetic
-              =^  new-xrays  st
-                %+  (traverse-right ^xray ^xray loop-map)
-                  [list.r st]
-                |=  [x=^xray st=loop-map]
-                complete:remember:^^$(xray x, xray-loops st)
-              [r(list new-xrays) st]
-            ==
-          finished-items
-        ::
-        ::  If this is a loop entry point, then we're already in the process
-        ::  of analyzing this or we're not. If we are, then the index will
-        ::  be in `loop-set`: do nothing. Otherwise, store the index in the
-        ::  `loop-set` and continue.
-        ::
-        =*  ent  entry-unit.meta.xray
-        ?:  ?&  ?=(^ ent)  (~(has in loop-set) u.ent)  ==
-          +>
-        =.  loop-set  ?~  ent  loop-set
-                      (~(put in loop-set) u.ent)
-        ::
-        ::  If data is %noun or %void, then role will also be %noun or %void.
-        ::
-        ?@  data.xray
-          =/  role=role  data.xray
-          +>+(role-unit.meta.xray `role)
-        ::
-        ::  Otherwise, switch on the tag.
-        ::
-        ?-    -.data.xray
-            %atom
-          +>(role-unit.meta.xray `require)
-            %cell
-          =^  head  xray-loops  complete:remember:$(xray head.data.xray)
-          =^  tail  xray-loops  complete:remember:$(xray tail.data.xray)
-          =.  head.data.xray  head
-          =.  tail.data.xray  tail
-          +>+>(role-unit.meta.xray `require)
-            %core
-          =^  payload  xray-loops  complete:remember:$(xray xray.data.xray)
-          =^  chapters  xray-loops
-            =*  chap  (pair term (pair what (map term ^xray)))
-            %+  (traverse-right chap chap loop-map)
-              [~(tap by battery.data.xray) xray-loops]
-            |=  [=chap st=loop-map]
-            =-  :_  ->
-                :+  p.chap
-                  `what`p.q.chap
-                (~(gas by *(map term ^xray)) -<)
-            =*  arm   (pair term ^xray)
-            %+  (traverse-right arm arm loop-map)
-              [~(tap by q.q.chap) st]
-            |=  [=arm st=loop-map]
-            =^  new-xray  st  complete:remember:^^$(xray q.arm)
-            [arm(q new-xray) st]
-          =.  xray.data.xray     payload
-          =.  battery.data.xray  (~(gas by *battery) chapters)
-          +>+>(role-unit.meta.xray `%cell)
-            %face
-          =^  body  xray-loops  complete:remember:$(xray xray.data.xray)
-          =.  xray.data.xray  body
-          +>+(role-unit.meta.xray `require(xray body))
-            %fork
-          =^  list  xray-loops
-            =/  list  ~(tap in set.data.xray) :: list of possible types.
-            |-  ^-  [(^list ^xray) loop-map]
-            ?~  list  [~ xray-loops]
-            =^  this  xray-loops  complete:remember:^$(xray i.list)
-            =^  rest  xray-loops  $(list t.list)
-            [[this rest] xray-loops]
-          =/  new-xray  (forge list)
-          ?@  new-xray  +>+>(xray new-xray)
-          =.  new-xray  new-xray(entry-unit.meta entry-unit.meta.xray)
-          =.  new-xray  new-xray(recipe-set.meta recipe-set.meta.xray)
-          +>+>(xray new-xray)
-        ==
-      --
-    ::
-    ::  -specify: convert to spec
-    ::
-    ++  specify
-      ~&  xray
-      ~&  xray-loops
-      :: ~&  (xray-pattern xray xray-loops)
-      =|  =loop=(set index)
-      |-  ^-  spec
-      ::  ?:  %.y  `spec`[%base %void]
-      ::
-      ::  If an xray is a an atom, it's either already being processed
-      ::  or not. If it is, it'll be in the `loop-set`: Just return a
-      ::  reference to that loop. Otherwise, just process the actual `zray`
-      ::  for this type instead.
-      ::
-      ?@  xray
-        ?:  (~(has in loop-set) xray)
-          [%loop (synthetic xray)]
-        $(xray (~(got by xray-loops) xray))
-      ::
-      ::  If the xray has a recipe, we can produce nicer output.
-      ::
-      ?^  recipe-set.meta.xray
-        =/  =recipe  n.recipe-set.meta.xray
-        ?-  -.recipe
-          %direct     `spec`[%like `wing`[term.recipe ~] ~]
-          %synthetic  :+  %make
-                        [%limb term.recipe]
-                      %+  turn  list.recipe
-                      |=(=^xray `spec`^$(xray xray))
-        ==
-      ::
-      ::  If this is a loop, then add ourselves to the loop set and recurse,
-      ::  pretending that this is actually not a loop. Given the result of that,
-      ::  pretending that this is actually not a loop. Given the result of that,
-      ::  produce a spec that looks something like:
-      ::
-      ::      $$  alf  ++  alf  spec  --
-      ::
-      ?^  entry-unit.meta.xray
-        =/  idx  u.entry-unit.meta.xray
-        =/  new-loop-set  (~(put in loop-set) idx)
-        =/  =spec  $(loop-set new-loop-set, entry-unit.meta.xray ~)
-        :+  %bsbs  `^spec`[%loop (synthetic idx)]
-        [[(synthetic idx) spec] ~ ~]
-      ?@  data.xray  [%base data.xray]
-      ?-  -.data.xray
-        %atom  ?~  constant-unit.data.xray
-                 [%base %atom aura.data.xray]
-               ?:  &(=(%n aura.data.xray) =(`@`0 u.constant-unit.data.xray))
-                 [%base %null]
-               [%leaf aura.data.xray u.constant-unit.data.xray]
-        %cell  =/  head  $(xray head.data.xray)
-               =/  tail  $(xray tail.data.xray)
-               ?:  &(=([%base %noun] head) =([%base %noun] tail))
-                 [%base %cell]
-               ?:  ?=(%bscl -.tail)
-                 [%bscl head +.tail]
-               [%bscl head tail ~]
-        %core  =/  payload  $(xray xray.data.xray)
-               =/  battery
-                 ^-  (map term spec)
-                 %-  ~(run by (flatten-battery battery.data.xray))
-                 |=  =^xray
-                 ^$(xray xray)
-               ?-  r.garb.data.xray
-                 %lead  [%bszp payload battery]
-                 %gold  [%bsdt payload battery]
-                 %zinc  [%bstc payload battery]
-                 %iron  [%bsnt payload battery]
-               ==
-        %face  =/  =spec  $(xray xray.data.xray)
-               ::
-               ::  We discard the $tune case, a $spec can't express it.
-               ::
-               ::  XX: should exist a %misjunction spec
-               ::
-               ?^(face.data.xray spec [%bsts face.data.xray spec])
-        %fork  =/  =role  (need role-unit.meta.xray)
-               |^  ?+  role
-                       ~&  %unexpected-fork-role  !!
-                     [%option *]       [%bswt choices]
-                     [%union *]        [%bscn choices]
-                     %cell             [%bswt choices] :: XX bskt?
-                     %noun             [%bswt choices]
-                     [%misjunction *]  [%bswt choices]
-                     [%junction *]     :+  %bsvt
-                                         ^$(xray flat.role)
-                                       ^$(xray deep.role)
-                     [%conjunction *]  :+  %bskt
-                                         ^$(xray wide.role)
-                                       ^$(xray tall.role)
-                   ==
-               ::
-               ++  choices
-                 ^-  [i=spec t=(list spec)]
-                 =-  ?>(?=(^ -) -)
-                 (turn ~(tap in set.data.xray) |=(=^xray ^^$(xray xray)))
-               --
-      ==
-    ::
-    ::  =flatten-battery: temporary function (XX)
-    ::
-    ::    $spec should have chapters but it doesn't.  So we flatten.
-    ::
-    ++  flatten-battery
-      |=  =battery
-      =/  chapter-list  ~(tap by battery)
-      |-  ^-  (map term ^xray)
-      ?~  chapter-list  ~
-      (~(uni by q.q.i.chapter-list) $(chapter-list t.chapter-list))
-    ::
-    ::  =synthetic: given a small atom (:number), construct a coresponding
-    ::  symbol using the Hebrew alphabet.
-    ::
-    ++  synthetic
-      |=  number=@ud
-      ^-  @tas
-      =/  alf/(list term)
-          ^~  :~  %alf  %bet  %gim  %dal  %hej  %vav  %zay  %het
-                  %tet  %yod  %kaf  %lam  %mem  %nun  %sam  %ayn
-                  %pej  %sad  %qof  %res  %sin  %tav
-              ==
-      ?:  (lth number 22)
-        (snag number alf)
-      (cat 3 (snag (mod number 22) alf) $(number (div number 22)))
-    --
   --
 --
 
