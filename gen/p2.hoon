@@ -2499,9 +2499,12 @@
              ?^(face.d spec [%bsts face.d spec])
       %fork  =/  =role  (need role.x)
              |^  ?+  role
-                     ~&  %unexpected-fork-role  !!
+                     ~&  %unexpected-fork-role
+                     ~&  [d role choices]
+                     !!
                    [%option *]       [%bswt choices]
                    [%union *]        [%bscn choices]
+                   %wide             [%bswt choices] :: XX bskt?
                    %cell             [%bswt choices] :: XX bskt?
                    %noun             [%bswt choices]
                    [%misjunction *]  [%bswt choices]
