@@ -9,7 +9,6 @@
 ::                  ==
 ::
 /?  310
-/-  naon
 :-  %say
 !:
 ::
@@ -42,7 +41,7 @@
   =/  arms=(list term)  (battery-arms q.r.q.ty)
   =/  armset=(set term)  (~(gas in *(set term)) arms)
   ::
-  ?:  =(-:!>(..noun.naon) ty)
+  ?:  =(-:!>(..zuse) ty)
     ::  ~&  'is-zuse'
     %.y
   ::
@@ -124,7 +123,7 @@
   %+  turn  tys
   |=  c=cord
   ^-  (list cord)
-  =/  t=type  -:(ride -:!>(naon) c)
+  =/  t=type  -:(ride -:!>(..zuse) c)
   ~(tall plume (type-to-plum t))
 ::
 ::  Pretty-print a type.
@@ -1211,7 +1210,7 @@
       [%synthetic =term =(list idx)]
   ==
 +$  pattern
-  $@  ?(%hoon %manx %nock %path %plum %skin %specl %tape %tour %type %vase)
+  $@  ?(%hoon %manx %json %nock %path %plum %skin %specl %tape %tour %type %vase)
   $%  [%gate sample=idx product=idx]
       [%gear sample=idx context=idx =(battery idx)]
       [%list item=idx]
@@ -1351,24 +1350,50 @@
       [%fork *]  '%fork'                                ::  [%fork =(set idx)]
     ==
   ::
+  ++  path-to-plum
+    |=  =path
+    ^-  plum
+    =/  fmt=plumfmt  [[~ '/' [~ '/' '']] ~]
+
+    [%tree fmt path]
+  ::
+  ++  nock-to-plum
+    |=  n=nock
+    ^-  plum
+    '%nock'                                             ::  XX TODO
+  ::
+  ++  tour-to-plum
+    |=  t=tour
+    ^-  plum
+    '%tour'                                             ::  XX TODO
+  ::
+  ++  manx-to-plum
+    |=  m=manx
+    ^-  plum
+    '%manx'                                             ::  XX TODO
+  ::
   ++  render-with-pattern
     |=  [p=pattern n=*]
     ^-  plum
     ~&  ['render-with-pattern' p n]
     ?-  p
-      %hoon      (hoon-to-plum 999 (hoon n))
-      %manx      '%manx'                                ::  XX Implement
-      %nock      '%nock'                                ::  XX Implement
-      %path      '%path'                                ::  XX Implement
-      %plum      (plum n)
-      %skin      '%skin'                                ::  XX Implement
-      %specl     '%specl'                               ::  XX Implement
+      %hoon      (hoon-to-plum 999 ((hard hoon) n))
+      %json      !!                                     ::  XX TODO
+      %manx      (manx-to-plum ((hard manx) n))
+      %nock      (nock-to-plum ((hard nock) n))
+      %path      (path-to-plum ((hard path) n))
+      %plum      ((hard plum) n)
+      %skin      (skin-to-plum ((hard skin) n))
+      %specl     '%specl'  :: XX  What?
       %tape      (tape-to-plum (tape n))
-      %tour      '%tour'                                ::  XX Implement
-      %type      (type-to-plum (type n))                ::  XX Can't hard types
-      %vase      (vase-to-plum (vase n))                ::  XX Test this.
-      [%gate *]  '%gate'                                ::  XX Implement
-      [%gear *]  '%gear'                                ::  XX Implement
+      %tour      (tour-to-plum ((hard tour) n))
+      %type      =/  ttp  type-to-plum
+                 ((hard plum) .*(ttp(+< n) [9 2 0 1]))
+      %vase      =/  vtp  vase-to-plum
+                 =/  =plum  ((hard plum) .*(vtp(+< n) [9 2 0 1]))
+                 (rune-to-plum '!>' ~ ~ ~[plum])
+      [%gate *]  '%gate'                                ::  XX TODO
+      [%gear *]  '%gear'                                ::  XX TODO
       [%list *]  (render-list item.p n)
       [%tree *]  (render-tree item.p n)
       [%unit *]  (render-unit item.p n)
@@ -1707,10 +1732,10 @@
   ::
   ++  is-hoon  (type-nests-under -:!>(*hoon))
   ++  is-manx  (type-nests-under -:!>(*manx))
+  ++  is-json  (type-nests-under -:!>(*json))
   ++  is-nock  (type-nests-under -:!>(*nock))
   ++  is-plum  (type-nests-under -:!>(*plum))
   ++  is-skin  (type-nests-under -:!>(*skin))
-  ::  ++  is-path  (type-nests-under -:!>(*path))
   ::
   ++  reflect  ~(got by img)
   ++  is-nil
@@ -1789,34 +1814,53 @@
     --
   ::
   ++  list-of-what
-    |^  |=  =input=xray
-        ^-  (unit idx)
-        ?.  loop.input-xray  ~
-        =/  input-idx=idx  idx.input-xray
-        =/  indata=data    (need data.input-xray)
-        ?.  ?=([%fork *] indata)  ~
-        =/  branches  ~(tap in set.indata)
-        ?.  ?=([* * ~] branches)  ~
-        =/  nil   i.branches
-        =/  node  i.t.branches
-        |-
-        ?:  (is-nil node)  $(node nil, nil node)
-        ?.  (is-nil nil)  ~
-        =/  node-data=data  (need data:(reflect node))
-        ?.  ?=([%cell *] node-data)  ~
-        ?.  (is-reference-to-loop input-idx tail.node-data)  ~
-        =/  elem-data  (need data:(reflect head.node-data))
-        ?:  ?=([%face *] elem-data)  `xray.elem-data
-        `head.node-data
+    |=  =input=xray
+    ^-  (unit idx)
     ::
-    ++  is-reference-to-loop
-      |=  [=loop=idx =ref=idx]
-      ^-  ?
-      ?:  =(loop-idx ref-idx)  %.y
-      =/  =data  (need data:(reflect ref-idx))
-      ?:  ?=([%face *] data)  $(ref-idx xray.data)
-      %.n
-    --
+    ~&  ['list-of-what' idx.input-xray]
+    ::
+    =/  indata=data    (need data.input-xray)
+    ?+  indata  ~
+      [%face *]  (list-of-what (reflect xray.indata))
+      [%fork *]  (list-of-what-strict input-xray)
+      [%cell *]  ?:  (is-nil tail.indata)  `head.indata
+                 =/  elem-xray=(unit idx)  (list-of-what (reflect tail.indata))
+                 ?~  elem-xray  ~
+                 ?.  (is-reference-to u.elem-xray head.indata)  ~
+                 elem-xray
+    ==
+  ::
+  ++  is-reference-to
+    |=  [=target=idx =ref=idx]
+    ^-  ?
+    ?:  =(target-idx ref-idx)  %.y
+    =/  =data  (need data:(reflect ref-idx))
+    ?:  ?=([%face *] data)  $(ref-idx xray.data)
+    %.n
+  ::
+  ++  list-of-what-strict
+    |=  =input=xray
+    ^-  (unit idx)
+    ::
+    ~&  ['list-of-what' idx.input-xray]
+    ::
+    ?.  loop.input-xray  ~
+    =/  input-idx=idx  idx.input-xray
+    =/  indata=data    (need data.input-xray)
+    ?.  ?=([%fork *] indata)  ~
+    =/  branches  ~(tap in set.indata)
+    ?.  ?=([* * ~] branches)  ~
+    =/  nil   i.branches
+    =/  node  i.t.branches
+    |-
+    ?:  (is-nil node)  $(node nil, nil node)
+    ?.  (is-nil nil)  ~
+    =/  node-data=data  (need data:(reflect node))
+    ?.  ?=([%cell *] node-data)  ~
+    ?.  (is-reference-to input-idx tail.node-data)  ~
+    =/  elem-data  (need data:(reflect head.node-data))
+    ?:  ?=([%face *] elem-data)  `xray.elem-data
+    `head.node-data
   ::
   ++  is-type  (type-nests-under -:!>(*type))
   ++  is-vase  (type-nests-under -:!>(*vase))
@@ -1843,14 +1887,16 @@
     ::
     =/  list-elem  (list-of-what x)
     ?^  list-elem
-      ?:  (is-atom-with-aura 'tD' u.list-elem)  ~[%tape]
-      ?:  (is-atom-with-aura 'ta' u.list-elem)  ~[%path]
-      ?:  (is-atom-with-aura 'c' u.list-elem)   ~[%tour]
+      ?:  (is-atom-with-aura 'tD' u.list-elem)   ~[%tape]
+      ?:  (is-atom-with-aura 'ta' u.list-elem)   ~[%path]
+      ?:  (is-atom-with-aura 'c' u.list-elem)    ~[%tour]
+      ?:  (is-atom-with-aura 'tas' u.list-elem)  ~[%path]
       ~[[%list u.list-elem]]
     ::
     %-  zing
     :~  ?.  (is-gate t)  ~  ~[[%gate 0 0]]  :: XX
         ?.  (is-hoon t)  ~  ~[%hoon]
+        ?.  (is-json t)  ~  ~[%json]
         ?.  (is-manx t)  ~  ~[%manx]
         ?.  (is-nock t)  ~  ~[%nock]
         ?.  (is-plum t)  ~  ~[%plum]
