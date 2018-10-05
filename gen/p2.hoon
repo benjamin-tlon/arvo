@@ -15,8 +15,8 @@
 ::
 ::  =<  render-hoon
 ::  =<  render-type
-::  render-vase
-=<  compile-and-render-type
+=<  render-vase
+::  compile-and-render-type
 ::  =<  render-all-hoons-referenced-inside-of-type
 ::
 |%
@@ -148,7 +148,7 @@
   |=  {^ {{demo=hoon ~} ~}}
   :-  %txt
   ^-  wain
-  ~(tall plume (hoon-to-plum demo))
+  ~(tall plume (hoon-to-plum 999 demo))
 ::
 ++  cat-patterns
   |=  xs=(list (unit pattern))
@@ -178,7 +178,7 @@
   ?.  ?=([%core *] demo)  [%zpzp ~]
   =*  tomes=(list tome)  ~(val by q.r.q.demo)
   =*  hoons=(list hoon)  (turn tomes |=(t=tome [%cltr ~(val by q.t)]))
-  ~(tall plume (hoon-to-plum [%cltr hoons]))
+  ~(tall plume (hoon-to-plum 999 [%cltr hoons]))
 ::
 +|  %utils
 ::
@@ -360,7 +360,7 @@
   |^  ?@  woof  woof
       =*  fmt  [wide=`[' ' `['{' '}']] tall=~]
       :+  %tree  fmt
-      (turn (unwrap-woof-tuple +.woof) hoon-to-plum)
+      (turn (unwrap-woof-tuple +.woof) |=(h=hoon (hoon-to-plum 999 h)))
   ::
   ::  Woofs contain one or more hoons, and if there are more than one,
   ::  it's encoded with a %cltr ast node. This just simplifies both
@@ -380,7 +380,7 @@
 ++  hoons-to-plum-list
   |=  =hoon=(list hoon)
   ^.  (list plum)
-  (turn hoon-list hoon-to-plum)
+  (turn hoon-list |=(h=hoon (hoon-to-plum 999 h)))
 ::
 ::  Convenience function for rendering a rune into a plum. This takes
 ::  a rune, an optional tall-form terminator, optionally a short-form (if
@@ -438,7 +438,7 @@
   %+  turn  match-list
   |=  [=spec =hoon]
   ^-  (pair plum plum)
-  [(spec-to-plum spec) (hoon-to-plum hoon)]
+  [(spec-to-plum spec) (hoon-to-plum 999 hoon)]
 ::
 ::  Generate a list of plums from a list of updates. This would be
 ::  trivial, but we also need to append commas on each update (besides
@@ -451,7 +451,7 @@
   %+  turn  update-list
   |=  [=wing =hoon]
   ^-  (pair plum plum)
-  [(wing-to-plum wing) (hoon-to-plum hoon)]
+  [(wing-to-plum wing) (hoon-to-plum 999 hoon)]
 ::
 ::  This adds commas to a list of pair of hoons, but only in wide form.
 ::
@@ -496,7 +496,7 @@
 ::  fairly straightforward.  It is a big-ass switch, though.
 ::
 ++  hoon-to-plum
-  |=  x=hoon
+  |=  [maxdepth=@ x=hoon]
   |^  ^-  plum
     ?+    x
         %autocons
@@ -624,7 +624,7 @@
     ++  chapter    chapters-to-plum
     ++  chum       chum-to-plum
     ++  hint       hint-to-plum
-    ++  hn         hoon-to-plum
+    ++  hn         |=  h=hoon  (hoon-to-plum (dec maxdepth) h)
     ++  limb       limb-to-plum
     ++  matches    matches-to-plum-list
     ++  rune       rune-to-plum
@@ -670,7 +670,7 @@
       ^-  plum
       =/  rem=(list (pair ^wing hoon))  updates         ::  Note [TisCol Order]
       =/  acc=hoon  body
-      %-  hoon-to-plum
+      %+  hoon-to-plum  (dec maxdepth)
       |-  ^-  hoon
       ?~  rem  acc
       $(rem t.rem, acc `hoon`[%tsdt `^wing`p.i.rem `hoon`q.i.rem `hoon`acc])
@@ -685,7 +685,7 @@
   :+  %tree
     [wide=`['.' ~] tall=~]
   :~  (cat 3 '%' p.hint)
-      (hoon-to-plum q.hint)
+      (hoon-to-plum 999 q.hint)
   ==
 ::
 ::  Render a battery (basically a list of terms,hoon pairs to a plum).
@@ -697,7 +697,7 @@
   |=  [=term =hoon]
   =*  fmt  [wide=~ tall=`['' ~]]
   :+  %tree  fmt
-  [term (hoon-to-plum hoon) ~]
+  [term (hoon-to-plum 999 hoon) ~]
 ::
 ::  XX Document this.
 ::
@@ -837,10 +837,10 @@
              :_  ~
              ?:  =(- 3)  '%^'
              ?:  =(- 2)  '%+'  '%-'
-           [(hoon-to-plum p.spec) (turn q.spec ..$)]
+           [(hoon-to-plum 999 p.spec) (turn q.spec ..$)]
     %bsbs  (core-spec-to-plum '$$' p.spec q.spec)
-    %bsbr  (subtree (fixed '$|') $(spec p.spec) (hoon-to-plum q.spec) ~)
-    %bscb  (hoon-to-plum p.spec)
+    %bsbr  (subtree (fixed '$|') $(spec p.spec) (hoon-to-plum 999 q.spec) ~)
+    %bscb  (hoon-to-plum 999 p.spec)
     %bscl  :-  %sbrk
            :+  %tree
              [`[' ' `['[' ']']] `['$:' `['' '--']]]
@@ -853,9 +853,9 @@
     %bskt  (subtree (fixed '$^') $(spec p.spec) $(spec q.spec) ~)
     %bsls  (subtree (fixed '$+') (stud-to-plum p.spec) $(spec q.spec) ~)
     %bsnt  (core-spec-to-plum '$/' p.spec q.spec)
-    %bsmc  (subtree (fixed '$;') (hoon-to-plum p.spec) ~)
-    %bspd  (subtree (fixed '$&') $(spec p.spec) (hoon-to-plum q.spec) ~)
-    %bssg  (subtree (fixed '$~') (hoon-to-plum p.spec) $(spec q.spec) ~)
+    %bsmc  (subtree (fixed '$;') (hoon-to-plum 999 p.spec) ~)
+    %bspd  (subtree (fixed '$&') $(spec p.spec) (hoon-to-plum 999 q.spec) ~)
+    %bssg  (subtree (fixed '$~') (hoon-to-plum 999 p.spec) $(spec q.spec) ~)
     %bstc  (core-spec-to-plum '$`' p.spec q.spec)
     %bsts  :-  %sbrk
            :+  %tree
@@ -1250,18 +1250,25 @@
 ++  xray-noun-to-plum
   |=  [img=image n=*]
   ^-  plum
-  |^  (noun-to-plum 0 n)
+  |^  (main 0 n)
   ::
-  ++  noun-to-plum
+  ++  main
     |=  [i=idx n=*]
     ^-  plum
-    ~&  ['noun-to-plum' i n]
+    ~&  ['xray-noun-to-plum' i n]
     =/  x=xray  (~(got by img) i)
     ~&  x
     =/  ps=(list pattern)  ~(tap in pats.x)
     ~&  ps
     ?~  ps  (render-with-data (need data.x) n)
-    (render-with-pattern i.ps n)
+    (render-with-pattern i.ps n)                        ::  XX What to do if two
+                                                        ::  patterns match?
+                                                        ::  Seems useless! Maybe
+                                                        ::  the pattern
+                                                        ::  detection code
+                                                        ::  should be forced to
+                                                        ::  just choose
+                                                        ::  one pattern.
   ::
   ++  tree-noun-to-list
     |=  n=*
@@ -1284,7 +1291,7 @@
     ^-  plum
     ?~  noun  '~'
     =/  ns=(list *)     (tree-noun-to-list noun)
-    =/  ps=(list plum)  (turn ns |=(n=* (noun-to-plum elt n)))
+    =/  ps=(list plum)  (turn ns |=(n=* (main elt n)))
     =/  elems=plum      (rune-to-plum ':~' `'==' `['~[' ' ' ']'] ps)
     (rune-to-plum '%-' ~ `['(' ' ' ')'] ~['tree' elems])
   ::
@@ -1293,39 +1300,63 @@
     ^-  plum
     ?~  noun  '~'
     =/  ns=(list *)     (noun-to-list noun)
-    =/  ps=(list plum)  (turn ns |=(n=* (noun-to-plum elt n)))
+    =/  ps=(list plum)  (turn ns |=(n=* (main elt n)))
     (rune-to-plum ':~' `'==' `['~[' ' ' ']'] ps)
   ::
   ++  render-unit
     |=  [elt=idx noun=*]
     ^-  plum
     ?~  noun  '~'
-    (pair-plum '~' (noun-to-plum elt +:n))
+    (pair-plum '~' (main elt +:n))
   ::
   ++  pair-plum
     |=  [x=plum y=plum]
     ^-  plum
     (rune-to-plum ':-' ~ `['[' ' ' ']'] ~[x y])
   ::
-  ++  render-with-data
-    |=  [d=data noun=*]
+  ++  render-atom
+    |=  [=aura atom=@]
     ^-  plum
+    ~&  ['render-atom' aura atom]
+    (scot aura atom)
+  ::
+  ++  render-const
+    |=  [=aura const=@ =atom]
+    ^-  plum
+    ~&  'render-const'
+    (cat 3 '%' (scot aura atom))
+  ::
+  ++  render-noun  ::  XX Where is the existing code for doing this?
+    |=  [n=*]
+    ^-  plum
+    ?@  n  (render-atom 'ud' n)
+    ~&  'render-const'
+    (pair-plum (render-noun -:n) (render-noun +:n))
+  ::
+  ++  render-with-data
+    |=  [d=data n=*]
+    ^-  plum
+    ~&  ['render-with-data' d n]
     ?-  d
-      %noun      '%noun'
-      %void      '%void'
-      [%atom *]  '%atom'
-      [%cell *]  '%cell'
-      [%core *]  '%core'
-      [%face *]  '%face'
-      [%fork *]  '%fork'
+      %void      '!!'
+      %noun      (render-noun n)
+      [%core *]  '%core'                                ::  XX TODO
+      [%cell *]  (pair-plum (main head.d -:n) (main tail.d +:n))
+                                                        ::  XX Handle
+                                                        ::  n-ary tuples.
+      [%atom *]  ?^  n  !!
+                 ?~  constant.d  (render-atom aura.d n)
+                 (render-const aura.d u.constant.d n)
+      [%face *]  (main xray.d n)
+      [%fork *]  '%fork'                                ::  [%fork =(set idx)]
     ==
   ::
   ++  render-with-pattern
     |=  [p=pattern n=*]
     ^-  plum
-    ~&  ['pattern-print-noun' p]
+    ~&  ['render-with-pattern' p n]
     ?-  p
-      %hoon      (hoon-to-plum (hoon n))                ::  XX Test this
+      %hoon      (hoon-to-plum 999 (hoon n))
       %manx      '%manx'                                ::  XX Implement
       %nock      '%nock'                                ::  XX Implement
       %path      '%path'                                ::  XX Implement
@@ -1466,10 +1497,8 @@
       =/  arms  (battery-arms q.r.coil)
       =.  arms  (turn arms |=(c=cord ?:(=('' c) '$' c)))
       ?:  (gte (lent arms) 50)  'KERNEL'
-      (sexp-plum 'arms' arms) :: (chapters-to-plum-list q.r.coil))
+      (sexp-plum 'arms' (chapters-to-plum-list q.r.coil))
 
-::  arms) :: arms) :: ) :: (chapters-to-plum-list q.r.coil))
-    ::
     ++  main
       |=  [ty=type maxdepth=@ud]
       ^-  plum
@@ -1503,14 +1532,14 @@
     =/  bridges  q.tune
     =/  fmt  [[~ ' ' [~ '[' ']']] ~]
     =/  aliases  [%sbrk [%tree fmt 'aliases' (turn ~(tap by p.tune) alias-to-plum)]]
-    =/  bridges  [%sbrk [%tree fmt 'bridges' (turn q.tune hoon-to-plum)]]
+    =/  bridges  [%sbrk [%tree fmt 'bridges' (turn q.tune |=(h=hoon (hoon-to-plum 999 h)))]]
     [%sbrk [%tree fmt 'tune' bridges aliases ~]]
   ::
   ++  alias-to-plum
     |=  [=term =(unit hoon)]
     ^-  plum
     =/  fmt  [[~ ' ' [~ '(' ')']] ~]
-    [%sbrk [%tree fmt 'alias' term ?~(unit '~' (hoon-to-plum u.unit)) ~]]
+    [%sbrk [%tree fmt 'alias' term ?~(unit '~' (hoon-to-plum 999 u.unit)) ~]]
   ::
   +*  batt  [item]  (map term (pair what (map term item)))
   +*  chap  [item]  (pair term (pair what (map term item)))
@@ -1523,7 +1552,7 @@
     =.  q.p.coil  %dry
     ~&  'XRAY-ARM'
     ~&  'hoon'
-    ~&  ~(tall plume (hoon-to-plum q.x))
+    ~&  ~(tall plume (hoon-to-plum 999 q.x))
     ~&  'payload-type'
     ~&  ~(tall plume (simple-type-to-plum payload-type 10))
     ~&  'coil-context'
@@ -1777,34 +1806,34 @@
         ?.  ?=([%cell *] node-data)  ~
         ?.  (is-reference-to-loop input-idx tail.node-data)  ~
         =/  elem-data  (need data:(reflect head.node-data))
-        ?.  ?=([%face *] elem-data)  ~
-        ::  ~&  type.input-xray
-        `xray.elem-data
+        ?:  ?=([%face *] elem-data)  `xray.elem-data
+        `head.node-data
     ::
     ++  is-reference-to-loop
       |=  [=loop=idx =ref=idx]
       ^-  ?
       ?:  =(loop-idx ref-idx)  %.y
       =/  =data  (need data:(reflect ref-idx))
-      ?.  ?=([%face *] data)  %.n
-      $(ref-idx xray.data)
+      ?:  ?=([%face *] data)  $(ref-idx xray.data)
+      %.n
     --
   ::
   ++  is-type  (type-nests-under -:!>(*type))
   ++  is-vase  (type-nests-under -:!>(*vase))
-  ++  is-unit  (type-nests-under -:!>(*(unit *)))
-  ++  is-list  (type-nests-under -:!>(*(list *)))
-  ++  is-tree  (type-nests-under -:!>(*(tree *)))
   ++  is-gate  (type-nests-under -:!>(*$-(* *)))
   ::
   ++  xray-pats
     |=  [img=image i=idx]
     ^-  (set pattern)
+    ::
     =/  x=xray  (reflect i)
     =/  t=type  type.x
-    ^-  (set pattern)
+    =/  d=data  (need data.x)
+    ::
     %-  ~(gas in *(set pattern))
-    ?:  (is-nil i)  ~                                   ::  no useless matches
+    ::
+    ::  Atom printing works just fine without all this shit.
+    ?:  ?=([%atom *] d)  ~
     ::
     =/  tree-elem  (tree-of-what x)
     ?^  tree-elem  ~[[%tree u.tree-elem]]
@@ -1820,14 +1849,14 @@
       ~[[%list u.list-elem]]
     ::
     %-  zing
-    :~  ?.  (is-gate t)   ~  ~[[%gate 0 0]]  :: XX
-        ?.  (is-hoon t)   ~  ~[%hoon]
-        ?.  (is-manx t)   ~  ~[%manx]
-        ?.  (is-nock t)   ~  ~[%nock]
-        ?.  (is-plum t)   ~  ~[%plum]
-        ?.  (is-skin t)   ~  ~[%skin]
-        ?.  (is-type t)   ~  ~[%type]
-        ?.  (is-vase t)   ~  ~[%vase]
+    :~  ?.  (is-gate t)  ~  ~[[%gate 0 0]]  :: XX
+        ?.  (is-hoon t)  ~  ~[%hoon]
+        ?.  (is-manx t)  ~  ~[%manx]
+        ?.  (is-nock t)  ~  ~[%nock]
+        ?.  (is-plum t)  ~  ~[%plum]
+        ?.  (is-skin t)  ~  ~[%skin]
+        ?.  (is-type t)  ~  ~[%type]
+        ?.  (is-vase t)  ~  ~[%vase]
     ==
   --
 ::
@@ -2423,7 +2452,7 @@
 ++  analyze-type
   |=  t=type
   ^-  image
-  ::  %-  trace-xray-image
+  %-  trace-xray-image
   %-  gc-image
   %-  decorate-xray-image-with-roles
   %-  decorate-xray-image-with-shapes
@@ -2470,7 +2499,7 @@
     =/  x=xray  (~(got by img) i)
     =/  d=data  (need data.x)
     ?:  (~(has in tr) i)  [%loop (synthetic i)]
-    ::  ?^  recipes.x  (recipe-to-spec tr n.recipes.x)  :: XX Reenable
+    ?^  recipes.x  (recipe-to-spec tr n.recipes.x)
     %+  wrap-with-loop-binding  x
     =.  tr  (~(put in tr) i)
     ^-  spec
@@ -2584,7 +2613,7 @@
   ++  hoon-to-wain
     |=  =hoon
     ^-  wain
-    ~(tall plume (hoon-to-plum hoon))
+    ~(tall plume (hoon-to-plum 999 hoon))
   ::
   ::  Pretty-print a hoon in tall mode using `plume`.
   ::
@@ -2592,7 +2621,7 @@
     |=  {^ {{demo=hoon ~} ~}}
     :-  %txt
     ^-  wain
-    ~(tall plume (hoon-to-plum demo))
+    ~(tall plume (hoon-to-plum 999 demo))
   ::
   ++  cat-patterns
     |=  xs=(list (unit pattern))
@@ -2622,7 +2651,7 @@
     ?.  ?=([%core *] demo)  [%zpzp ~]
     =*  tomes=(list tome)  ~(val by q.r.q.demo)
     =*  hoons=(list hoon)  (turn tomes |=(t=tome [%cltr ~(val by q.t)]))
-    ~(tall plume (hoon-to-plum [%cltr hoons]))
+    ~(tall plume (hoon-to-plum 999 [%cltr hoons]))
   ::
   +|  %utils
   ::
@@ -2804,7 +2833,7 @@
     |^  ?@  woof  woof
         =*  fmt  [wide=`[' ' `['{' '}']] tall=~]
         :+  %tree  fmt
-        (turn (unwrap-woof-tuple +.woof) hoon-to-plum)
+        (turn (unwrap-woof-tuple +.woof) |=(h=hoon (hoon-to-plum 999 h)))
     ::
     ::  Woofs contain one or more hoons, and if there are more than one,
     ::  it's encoded with a %cltr ast node. This just simplifies both
@@ -2824,7 +2853,7 @@
   ++  hoons-to-plum-list
     |=  =hoon=(list hoon)
     ^.  (list plum)
-    (turn hoon-list hoon-to-plum)
+    (turn hoon-list |=(h=hoon (hoon-to-plum 999 h)))
   ::
   ::  Convenience function for rendering a rune into a plum. This takes
   ::  a rune, an optional tall-form terminator, optionally a short-form (if
@@ -2882,7 +2911,7 @@
     %+  turn  match-list
     |=  [=spec =hoon]
     ^-  (pair plum plum)
-    [(spec-to-plum spec) (hoon-to-plum hoon)]
+    [(spec-to-plum spec) (hoon-to-plum 999 hoon)]
   ::
   ::  Generate a list of plums from a list of updates. This would be
   ::  trivial, but we also need to append commas on each update (besides
@@ -2895,7 +2924,7 @@
     %+  turn  update-list
     |=  [=wing =hoon]
     ^-  (pair plum plum)
-    [(wing-to-plum wing) (hoon-to-plum hoon)]
+    [(wing-to-plum wing) (hoon-to-plum 999 hoon)]
   ::
   ::  This adds commas to a list of pair of hoons, but only in wide form.
   ::
@@ -2940,7 +2969,7 @@
   ::  fairly straightforward.  It is a big-ass switch, though.
   ::
   ++  hoon-to-plum
-    |=  x=hoon
+    |=  [maxdepth=@ x=hoon]
     |^  ^-  plum
       ?+    x
           %autocons
@@ -3068,7 +3097,7 @@
       ++  chapter    chapters-to-plum
       ++  chum       chum-to-plum
       ++  hint       hint-to-plum
-      ++  hn         hoon-to-plum
+      ++  hn         |=(h=hoon (hoon-to-plum (dec maxdepth) h))
       ++  limb       limb-to-plum
       ++  matches    matches-to-plum-list
       ++  rune       rune-to-plum
@@ -3114,7 +3143,7 @@
         ^-  plum
         =/  rem=(list (pair ^wing hoon))  updates         ::  Note [TisCol Order]
         =/  acc=hoon  body
-        %-  hoon-to-plum
+        %-  hn
         |-  ^-  hoon
         ?~  rem  acc
         $(rem t.rem, acc `hoon`[%tsdt `^wing`p.i.rem `hoon`q.i.rem `hoon`acc])
@@ -3129,7 +3158,7 @@
     :+  %tree
       [wide=`['.' ~] tall=~]
     :~  (cat 3 '%' p.hint)
-        (hoon-to-plum q.hint)
+        (hoon-to-plum 999 q.hint)
     ==
   ::
   ::  Render a battery (basically a list of terms,hoon pairs to a plum).
@@ -3141,7 +3170,7 @@
     |=  [=term =hoon]
     =*  fmt  [wide=~ tall=`['' ~]]
     :+  %tree  fmt
-    [term (hoon-to-plum hoon) ~]
+    [term (hoon-to-plum 999 hoon) ~]
   ::
   ::  XX Document this.
   ::
@@ -3281,10 +3310,10 @@
                :_  ~
                ?:  =(- 3)  '%^'
                ?:  =(- 2)  '%+'  '%-'
-             [(hoon-to-plum p.spec) (turn q.spec ..$)]
+             [(hoon-to-plum 999 p.spec) (turn q.spec ..$)]
       %bsbs  (core-spec-to-plum '$$' p.spec q.spec)
-      %bsbr  (subtree (fixed '$|') $(spec p.spec) (hoon-to-plum q.spec) ~)
-      %bscb  (hoon-to-plum p.spec)
+      %bsbr  (subtree (fixed '$|') $(spec p.spec) (hoon-to-plum 999 q.spec) ~)
+      %bscb  (hoon-to-plum 999 p.spec)
       %bscl  :-  %sbrk
              :+  %tree
                [`[' ' `['[' ']']] `['$:' `['' '--']]]
@@ -3297,9 +3326,9 @@
       %bskt  (subtree (fixed '$^') $(spec p.spec) $(spec q.spec) ~)
       %bsls  (subtree (fixed '$+') (stud-to-plum p.spec) $(spec q.spec) ~)
       %bsnt  (core-spec-to-plum '$/' p.spec q.spec)
-      %bsmc  (subtree (fixed '$;') (hoon-to-plum p.spec) ~)
-      %bspd  (subtree (fixed '$&') $(spec p.spec) (hoon-to-plum q.spec) ~)
-      %bssg  (subtree (fixed '$~') (hoon-to-plum p.spec) $(spec q.spec) ~)
+      %bsmc  (subtree (fixed '$;') (hoon-to-plum 999 p.spec) ~)
+      %bspd  (subtree (fixed '$&') $(spec p.spec) (hoon-to-plum 999 q.spec) ~)
+      %bssg  (subtree (fixed '$~') (hoon-to-plum 999 p.spec) $(spec q.spec) ~)
       %bstc  (core-spec-to-plum '$`' p.spec q.spec)
       %bsts  :-  %sbrk
              :+  %tree
@@ -3662,14 +3691,6 @@
         [%synthetic =term =(list xray)]
     ==
   ::
-  +$  pattern
-    $@  ?(%hoon %manx %nock %path %plum %skin %specl %tape %tour %type %vase)
-    $%  [%gate sample=xray product=xray]
-        [%gear sample=xray context=xray =battery]
-        [%list item=xray]
-        [%tree item=xray]
-        [%unit item=xray]
-    ==
   +$  xrayed-type  [=xray table=loop-map]
   +$  data
     $@  ?(%noun %void)
@@ -3963,197 +3984,8 @@
       --
     --
   ::
-  ++  type-nests-under
-    |=  t1=type
-    ^-  $-(type ?)
-    |=  t2=type
-    ^-  ?
-    (~(nest ut t1) | t2)
-  ::
-  ++  type-equals
-    |=  t1=type
-    ^-  $-(type ?)
-    |=  t2=type
-    ^-  ?
-    =(t1 t2)
-  ::
-  ++  is-hoon  (type-nests-under -:!>(*hoon))
-  ++  is-manx  (type-nests-under -:!>(*manx))
-  ++  is-nock  (type-nests-under -:!>(*nock))
-  ++  is-plum  (type-nests-under -:!>(*plum))
-  ++  is-skin  (type-nests-under -:!>(*skin))
-  ::  ++  is-path  (type-nests-under -:!>(*path))
-  ::
-  ++  is-nil
-    |=  xt=xrayed-type
-    ?@  xray.xt  $(xray.xt (~(got by table.xt) xray.xt))
-    =/  d  data.xray.xt
-    ?@  d  %.n
-    ?+    -.d
-        %.n
-      %atom  =(d [%atom aura=~.n constant-unit=[~ u=0]])
-      %face  $(xray.xt xray.d)
-    ==
-  ::
-  ++  is-atom-with-aura
-    |=  [c=cord xt=xrayed-type]
-    ^-  ?
-    ?@  xray.xt  $(xray.xt (~(got by table.xt) xray.xt))
-    =/  d  data.xray.xt
-    ?@  d  %.n
-    ?+    -.d
-        %.n
-      %atom  =(d [%atom aura=c constant-unit=~])
-      %face  $(xray.xt xray.d)
-    ==
-  ::
-  ++  is-reference-to-loop
-    |=  [i=@ x=xray]
-    ?@  x  =(i x)
-    ?.  ?=([%face *] data.x)  %.n
-    $(x xray.data.x)
-  ::
-  ++  is-list-of-atoms-with-aura
-    |=  [aura=cord xt=xrayed-type]
-    =/  res  (list-of-what xt)
-    ?~  res  %.n
-    (is-atom-with-aura aura xt(xray u.res))
-  ::
-  ++  list-of-what
-    |=  xt=xrayed-type
-    ^-  (unit xray)
-    ?@  xray.xt  $(xray.xt (~(got by table.xt) xray.xt))
-    ?~  entry-unit.meta.xray.xt  ~
-    =/  idx  u.entry-unit.meta.xray.xt
-    =/  d  data.xray.xt
-    ?.  ?=([%fork *] d)  ~
-    =/  branches  ~(tap in set.d)
-    ?.  ?=([* * ~] branches)  ~
-    =/  x  i.branches
-    =/  y  i.t.branches
-    |-
-    ?:  (is-nil y table.xt)  $(y x, x y)
-    ?.  (is-nil x table.xt)  ~
-    |-
-    ?@  y  $(y (~(got by table.xt) xray.xt))
-    ?.  ?=([%cell *] data.y)  ~
-    ?.  (is-reference-to-loop idx tail.data.y)  ~
-    `head.data.y
-  ::
-  ++  is-tape
-    |=  xt=xrayed-type
-    (is-list-of-atoms-with-aura 'tD' xt)
-  ++  is-path
-    |=  xt=xrayed-type
-    (is-list-of-atoms-with-aura 'ta' xt)
-  ++  is-tour
-    |=  xt=xrayed-type
-    (is-list-of-atoms-with-aura 'c' xt)
-  ::
-  ::
-  ++  is-type  (type-nests-under -:!>(*type))
-  ++  is-vase  (type-nests-under -:!>(*vase))
-  ++  is-unit  (type-nests-under -:!>(*(unit *)))
-  ++  is-list  (type-nests-under -:!>(*(list *)))
-  ++  is-tree  (type-nests-under -:!>(*(tree *)))
-  ++  is-gate  (type-nests-under -:!>(*$-(* *)))
-  ::
   +$  trace  (set type)
   ::
-  ++  decorate-with-patterns
-    |^  |=  xt=xrayed-type
-        ^-  xrayed-type
-        (main `(set type)`~ xt)
-    ++  main
-      |=  [tr=trace xt=xrayed-type]
-      ^-  xrayed-type
-      ?@  xray.xt  $(xray.xt (~(got by table.xt) xray.xt))
-      ?:  (~(has in tr) type.xray.xt)  xt
-      =/  pat  (xray-pattern xt)
-      =.  pattern-set.meta.xray.xt  pat
-      =.  table.xt
-          ?~  pat  table.xt
-          ?~  entry-unit.meta.xray.xt  table.xt
-          (~(put by table.xt) u.entry-unit.meta.xray.xt xray.xt)
-      ::  Now, recurse, replacing subexpressions.
-      ::  Hmm, this is a lot of code, since I need to switch on the type.
-      ::  Whatever, just do it for now.
-      =.  tr  (~(put in tr) type.xray.xt)
-      ?@  data.xray.xt  xt
-      ?-  -.data.xray.xt
-        %atom  xt
-        %cell  =^  hd  table.xt  (main tr xt(xray head.data.xray.xt))
-               =^  tl  table.xt  (main tr xt(xray tail.data.xray.xt))
-               xt(head.data.xray hd, tail.data.xray tl)
-        %core  !!
-        %face  =^  xr  table.xt  (main tr xt(xray xray.data.xray.xt))
-               xt(xray.data.xray xr)
-        %fork  =^  bl  table.xt
-                 %+  (traverse-left xray xray loop-map)
-                   [~(tap in set.data.xray.xt) table.xt]
-                 |=  xt=xrayed-type
-                 ^-  xrayed-type
-                 (main tr xt)
-               =/  bs  (~(gas in *(set xray)) bl)
-               xt(set.data.xray bs)
-      ==
-  ::
-  ++  subxrays
-    ^|  |=  x=xray
-        ^-  (list xray)
-        ?@  x  ~
-        =/  d  data.x
-        ?+    d
-            ~
-          [%cell *]  ~[head.d tail.d]
-          [%core *]  [xray.d (subxrays-in-battery battery.d)]
-          [%face *]  ~[xray.d]
-          [%fork *]  ~(tap in set.d)
-        ==
-    ::
-    ++  subxrays-in-battery
-      |=  b=battery
-      ^-  (list xray)
-      %-  zing
-      %+  turn  ~(val by b)
-      |=  [* =(map term xray)]
-      ^-  (list xray)
-      ~(val by map)
-    --
-
-  ++  xray-pattern
-    |=  xt=xrayed-type
-    ^-  (set pattern)
-    =/  x  xray.xt
-    ?@  x  $(xray.xt (~(got by table.xt) x))
-    =/  t  type.x
-    ^-  (set pattern)
-    %-  ~(gas in *(set pattern))
-    %-  zing
-    ?:  (is-nil xt)  ~
-    =/  elem-xray  (list-of-what xt)
-    :~
-        ::  Simple equality tests:
-        ?.  (is-hoon t)   ~  ~&  %found-hoon  ~[%hoon]
-        ?.  (is-manx t)   ~  ~&  %found-manx  ~[%manx]
-        ?.  (is-nock t)   ~  ~&  %found-nock  ~[%nock]
-        ?.  (is-plum t)   ~  ~&  %found-plum  ~[%plum]
-        ?.  (is-skin t)   ~  ~&  %found-skin  ~[%skin]
-        ?.  (is-type t)   ~  ~&  %found-type  ~[%type]
-        ?.  (is-vase t)   ~  ~&  %found-vase  ~[%vase]
-        ::  These checks require us to call `nest`:
-        ?.  (is-unit t)   ~  ~&  %found-unit  ~[[%unit 0]]    :: [%unit item=xray]
-        ?~  elem-xray  ~
-          ~&  %found-list
-          %-  zing
-          :~  ~[[%list u.elem-xray]]
-              ?.  (is-atom-with-aura 'tD' u.elem-xray table.xt)  ~  ~[%tape]
-              ?.  (is-atom-with-aura 'ta' u.elem-xray table.xt)  ~  ~[%path]
-              ?.  (is-atom-with-aura 'c' u.elem-xray table.xt)   ~  ~[%tour]
-          ==
-        ?.  (is-tree t)   ~  ~&  %found-tree  ~[[%tree 0]]    :: [%tree item=xray]
-        ?.  (is-gate t)   ~  ~&  %found-gate  ~[[%gate 0 0]]  :: [%gate sample=xray product=xray]
-    ==
   --
 --
 
