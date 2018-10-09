@@ -139,7 +139,7 @@
 ++  type-to-plum
   |=  t=type
   ^-  plum
-  (spec-to-plum (xray-image-to-spec (analyze-type t)))
+  (spec-to-plum (xray-image-to-spec 0 (analyze-type t)))
 ::
 ::  Pretty-print a hoon in tall mode using `plume`.
 ::
@@ -1339,7 +1339,6 @@
     ?-  d
       %void      '!!'
       %noun      (render-noun n)
-      [%core *]  '%core'                                ::  XX TODO
       [%cell *]  (pair-plum (main head.d -:n) (main tail.d +:n))
                                                         ::  XX Handle
                                                         ::  n-ary tuples.
@@ -1347,8 +1346,40 @@
                  ?~  constant.d  (render-atom aura.d n)
                  (render-const aura.d u.constant.d n)
       [%face *]  (main xray.d n)
+      [%core *]  (core-to-plum garb.d xray.d battery.d)
       [%fork *]  '%fork'                                ::  [%fork =(set idx)]
     ==
+  ::
+  ++  render-gate
+    |=  [=sample=idx =product=idx]
+    ^-  plum
+    %+  hoon-to-plum  999
+    :+  %brts                                           ::  {$brts spec hoon}
+      (xray-image-to-spec sample-idx img)
+    :+  %kthp
+      (xray-image-to-spec product-idx img)
+    [%wing ~['...']]                                    ::  XX TODO
+  ::
+  ++  core-to-plum
+    |=  [=garb xray=idx =(battery idx)]
+    ^-  plum
+    ::
+    =/  cvt-arms
+      |=  m=(map term idx)
+      ^-  (map term hoon)
+      %-  ~(gas by *(map term hoon))
+      %+  turn  ~(tap by m)
+      |=  [t=term i=idx]
+      ^-  [term hoon]
+      [t [%wing ~['...']]]                              ::  XX TODO
+    ::
+    =/  batt=(map term tome)
+      %-  ~(gas by *(map term tome))
+      %+  turn  ~(tap by battery)
+      |=  [nm=term w=what arms=(map term idx)]
+      [nm w (cvt-arms arms)]
+    ::
+    (hoon-to-plum 999 [%brcn p.garb batt])
   ::
   ++  path-to-plum
     |=  =path
@@ -1360,7 +1391,7 @@
   ++  nock-to-plum
     |=  n=nock
     ^-  plum
-    '%nock'                                             ::  XX TODO
+    (render-noun n)
   ::
   ++  tour-to-plum
     |=  t=tour
@@ -1550,7 +1581,7 @@
       %vase      =/  vtp  vase-to-plum
                  =/  =plum  ((hard plum) .*(vtp(+< n) [9 2 0 1]))
                  (rune-to-plum '!>' ~ ~ ~[plum])
-      [%gate *]  '%gate'                                ::  XX TODO
+      [%gate *]  (render-gate sample.p product.p)
       [%gear *]  '%gear'                                ::  XX TODO
       [%list *]  (render-list item.p n)
       [%tree *]  (render-tree item.p n)
@@ -1733,13 +1764,13 @@
     ^-  [(arm idx) state]
     =.  r.p.coil  %gold
     =.  q.p.coil  %dry
-    ~&  'XRAY-ARM'
-    ~&  'hoon'
-    ~&  ~(tall plume (hoon-to-plum 999 q.x))
-    ~&  'payload-type'
-    ~&  ~(tall plume (simple-type-to-plum payload-type 10))
-    ~&  'coil-context'
-    ~&  ~(tall plume (simple-type-to-plum q.coil 10))
+    ::  ~&  'XRAY-ARM'
+    ::  ~&  'hoon'
+    ::  ~&  ~(tall plume (hoon-to-plum 999 q.x))
+    ::  ~&  'payload-type'
+    ::  ~&  ~(tall plume (simple-type-to-plum payload-type 10))
+    ::  ~&  'coil-context'
+    ::  ~&  ~(tall plume (simple-type-to-plum q.coil 10))
     =/  thunk  [%hold [%core payload-type coil] q.x]
     =^  i=idx  st  (main thunk st)
     [x(q i) st]
@@ -1972,7 +2003,7 @@
     |=  =input=xray
     ^-  (unit idx)
     ::
-    ~&  ['list-of-what' idx.input-xray]
+    :: ~&  ['list-of-what' idx.input-xray]
     ::
     =/  indata=data    (need data.input-xray)
     ?+  indata  ~
@@ -1997,7 +2028,7 @@
     |=  =input=xray
     ^-  (unit idx)
     ::
-    ~&  ['list-of-what' idx.input-xray]
+    ::  ~&  ['list-of-what' idx.input-xray]
     ::
     ?.  loop.input-xray  ~
     =/  input-idx=idx  idx.input-xray
@@ -2017,9 +2048,51 @@
     ?:  ?=([%face *] elem-data)  `xray.elem-data
     `head.node-data
   ::
+  ++  battery-arms-hack
+    |=  =(battery idx)
+    ^-  (list term)
+    %-  zing
+    %+  turn  ~(val by battery)
+    |=  [=what arms=(map term idx)]
+    ^-  (list term)
+    ~(tap in ~(key by arms))
+  ::
+  ++  gate-of-what
+    |=  =input=xray
+    ^-  (unit pattern)
+    ::
+    ::  Make sure this is a core and get the context-idx
+    ::
+    =/  input-data  (need data.input-xray)
+    ?.  ?=([%core *] input-data)  ~
+    =/  context-idx=idx  xray.input-data
+    ::
+    ::  Determine the sample type.
+    ::
+    =/  context-data=data  (need data:(reflect context-idx))
+    ?.  ?=([%cell *] context-data)  ~
+    =/  sample-idx=idx  head.context-data
+    ::
+    ::  Determinte the product type.
+    ::
+    =/  chapters  ~(tap by battery.input-data)
+    ::
+    ?~  chapters            ~
+    ?^  t.chapters          ~
+    ?.  =(p.i.chapters '')  ~
+    ::
+    =/  arms=(list (pair term idx))  ~(tap by q.q.i.chapters)
+    ::
+    ?~  arms            ~
+    ?^  t.arms          ~
+    ?.  =(p.i.arms '')  ~
+    ::
+    =/  product-idx=idx  q.i.arms
+    ::
+    `[%gate sample-idx product-idx]
+  ::
   ++  is-type  (type-nests-under -:!>(*type))
   ++  is-vase  (type-nests-under -:!>(*vase))
-  ++  is-gate  (type-nests-under -:!>(*$-(* *)))
   ::
   ++  xray-pats
     |=  [img=image i=idx]
@@ -2040,6 +2113,9 @@
     =/  unit-elem  (unit-of-what x)
     ?^  unit-elem  ~[[%unit u.unit-elem]]
     ::
+    =/  gate-pat  (gate-of-what x)
+    ?^  gate-pat  ~[u.gate-pat]
+    ::
     =/  list-elem  (list-of-what x)
     ?^  list-elem
       ?:  (is-atom-with-aura 'tD' u.list-elem)   ~[%tape]
@@ -2049,8 +2125,7 @@
       ~[[%list u.list-elem]]
     ::
     %-  zing
-    :~  ?.  (is-gate t)  ~  ~[[%gate 0 0]]  :: XX
-        ?.  (is-hoon t)  ~  ~[%hoon]
+    :~  ?.  (is-hoon t)  ~  ~[%hoon]
         ?.  (is-json t)  ~  ~[%json]
         ?.  (is-manx t)  ~  ~[%manx]
         ?.  (is-nock t)  ~  ~[%nock]
@@ -2357,6 +2432,9 @@
   ::
   ::  XX In the old code, we didn't produce one for loop entry points. Why
   ::  was that? Do we need to reintroduce that logic?
+  ::
+  ::  XX I did! I don't remember why, though. I should probably delete
+  ::  this logic and test.
   ::
   ++  simple-forks
     |=  xi=ximage
@@ -2666,10 +2744,10 @@
 ::  -xray-image-to-spec: convert to spec
 ::
 ++  xray-image-to-spec
-  |=  img=image
+  |=  [=top=idx img=image]
   ^-  spec
   ::
-  |^  (xray-to-spec ~ 0)
+  |^  (xray-to-spec ~ top-idx)
   ::
   +$  trace  (set idx)
   ::
