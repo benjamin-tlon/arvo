@@ -1367,10 +1367,168 @@
     ^-  plum
     '%tour'                                             ::  XX TODO
   ::
+  ++  json-to-plum
+    ::
+    ::  Note that `arrayfmt` and `objfmt` use core-like formatting in
+    ::  the tall case. This is kind-of a hack but works well!
+    ::
+    =/  arrfmt=plumfmt  :-  wide=`[' ' `['[' ']']]
+                            tall=`['[ ' `['' ']']]
+    ::
+    =/  objfmt=plumfmt  :-  wide=`[' ' `['{' '}']]
+                            tall=`['{ ' `['' '}']]
+    ::
+    ::  Note that `kidfmt` uses the magical "ace-ace" rune to get
+    ::  4-space indentation.
+    =/  kidfmt=plumfmt  [wide=`['' ~] tall=`['  ' `['' '']]]
+    ::
+    =/  colfmt=plumfmt  [wide=`[' ' ~] tall=`['' `['' '']]]
+    ::
+    |^  jsn
+    ::
+    ++  str  |=  t=@t
+             ^-  cord
+             (cat 3 '"' (cat 3 t '"'))                  ::  XX Escaping
+    ::
+    ++  key  |=  t=@t
+             ^-  cord
+             (cat 3 (str t) ':')
+    ::
+    ++  kid  |=  kids=(list plum)
+             ^-  plum
+             [%tree kidfmt kids]
+    ::
+    ++  jsn  |=  j=json
+             ^-  plum
+             ?-  j
+               ~       'null'
+               [%a *]  (arr p.j)
+               [%b *]  ?:(p.j 'true' 'false')
+               [%o *]  (obj p.j)
+               [%n *]  p.j
+               [%s *]  (str p.j)
+             ==
+    ::
+    ++  arr  |=  l=(list json)
+             ^-  plum
+             [%sbrk [%tree arrfmt (seq (turn l jsn))]]
+    ::
+    ++  obj  |=  m=(map @t json)
+             ^-  plum
+             [%sbrk [%tree objfmt (seq (turn ~(tap by m) col))]]
+    ::
+    ++  col  |=  [k=@t v=json]
+             ^-  plum
+             [%sbrk [%tree colfmt ~[(key k) (kid (jsn v) ~)]]]
+    ::
+    ::
+    ::  Adds a comma to the end of every plum but the last.
+    ::
+    ++  seq  |=  ps=(list plum)
+             ^-  (list plum)
+             =/  acc=(list plum)  ~
+             |-
+             ?~  ps    (flop acc)
+             ?~  t.ps  (flop [i.ps acc])
+             %=  $
+               acc  [(com i.ps) acc]
+               ps   `(list plum)`t.ps
+             ==
+    ::
+    ++  lst  |=  ps=(list plum)
+             ^-  (list plum)
+             =/  acc=(list plum)  ~
+             |-
+             ?~  ps    (flop acc)
+             ?~  t.ps  (flop [(com i.ps) acc])
+             %=  $
+               acc  [i.ps acc]
+               ps   `(list plum)`t.ps
+             ==
+    ::
+    ::  Adds a comma at the end of a plum in both wide and tall modes.
+    ::
+    ++  com  |=  p=plum
+             ^-  plum
+             ?-  p
+               @          (cat 3 p ',')
+               [%sbrk *]  [%sbrk (com kid.p)]
+               [%para *]  p
+               [%tree *]
+                 ?.  ?&(?=(^ tall.fmt.p) ?|(=('  ' intro.u.tall.fmt.p) =('' intro.u.tall.fmt.p)))
+                   p(fmt (hak fmt.p))
+                 p(kids (lst kids.p))
+             ==
+    ::
+    ::  Nasty hack to add a trailing comma to an element in a sequence.
+    ::
+    ::  Everything that can appear in a sequence has a plum that is
+    ::  either a cord or has a `plumfmt` that contains a terminator
+    ::  character (possibly empty) in both wide and tall formats.
+    ::
+    ::  This routine fudges a `plumfmt` value so that a trailing comma
+    ::  will be inserted at the end
+    ::
+    ++  hak  |=  fmt=plumfmt
+             ^-  plumfmt
+             ::
+             %=  fmt
+               wide  ?~  wide.fmt            wide.fmt
+                     ?~  enclose.u.wide.fmt  wide.fmt
+                     =.  q.u.enclose.u.wide.fmt
+                       (cat 3 q.u.enclose.u.wide.fmt ',')
+                     wide.fmt
+               tall  ?~  tall.fmt          tall.fmt
+                     ?~  indef.u.tall.fmt  tall.fmt
+                     =.  final.u.indef.u.tall.fmt
+                       (cat 3 final.u.indef.u.tall.fmt ',')
+                     tall.fmt
+             ==
+    ::
+    --
+  ::
+  ++  mane-to-cord
+    |=  m=mane
+    ^-  cord
+    ?@  m  m
+    (cat 3 -:m (cat 3 ':' +:m))
+  ::
   ++  manx-to-plum
-    |=  m=manx
+    |=  [[=mane =mart] =marl]
     ^-  plum
-    '%manx'                                             ::  XX TODO
+    |^  result
+    ::
+    ++  result  `plum`[%sbrk [%tree outfmt toptag childs ~]]
+    ++  outfmt  ^-  plumfmt  :-  `['' `['' endtag]]  `['' [~ '' endtag]]
+    ::
+    ++  tagstr  (mane-to-cord mane)
+    ::
+    ++  toptag  =/  a  atribs
+                ?~  a  (cat 3 topstr '>')
+                [%tree topfmt a]
+    ::
+    ::  Note that `kidfmt` uses "the ace-ace rune" (scare quotes) to
+    ::  get indentation.
+    ++  childs  [%tree kidfmt (turn marl manx-to-plum)]
+    ++  kidfmt  ^-  plumfmt  :-  `['' `['' '']]  `['  ' `['' '']]
+    ::
+    ++  topfmt  =/  widetopstr  (cat 3 topstr ' ')
+                :-  wide=[~ ' ' [~ widetopstr '>']]
+                    tall=[~ topstr [~ '' '>']]
+    ++  topstr  (cat 3 '<' tagstr)
+    ++  atribs  (turn mart attr-to-plum)
+    ::
+    ++  endtag  (cat 3 '</' (cat 3 tagstr '>'))
+    ++  endfmt  [[~ '' [~ '</' '>']] ~]
+    ::
+    ++  atrfmt  [[~ '="' [~ '' '"']] ~]                 ::  XX Escaping
+    ::
+    ++  attr-to-plum
+      |=  [m=^mane t=tape]
+      ^-  plum
+      [%tree atrfmt (mane-to-cord m) (crip t) ~]
+    ::
+    --
   ::
   ++  render-with-pattern
     |=  [p=pattern n=*]
@@ -1378,7 +1536,7 @@
     ~&  ['render-with-pattern' p n]
     ?-  p
       %hoon      (hoon-to-plum 999 ((hard hoon) n))
-      %json      !!                                     ::  XX TODO
+      %json      (json-to-plum ((hard json) n))
       %manx      (manx-to-plum ((hard manx) n))
       %nock      (nock-to-plum ((hard nock) n))
       %path      (path-to-plum ((hard path) n))
@@ -1792,25 +1950,22 @@
         ?.  (is-nil nil)  ~
         =/  node-data=data  (need data:(reflect node))
         ?.  ?=([%cell *] node-data)  ~
-        ?.  (is-references-to-tree input-idx tail.node-data)  ~
+        ?.  (is-pair-of-references-to input-idx tail.node-data)  ~
         =/  elem-data  (need data:(reflect head.node-data))
         ?.  ?=([%face *] elem-data)  ~
         ::  ~&  type.input-xray
         `xray.elem-data
     ::
-    ++  is-references-to-tree
-      |=  [=loop=idx =cell=idx]
+    ++  is-pair-of-references-to
+      |=  [target=idx cell=idx]
       ^-  ?
-      =/  =data  (need data:(reflect cell-idx))
-      ?.  ?=([%cell *] data)  %.n
       |-
-      ?:  &(=(loop-idx head.data) =(loop-idx tail.data))  %.y
-      =/  headdata  (need data:(reflect head.data))
-      ?:  ?=([%face *] headdata)  $(head.data xray.headdata)
-      =/  taildata  (need data:(reflect tail.data))
-      ?:  ?=([%face *] taildata)  $(tail.data xray.taildata)
-      %.n
-      ::  $@(~ [n=node l=(tree node) r=(tree node)])
+      =/  =data  (need data:(reflect cell))
+      ?:  ?=([%face *] data)  $(cell xray.data)
+      ?.  ?=([%cell *] data)  %.n
+      ?.  (is-reference-to target head.data)  %.n
+      ?.  (is-reference-to target tail.data)  %.n
+      %.y
     --
   ::
   ++  list-of-what
@@ -3429,11 +3584,12 @@
       ^-  ^block
       (turn block |=([@ud tape] [(add tab +<-) +<+]))
     ::
-    ::  +window: print as list of tabbed lines
-    ::
     ++  prepend-spaces
       |=  [n=@ =tape]
       (runt [n ' '] tape)
+    ::
+    ::  +window: print as list of tabbed lines
+    ::
     ++  window
       ^-  block
       ~+                                                  ::  for random access
