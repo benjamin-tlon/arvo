@@ -8,6 +8,26 @@
 ::                      '*$%([%e @] [%j (list ~)])'
 ::                  ==
 ::
+::  # Cleanup Work
+::
+::  - XX For now, path literals are not rendered as paths. /a/path
+::    expands to `[a [path ~]]`, which does not have a list type anywhere
+::    inside of it. If we make the list pattern matcher accept this type
+::    of thing, then we instead get annoying behaviors with in tuples
+::    that end with null. For example [1 "str" ~] renders as [1 ~["str"]],
+::    which is not what we want either. This is going to need a
+::    more-specific heuristic change.
+::
+::  - XX The `manx` data type has no represent raw text.
+::
+::    There must be some undocumented convention for how to do
+::    this. Figure out what it is and implement it.
+::
+::  - XX The pattern matching code is basically brute-force.
+::
+::    If it turns out to be a performance bottleneck, there's lots of
+::    low-hanging fruit there.
+::
 /?  310
 :-  %say
 !:
@@ -19,6 +39,109 @@
 ::  =<  render-all-hoons-referenced-inside-of-type
 ::
 |%
+::
++|  %examples
+::
+
+++  type-example
+  ^-  type
+  -:!>(`(unit (list cord))`~)
+::
+++  example
+  !>
+  |^  :*
+          ::  add
+          |%  ++  nil  ~  --
+::        [~ %.y %.n 1 0x2 ~ ~.knot 'cord' %const]
+::        :*  [%tape "a tape"]
+::            [%path /path/literal `path`/typed/path]
+::            [%gate gate-example]
+::            [%core core-example]
+::            [%unit `(unit @)`[~ 9]]
+::            %woot
+::        ==
+::        [%hoon hoon-example]
+::        [%type -:!>(`(unit (list tape))`~)]
+::        [%json-and-xml json-example xml-example]
+          ~
+        ==
+  ::
+  ++  hoon-example
+    ^-  hoon
+    :+  %brcn  ~
+    %-  ~(gas by *(map term tome))
+    ^-  (list (pair term tome))
+    :_  ~
+    ^-  (pair term tome)
+    :-  'chapter'
+    ^-  tome
+    :-  `what`~
+    %-  ~(gas by *(map term hoon))
+    ^-  (list (pair term hoon))
+    :_  ~
+    :-  'arm'
+    :+  %brts  `spec`[%bsts 'x' [%base [%atom ~.ud]]]
+    :-  %clsg
+    ~[[%wing ~['x']] [%$ 0]]
+  ::
+  ++  xml-example
+    |^  ^-  manx
+        :-  ['json' ~]
+        :~  (json-to-xml json-example)
+        ==
+    ++  json-to-xml
+      |=  j=json
+      ^-  manx
+      ?-  j
+        ~       [['nil' ~] ~]
+        [%a *]  [['array' ~] (turn p.j json-to-xml)]
+        [%b *]  [['bool' ~[['val' ?:(p.j "true" "false")]]] ~]
+        [%o *]  [['obj' ~] (turn ~(tap by p.j) pair)]
+        [%n *]  [['num' ~[[['n' 'val'] (trip p.j)]]] ~]
+        [%s *]  [[p.j ~] ~]
+      ==
+    ++  pair
+      |=  [t=@t j=json]
+      ^-  manx
+      [['slot' ~[['key' (trip t)]]] ~[(json-to-xml j)]]
+    --
+  ::
+  ++  core-example
+    =>  [=gate-example]
+    |%
+    ++  dup  gate-example
+    ++  const
+      |=  x=*  ^-  $-(* *)
+      |=  *    ^-  *
+      x
+    --
+  ::
+  ++  gate-example
+    =>  ~
+    |=  x=@ud
+    ^-  [@ud @ud]
+    [x x]
+  ::
+  ++  json-example
+    ^-  json
+    |^  ar2
+    ++  str  [%s 'testest']
+    ++  nil  ~
+    ++  yes  [%b %.y]
+    ++  nah  [%b %.n]
+    ++  foo  'foo'
+    ++  bar  'bar'
+    ++  baz  'baz'
+    ++  one  [%n '1']
+    ++  ten  [%n '10']
+    ++  mil  [%n '100000']
+    ++  arr  [%a ~[one ten mil]]
+    ++  ar2  [%a ~[arr str yes nah nil]]
+    ++  obj  [%o (~(gas by *(map @t json)) ~[[foo mil] [bar str] [baz arr]])]
+    ++  ob2  [%o (~(gas by *(map @t json)) ~[[foo ar2] [bar obj] [baz yes]])]
+    ++  ar3  [%a ~[arr obj ob2 one ten mil str yes nah nil]]
+    --
+  --
 ::
 +|  %entry-points-for-testing
 ::
@@ -101,7 +224,7 @@
   |=  {^ {{=vase ~} ~}}
   :-  %txt
   ^-  wain
-  ~(tall plume (vase-to-plum vase))
+  ~(tall plume (vase-to-plum example))
 ::
 ::  Pretty-print a value given as a string.
 ::
@@ -148,14 +271,6 @@
   :-  %txt
   ^-  wain
   ~(tall plume (hoon-to-plum 999 demo))
-::
-++  cat-patterns
-  |=  xs=(list (unit pattern))
-  ^-  (list pattern)
-  ?~  xs    ~
-  =/  more  $(xs t.xs)
-  ?~  i.xs  more
-  [u.i.xs more]
 ::
 ++  cat-errors
   |*  xs=(list (unit @))
@@ -428,13 +543,13 @@
 ::
 ::  Generate a list of plums from a list of matches. This would be
 ::  trivial, but we also need to append commas on each match (besides
-::  the last) when the match-list is rendered in wide mode.
+::  the last) when `matches` is rendered in wide mode.
 ::
 ++  matches-to-plum-list
-  |=  =match=(list (pair spec hoon))
+  |=  matches=(list (pair spec hoon))
   ^-  (list plum)
   %-  add-trailing-commas-to-wide-form
-  %+  turn  match-list
+  %+  turn  matches
   |=  [=spec =hoon]
   ^-  (pair plum plum)
   [(spec-to-plum spec) (hoon-to-plum 999 hoon)]
@@ -694,7 +809,8 @@
   ^-  (list plum)
   %+  turn  ~(tap by map)
   |=  [=term =hoon]
-  =*  fmt  [wide=~ tall=`['' ~]]
+  =/  fmt  [wide=`['  ' ~] tall=`['' ~]]
+  :-  %sbrk
   :+  %tree  fmt
   [term (hoon-to-plum 999 hoon) ~]
 ::
@@ -1188,10 +1304,7 @@
     ==
   --
 +$  idx  @ud
-::  Shape = Noun | Void
-::        | Atom | Cnst
-::        | Cell
-::        | Junc | Union
+::
 +$  shape  ?(%void %noun %atom %cell %junc)
 ::
 +$  role
@@ -1204,19 +1317,23 @@
       [%conjunction wide=idx tall=idx]
       [%misjunction one=idx two=idx]
   ==
+::
 +*  battery  [item]  (map term (pair what (map term item)))
+::
 +$  recipe
   $%  [%direct =term]
       [%synthetic =term =(list idx)]
   ==
+::
 +$  pattern
-  $@  ?(%hoon %manx %json %nock %path %plum %skin %specl %tape %tour %type %vase)
+  $@  ?(%hoon %manx %json %nock %path %plum %skin %spec %tape %tour %type %vase)
   $%  [%gate sample=idx product=idx]
       [%gear sample=idx context=idx =(battery idx)]
       [%list item=idx]
       [%tree item=idx]
       [%unit item=idx]
   ==
+::
 +$  data
   $@  ?(%noun %void)
   $%  [%atom =aura constant=(unit @)]
@@ -1225,13 +1342,14 @@
       [%face face=$@(term tune) xray=idx]
       [%fork =(set idx)]
   ==
+::
 +$  xray
   $:  =idx
       =type
       data=(unit data)
       fork=(unit (pair idx idx))
       role=(unit role)
-      pats=(set pattern)
+      pats=(unit pattern)
       studs=(set stud)
       recipes=(set recipe)
       helps=(set help)
@@ -1254,20 +1372,9 @@
   ++  main
     |=  [i=idx n=*]
     ^-  plum
-    ~&  ['xray-noun-to-plum' i n]
     =/  x=xray  (~(got by img) i)
-    ~&  x
-    =/  ps=(list pattern)  ~(tap in pats.x)
-    ~&  ps
-    ?~  ps  (render-with-data (need data.x) n)
-    (render-with-pattern i.ps n)                        ::  XX What to do if two
-                                                        ::  patterns match?
-                                                        ::  Seems useless! Maybe
-                                                        ::  the pattern
-                                                        ::  detection code
-                                                        ::  should be forced to
-                                                        ::  just choose
-                                                        ::  one pattern.
+    ?~  pats.x  (render-with-data i (need data.x) n)
+    (render-with-pattern u.pats.x n)
   ::
   ++  tree-noun-to-list
     |=  n=*
@@ -1303,46 +1410,64 @@
     (rune-to-plum ':~' `'==' `['~[' ' ' ']'] ps)
   ::
   ++  render-unit
-    |=  [elt=idx noun=*]
+    |=  [i=idx n=*]
     ^-  plum
-    ?~  noun  '~'
-    (pair-plum '~' (main elt +:n))
+    ?~  n  '~'
+    (tuple-plum ~['~' (main i +:n)])
   ::
-  ++  pair-plum
-    |=  [x=plum y=plum]
+  ++  tuple-plum
+    |=  kids=(list plum)
     ^-  plum
-    (rune-to-plum ':-' ~ `['[' ' ' ']'] ~[x y])
+    =/  n  (lent kids)
+    (rune-to-plum ':*' `['=='] `['[' ' ' ']'] kids)
   ::
   ++  render-atom
     |=  [=aura atom=@]
     ^-  plum
-    ~&  ['render-atom' aura atom]
+    ::  ~&  ['render-atom' aura atom]
     (scot aura atom)
   ::
   ++  render-const
     |=  [=aura const=@ =atom]
     ^-  plum
-    ~&  'render-const'
+    ?:  =(~.n aura)  '~'
     (cat 3 '%' (scot aura atom))
   ::
   ++  render-noun  ::  XX Where is the existing code for doing this?
-    |=  [n=*]
+    |=  [n=*]      ::  Can I just use it?
     ^-  plum
     ?@  n  (render-atom 'ud' n)
-    ~&  'render-const'
-    (pair-plum (render-noun -:n) (render-noun +:n))
+    (tuple-plum ~[(render-noun -:n) (render-noun +:n)])
+  ::
+  ++  render-tuple
+    |=  [i=idx n=*]
+    ^-  plum
+    =/  acc=(list plum)  ~
+    %-  tuple-plum
+    %-  flop
+    |-
+    ^-  (list plum)
+    ::
+    =/  x=xray             (~(got by img) i)
+    =/  d=data             (need data.x)
+    ::
+    ?^  pats.x           [(main i n) acc]
+    ?.  ?=([%cell *] d)  [(main i n) acc]
+    %=  $
+      acc  [(main head.d -:n) acc]
+      i    tail.d
+      n    +:n
+    ==
   ::
   ++  render-with-data
-    |=  [d=data n=*]
+    |=  [i=idx d=data n=*]
     ^-  plum
-    ~&  ['render-with-data' d n]
+    ::  ~&  ['render-with-data' d n]
     ?-  d
       %void      '!!'
       %noun      (render-noun n)
-      [%cell *]  (pair-plum (main head.d -:n) (main tail.d +:n))
-                                                        ::  XX Handle
-                                                        ::  n-ary tuples.
-      [%atom *]  ?^  n  !!
+      [%cell *]  (render-tuple i n)
+      [%atom *]  ?^  n  ~&  [%not-an-atom i d n]  !!
                  ?~  constant.d  (render-atom aura.d n)
                  (render-const aura.d u.constant.d n)
       [%face *]  (main xray.d n)
@@ -1564,7 +1689,7 @@
   ++  render-with-pattern
     |=  [p=pattern n=*]
     ^-  plum
-    ~&  ['render-with-pattern' p n]
+    ::  ~&  ['render-with-pattern' p n]
     ?-  p
       %hoon      (hoon-to-plum 999 ((hard hoon) n))
       %json      (json-to-plum ((hard json) n))
@@ -1573,8 +1698,8 @@
       %path      (path-to-plum ((hard path) n))
       %plum      ((hard plum) n)
       %skin      (skin-to-plum ((hard skin) n))
-      %specl     '%specl'  :: XX  What?
-      %tape      (tape-to-plum (tape n))
+      %spec      (spec-to-plum ((hard spec) n))
+      %tape      (tape-to-plum ((hard tape) n))
       %tour      (tour-to-plum ((hard tour) n))
       %type      =/  ttp  type-to-plum
                  ((hard plum) .*(ttp(+< n) [9 2 0 1]))
@@ -1771,6 +1896,7 @@
     ::  ~&  ~(tall plume (simple-type-to-plum payload-type 10))
     ::  ~&  'coil-context'
     ::  ~&  ~(tall plume (simple-type-to-plum q.coil 10))
+    ~&  [depth.st p.x]
     =/  thunk  [%hold [%core payload-type coil] q.x]
     =^  i=idx  st  (main thunk st)
     [x(q i) st]
@@ -1920,13 +2046,13 @@
     (~(nest ut t1) | t2)
   ::
   ++  is-hoon  (type-nests-under -:!>(*hoon))
-  ++  is-manx  (type-nests-under -:!>(*manx))
   ++  is-json  (type-nests-under -:!>(*json))
   ++  is-nock  (type-nests-under -:!>(*nock))
   ++  is-plum  (type-nests-under -:!>(*plum))
   ++  is-skin  (type-nests-under -:!>(*skin))
   ::
   ++  reflect  ~(got by img)
+  ::
   ++  is-nil
     |=  i=idx
     ^-  ?
@@ -1935,6 +2061,27 @@
       [%atom *]  =(data [%atom ~.n `0])
       [%face *]  $(i xray.data)
     ==
+  ::
+  ::  Is `ref`, dereferencing faces, a loop-reference to `target`?
+  ::
+  ++  is-ref-to
+    |=  [target=idx ref=idx]
+    ^-  ?
+    ?:  =(target ref)  %.y
+    =/  =data  (need data:(reflect ref))
+    ?:  ?=([%face *] data)  $(ref xray.data)
+    %.n
+  ::
+  ++  is-pair-of-refs-to
+    |=  [target=idx cell=idx]
+    ^-  ?
+    |-
+    =/  =data  (need data:(reflect cell))
+    ?:  ?=([%face *] data)  $(cell xray.data)
+    ?.  ?=([%cell *] data)  %.n
+    ?.  (is-ref-to target head.data)  %.n
+    ?.  (is-ref-to target tail.data)  %.n
+    %.y
   ::
   ++  is-atom-with-aura
     |=  [c=cord i=idx]
@@ -1945,91 +2092,49 @@
       [%face *]  $(i xray.data)
     ==
   ::
-  ++  unit-of-what
-    |=  =input=xray
-    ^-  (unit idx)
-    =/  input-idx=idx  idx.input-xray
-    =/  indata=data    (need data.input-xray)
-    ?.  ?=([%fork *] indata)  ~
-    =/  branches  ~(tap in set.indata)
-    ?.  ?=([* * ~] branches)  ~
-    =/  nil   i.branches
-    =/  node  i.t.branches
-    |-
-    ?:  (is-nil node)  $(node nil, nil node)
-    ?.  (is-nil nil)  ~
-    =/  node-data=data  (need data:(reflect node))
-    ?.  ?=([%cell *] node-data)  ~
-    ?.  (is-nil head.node-data)  ~
-    =/  elem-data  (need data:(reflect tail.node-data))
-    ?.  ?=([%face *] elem-data)  ~
-    `xray.elem-data
+  ::  Is this xray a unit? (the %unit pattern)
   ::
-  ++  tree-of-what
-    |^  |=  =input=xray
-        ^-  (unit idx)
-        ?.  loop.input-xray  ~
-        =/  input-idx=idx  idx.input-xray
-        =/  indata=data    (need data.input-xray)
-        ?.  ?=([%fork *] indata)  ~
-        =/  branches  ~(tap in set.indata)
-        ?.  ?=([* * ~] branches)  ~
-        =/  nil   i.branches
-        =/  node  i.t.branches
-        |-
-        ?:  (is-nil node)  $(node nil, nil node)
-        ?.  (is-nil nil)  ~
-        =/  node-data=data  (need data:(reflect node))
-        ?.  ?=([%cell *] node-data)  ~
-        ?.  (is-pair-of-references-to input-idx tail.node-data)  ~
-        =/  elem-data  (need data:(reflect head.node-data))
-        ?.  ?=([%face *] elem-data)  ~
-        ::  ~&  type.input-xray
-        `xray.elem-data
+  ++  unit-pattern
+    |^  |=  x=xray
+        ^-  (unit pattern)
+        =/  elem  (match-unit-type-strict x)
+        ?~  elem  ~
+        ~&  x
+        ~&  (reflect u.elem)
+        ::  =/  ignored=img  (trace-xray-image img)
+        `[%unit u.elem]
     ::
-    ++  is-pair-of-references-to
-      |=  [target=idx cell=idx]
-      ^-  ?
+    ++  match-unit-type-strict
+      |=  =input=xray
+      ^-  (unit idx)
+      =/  input-idx=idx  idx.input-xray
+      =/  indata=data    (need data.input-xray)
+      ::
+      ?.  ?=([%fork *] indata)  ~
+      =/  branches              ~(tap in set.indata)
+      ?.  ?=([* * ~] branches)  ~
+      ::
+      =/  nil   i.branches
+      =/  node  i.t.branches
       |-
-      =/  =data  (need data:(reflect cell))
-      ?:  ?=([%face *] data)  $(cell xray.data)
-      ?.  ?=([%cell *] data)  %.n
-      ?.  (is-reference-to target head.data)  %.n
-      ?.  (is-reference-to target tail.data)  %.n
-      %.y
+      ?:  (is-nil node)  $(node nil, nil node)
+      ?.  (is-nil nil)   ~
+      ::
+      =/  node-data=data           (need data:(reflect node))
+      ?.  ?=([%cell *] node-data)  ~
+      ?.  (is-nil head.node-data)  ~
+      =/  elem-idx                 tail.node-data
+      =/  elem-data                (need data:(reflect elem-idx))
+      ?.  ?=([%face *] elem-data)  ~
+      ::
+      `xray.elem-data
     --
   ::
-  ++  list-of-what
-    |=  =input=xray
-    ^-  (unit idx)
-    ::
-    :: ~&  ['list-of-what' idx.input-xray]
-    ::
-    =/  indata=data    (need data.input-xray)
-    ?+  indata  ~
-      [%face *]  (list-of-what (reflect xray.indata))
-      [%fork *]  (list-of-what-strict input-xray)
-      [%cell *]  ?:  (is-nil tail.indata)  `head.indata
-                 =/  elem-xray=(unit idx)  (list-of-what (reflect tail.indata))
-                 ?~  elem-xray  ~
-                 ?.  (is-reference-to u.elem-xray head.indata)  ~
-                 elem-xray
-    ==
+  ::  Is this xray a tree? (the %tree pattern)
   ::
-  ++  is-reference-to
-    |=  [=target=idx =ref=idx]
-    ^-  ?
-    ?:  =(target-idx ref-idx)  %.y
-    =/  =data  (need data:(reflect ref-idx))
-    ?:  ?=([%face *] data)  $(ref-idx xray.data)
-    %.n
-  ::
-  ++  list-of-what-strict
+  ++  tree-pattern
     |=  =input=xray
-    ^-  (unit idx)
-    ::
-    ::  ~&  ['list-of-what' idx.input-xray]
-    ::
+    ^-  (unit pattern)
     ?.  loop.input-xray  ~
     =/  input-idx=idx  idx.input-xray
     =/  indata=data    (need data.input-xray)
@@ -2043,97 +2148,175 @@
     ?.  (is-nil nil)  ~
     =/  node-data=data  (need data:(reflect node))
     ?.  ?=([%cell *] node-data)  ~
-    ?.  (is-reference-to input-idx tail.node-data)  ~
+    ?.  (is-pair-of-refs-to input-idx tail.node-data)  ~
     =/  elem-data  (need data:(reflect head.node-data))
-    ?:  ?=([%face *] elem-data)  `xray.elem-data
-    `head.node-data
+    ?.  ?=([%face *] elem-data)  ~
+    `[%tree xray.elem-data]
   ::
-  ++  battery-arms-hack
-    |=  =(battery idx)
-    ^-  (list term)
-    %-  zing
-    %+  turn  ~(val by battery)
-    |=  [=what arms=(map term idx)]
-    ^-  (list term)
-    ~(tap in ~(key by arms))
+  ::  Is this xray a list? (a %list, %tape, %path, or %tour pattern)
   ::
-  ++  gate-of-what
-    |=  =input=xray
+  ::  `match-list` checks is a type is informally a list: Is it a
+  ::  cell with (formal or informal) list in it's tail?
+  ::
+  ::  `match-list-type-strict` checks if a list literally has the shape
+  ::  of a `list type`. It must be a loop reference and fork of two
+  ::  types, one of which is the nil type and the other is a cell with a
+  ::  face in it's head and loop reference as it's tail.
+  ::
+  ++  list-pattern
+    |^  |=  x=xray
+        ^-  (unit pattern)
+        =/  elem  (match-list x)
+        ?~  elem  ~
+        ?:  (is-atom-with-aura 'tD' u.elem)   [~ %tape]
+        ?:  (is-atom-with-aura 'ta' u.elem)   [~ %path]
+        ?:  (is-atom-with-aura 'c' u.elem)    [~ %tour]
+        ?:  (is-atom-with-aura 'tas' u.elem)  [~ %path]
+        `[%list u.elem]
+    ::
+    ++  match-list
+      |=  =input=xray
+      ^-  (unit idx)
+      =/  d=data  (need data.input-xray)
+      ?+  d        ~
+        [%face *]  (match-list (reflect xray.d))
+        [%fork *]  (match-list-type-strict input-xray)
+        [%cell *]  =/  elem-idx  (match-list (reflect tail.d))
+                   ?~  elem-idx                       ~
+                   ?.  (is-ref-to u.elem-idx head.d)  ~
+                   [~ u.elem-idx]
+      ==
+    ::
+    ++  match-list-type-strict
+      |=  =fork=xray
+      ^-  (unit idx)
+      =/  fork=idx     idx.fork-xray
+      =/  indata=data  (need data.fork-xray)
+      ::
+      ?.  loop.fork-xray        ~
+      ?.  ?=([%fork *] indata)  ~
+      =/  branches              ~(tap in set.indata)
+      ?.  ?=([* * ~] branches)  ~
+      ::
+      =/  nil   i.branches
+      =/  node  i.t.branches
+      |-
+      ?:  (is-nil node)  $(node nil, nil node)
+      ?.  (is-nil nil)  ~
+      ::
+      =/  node-data=data                   (need data:(reflect node))
+      ?.  ?=([%cell *] node-data)          ~
+      ?.  (is-ref-to fork tail.node-data)  ~
+      =/  elem-data                        (need data:(reflect head.node-data))
+      ?.  ?=([%face *] elem-data)          ~
+      `xray.elem-data
+    --
+  ::
+  ::  A %gear is any core with a cell context.
+  ::
+  ::  A %gate is a gear with one chapter ('') with one arm ('').
+  ::
+  ++  core-pattern
+    |^  |=  x=xray
+        ^-  (unit pattern)
+        =/  gear  (match-gear x)
+        ?~  gear  ~
+        =/  gate  (match-gate x sample.u.gear battery.u.gear)
+        ?~  gate  gear
+        gate
+    ::
+    ++  match-gear
+      |=  =input=xray
+      ^-  (unit [%gear sample=idx context=idx =(battery idx)])
+      ::
+      =/  input-data  (need data.input-xray)
+      ?.  ?=([%core *] input-data)  ~
+      =/  context-idx=idx  xray.input-data
+      ::
+      =/  context-data=data  (need data:(reflect context-idx))
+      ?.  ?=([%cell *] context-data)  ~
+      ::
+      =/  sample-idx=idx  head.context-data
+      =.  context-idx     tail.context-data
+      `[%gear sample-idx context-idx battery.input-data]
+    ::
+    ++  match-gate
+      |=  [=input=xray sample=idx =(battery idx)]
+      ^-  (unit [%gate idx idx])
+      ::
+      =/  input-data  (need data.input-xray)
+      ?.  ?=([%core *] input-data)  ~
+      =/  chapters  ~(tap by battery)
+      ::
+      ?~  chapters            ~
+      ?^  t.chapters          ~
+      ?.  =(p.i.chapters '')  ~
+      ::
+      =/  arms=(list (pair term idx))  ~(tap by q.q.i.chapters)
+      ::
+      ?~  arms            ~
+      ?^  t.arms          ~
+      ?.  =(p.i.arms '')  ~
+      ::
+      =/  product=idx  q.i.arms
+      ::
+      `[%gate sample product]
+    --
+  ::
+  ++  simple-nest-pattern
+    |=  [ty=type pat=pattern]
+    ^-  $-(xray (unit pattern))
+    |=  x=xray
     ^-  (unit pattern)
-    ::
-    ::  Make sure this is a core and get the context-idx
-    ::
-    =/  input-data  (need data.input-xray)
-    ?.  ?=([%core *] input-data)  ~
-    =/  context-idx=idx  xray.input-data
-    ::
-    ::  Determine the sample type.
-    ::
-    =/  context-data=data  (need data:(reflect context-idx))
-    ?.  ?=([%cell *] context-data)  ~
-    =/  sample-idx=idx  head.context-data
-    ::
-    ::  Determinte the product type.
-    ::
-    =/  chapters  ~(tap by battery.input-data)
-    ::
-    ?~  chapters            ~
-    ?^  t.chapters          ~
-    ?.  =(p.i.chapters '')  ~
-    ::
-    =/  arms=(list (pair term idx))  ~(tap by q.q.i.chapters)
-    ::
-    ?~  arms            ~
-    ?^  t.arms          ~
-    ?.  =(p.i.arms '')  ~
-    ::
-    =/  product-idx=idx  q.i.arms
-    ::
-    `[%gate sample-idx product-idx]
+    =/  subtype  (~(nest ut type.x) | ty)
+    ?:(subtype `pat ~)
   ::
-  ++  is-type  (type-nests-under -:!>(*type))
-  ++  is-vase  (type-nests-under -:!>(*vase))
+  ++  type-pattern  (simple-nest-pattern -:!>(*type) %type)
+  ++  spec-pattern  (simple-nest-pattern -:!>(*spec) %spec)
+  ++  manx-pattern  (simple-nest-pattern -:!>(*manx) %manx)
+  ++  vase-pattern  (simple-nest-pattern -:!>(*vase) %vase)
   ::
   ++  xray-pats
     |=  [img=image i=idx]
-    ^-  (set pattern)
+    ^-  (unit pattern)
     ::
     =/  x=xray  (reflect i)
     =/  t=type  type.x
     =/  d=data  (need data.x)
     ::
-    %-  ~(gas in *(set pattern))
-    ::
-    ::  Atom printing works just fine without all this shit.
+    ::  Atom printing works fine just using the data field.
     ?:  ?=([%atom *] d)  ~
     ::
-    =/  tree-elem  (tree-of-what x)
-    ?^  tree-elem  ~[[%tree u.tree-elem]]
+    =/  tree-pat  (tree-pattern x)
+    ?^  tree-pat  tree-pat
     ::
-    =/  unit-elem  (unit-of-what x)
-    ?^  unit-elem  ~[[%unit u.unit-elem]]
+    =/  unit-pat  (unit-pattern x)
+    ?^  unit-pat  unit-pat
     ::
-    =/  gate-pat  (gate-of-what x)
-    ?^  gate-pat  ~[u.gate-pat]
+    =/  core-pat  (core-pattern x)
+    ?^  core-pat  core-pat
     ::
-    =/  list-elem  (list-of-what x)
-    ?^  list-elem
-      ?:  (is-atom-with-aura 'tD' u.list-elem)   ~[%tape]
-      ?:  (is-atom-with-aura 'ta' u.list-elem)   ~[%path]
-      ?:  (is-atom-with-aura 'c' u.list-elem)    ~[%tour]
-      ?:  (is-atom-with-aura 'tas' u.list-elem)  ~[%path]
-      ~[[%list u.list-elem]]
+    =/  list-pat  (list-pattern x)
+    ?^  list-pat  list-pat
     ::
-    %-  zing
-    :~  ?.  (is-hoon t)  ~  ~[%hoon]
-        ?.  (is-json t)  ~  ~[%json]
-        ?.  (is-manx t)  ~  ~[%manx]
-        ?.  (is-nock t)  ~  ~[%nock]
-        ?.  (is-plum t)  ~  ~[%plum]
-        ?.  (is-skin t)  ~  ~[%skin]
-        ?.  (is-type t)  ~  ~[%type]
-        ?.  (is-vase t)  ~  ~[%vase]
-    ==
+    =/  spec-pat  (spec-pattern x)
+    ?^  spec-pat  spec-pat
+    ::
+    =/  type-pat  (type-pattern x)
+    ?^  type-pat  type-pat
+    ::
+    =/  manx-pat  (manx-pattern x)
+    ?^  manx-pat  manx-pat
+    ::
+    =/  vase-pat  (vase-pattern x)
+    ?^  vase-pat  vase-pat
+    ::
+    ?:  (is-hoon t)  `%hoon
+    ?:  (is-json t)  `%json
+    ?:  (is-nock t)  `%nock
+    ?:  (is-plum t)  `%plum
+    ?:  (is-skin t)  `%skin
+    ~
   --
 ::
 ++  gc-image
@@ -2731,7 +2914,7 @@
 ++  analyze-type
   |=  t=type
   ^-  image
-  %-  trace-xray-image
+  ::  %-  trace-xray-image
   %-  gc-image
   %-  decorate-xray-image-with-roles
   %-  decorate-xray-image-with-shapes
@@ -2901,14 +3084,6 @@
     :-  %txt
     ^-  wain
     ~(tall plume (hoon-to-plum 999 demo))
-  ::
-  ++  cat-patterns
-    |=  xs=(list (unit pattern))
-    ^-  (list pattern)
-    ?~  xs    ~
-    =/  more  $(xs t.xs)
-    ?~  i.xs  more
-    [u.i.xs more]
   ::
   ++  cat-errors
     |*  xs=(list (unit @))
@@ -3181,13 +3356,13 @@
   ::
   ::  Generate a list of plums from a list of matches. This would be
   ::  trivial, but we also need to append commas on each match (besides
-  ::  the last) when the match-list is rendered in wide mode.
+  ::  the last) when `matches` is rendered in wide mode.
   ::
   ++  matches-to-plum-list
-    |=  =match=(list (pair spec hoon))
+    |=  matches=(list (pair spec hoon))
     ^-  (list plum)
     %-  add-trailing-commas-to-wide-form
-    %+  turn  match-list
+    %+  turn  matches
     |=  [=spec =hoon]
     ^-  (pair plum plum)
     [(spec-to-plum spec) (hoon-to-plum 999 hoon)]
