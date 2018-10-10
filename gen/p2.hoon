@@ -1768,7 +1768,7 @@
     ^-  [idx state]
     =/  old  (~(get by table.st) ty)                    ::  don't loop
     ::
-    ::  ~&  ['main' depth.st ?@(ty ty -:ty)]
+    ~&  [depth.st ?@(ty ty -:ty)]
     ::  ~&  ~(tall plume (simple-type-to-plum ty 10))
     ::
     ?^  old  [idx.u.old st]
