@@ -28,7 +28,10 @@
 ::    If it turns out to be a performance bottleneck, there's lots of
 ::    low-hanging fruit there.
 ::
-::  - XX The pattern matching code has a lot of duplicated logic.
+::  - XX The loop detection code infinite loops when trying to process
+::    the kernel.
+::
+::  - XX The pattern matching code has a lot of repeated logic.
 ::
 ::    This made sense before when I wasn't sure that this approach was
 ::    going to pan out, but now it really needs to be refactored.
@@ -55,23 +58,31 @@
 ++  example
   !>
   |^  :*
-          ..add
-          ..full
-          ..zuse
-          |%  ++  x  |*  x=*  *  --
-          [~ %.y %.n 1 0x2 ~ ~.knot 'cord' %const]
-          :*  [%tape "a tape"]
-              [%path /path/literal `path`/typed/path]
-              [%gate gate-example]
-              [%core core-example]
-              [%unit `(unit @)`[~ 9]]
-              %woot
-          ==
-          [%hoon hoon-example]
-          [%type -:!>(`(unit (list tape))`~)]
-          [%json-and-xml json-example xml-example]
-          ~
-        ==
+    ~  =>  |%  ++  x  3  --
+    ::  ..add
+    ::  ..biff
+    ::  ..egcd
+    ::  ..po
+    ::  ..musk
+    ::  ..zuse
+    ::  ..full
+    ::  ..zuse
+    `(list ~)`~
+    `(list ?)`~
+
+    [~ %.y %.n 1 0x2 ~ ~.knot 'cord' %const]
+    :*  [%tape "a tape"]
+        [%path /path/literal `path`/typed/path]
+        [%gate gate-example]
+        [%core core-example]
+        [%unit `(unit @)`[~ 9]]
+        %woot
+    ==
+    [%hoon hoon-example]
+    [%type -:!>(`(unit (list tape))`~)]
+    [%json-and-xml json-example xml-example]
+    ~
+    ==
   ::
   ++  hoon-example
     ^-  hoon
@@ -131,8 +142,7 @@
   ::
   ++  json-example
     ^-  json
-    |^  ar2
-    ++  str  [%s 'testest']
+    |^  ar3
     ++  nil  ~
     ++  yes  [%b %.y]
     ++  nah  [%b %.n]
@@ -143,10 +153,10 @@
     ++  ten  [%n '10']
     ++  mil  [%n '100000']
     ++  arr  [%a ~[one ten mil]]
-    ++  ar2  [%a ~[arr str yes nah nil]]
-    ++  obj  [%o (~(gas by *(map @t json)) ~[[foo mil] [bar str] [baz arr]])]
+    ++  ar2  [%a ~[arr yes nah nil]]
+    ++  obj  [%o (~(gas by *(map @t json)) ~[[foo mil] [baz arr]])]
     ++  ob2  [%o (~(gas by *(map @t json)) ~[[foo ar2] [bar obj] [baz yes]])]
-    ++  ar3  [%a ~[arr obj ob2 one ten mil str yes nah nil]]
+    ++  ar3  [%a ~[arr obj ob2 one ten mil yes nah nil]]
     --
   --
 ::
@@ -228,10 +238,57 @@
 ::  Pretty-print a value given as a string.
 ::
 ++  render-vase
-  |=  {^ {{=vase ~} ~}}
+  |=  {^ {{v=vase ~} ~}}
   :-  %txt
   ^-  wain
-  ~(tall plume (vase-to-plum example))
+  ::
+  =.  v  example
+  ::
+  =/  t=type   p.v
+  =/  n=*      q.v
+  ::
+  ~&  %start-xraying-type
+  =/  i=image  ((xray-type 999.999 999.999) t)
+  ~&  %done-xraying-type
+  ::
+  ::  =.  i  (trace-xray-image i)
+  ::  =.  i  !!
+  ::
+  ~&  %start-loop-detection
+  =.  i  (decorate-xray-image-with-loops i)
+  ~&  %done-with-loop-detection
+  ::
+  ::  =.  i  (trace-xray-image i)
+  ::
+  ~&  %start-pattern-annotation
+  =.  i  (decorate-xray-image-with-patterns i)
+  ~&  %done-with-pattern-annotation
+  ::
+  ::  =.  i  (trace-xray-image i)
+  ::
+  ~&  %start-shape-annotation
+  =.  i  (decorate-xray-image-with-shapes i)
+  ~&  %done-with-shape-annotation
+  ::
+  ::  =.  i  (trace-xray-image i)
+  ::
+  ~&  %start-role-annotation
+  =.  i  (decorate-xray-image-with-roles i)
+  ~&  %done-with-role-annotation
+  ::
+  ::  ~&  %start-xray-gc
+  ::  =.  i  (gc-image i)
+  ::  ~&  %done-with-xray-gc
+  ::
+  ::  =.  i  (trace-xray-image i)
+  ::
+  ~&  %start-converting-to-plum
+  =/  =plum  (xray-noun-to-plum i n)
+  ~&  %done-converting-to-plum
+  ::
+  ~(tall plume plum)
+  ::
+  ::  ~(tall plume (vase-to-plum example))
 ::
 ::  Pretty-print a value given as a string.
 ::
@@ -269,7 +326,8 @@
 ++  type-to-plum
   |=  t=type
   ^-  plum
-  (spec-to-plum (xray-image-to-spec 0 (analyze-type t)))
+  =/  img=image  (analyze-type t)
+  (spec-to-plum (xray-image-to-spec focus.img img))
 ::
 ::  Pretty-print a hoon in tall mode using `plume`.
 ::
@@ -1348,6 +1406,7 @@
       [%core =garb xray=idx =(battery idx)]
       [%face face=$@(term tune) xray=idx]
       [%fork =(set idx)]
+      [%pntr xray=idx]
   ==
 ::
 +$  xray
@@ -1364,7 +1423,72 @@
       loop=?
   ==
 ::
-+$  image  (map idx xray) :: 0 is the top-level type.
++$  image
+  $:  focus=idx
+      next=idx
+      xrays=(map idx xray)
+      =type=(map type idx)
+  ==
+::
+::  Create an new xray and put it in the xray table. If there's already
+::  a stub xray under this type, replace it.  Otherwise, allocate a
+::  new index and put it there.
+::
+++  post-xray
+  |=  [img=image ty=type d=(unit data)]
+  ^-  image
+  ::
+  =/  old  (~(get by type-map.img) ty)
+  ::
+  =^  idx=idx  img  ?^  old  [u.old img]
+                    =/  newidx  next.img
+                    =.  next.img  +(next.img)
+                    [newidx img]
+  =/  x=xray  [idx ty d ~ ~ ~ ~ ~ ~ ~ %.n]
+  =.  xrays.img     (~(put by xrays.img) idx x)
+  =.  type-map.img  (~(put by type-map.img) ty idx)
+  img(focus idx)
+::
+::  Create an new xray and put it in the xray table. If there's already
+::  a stub xray under this type, replace it.  Otherwise, allocate a
+::  new index and put it there.
+::
+++  replace-xray
+  |=  [img=image x=xray]
+  ^-  image
+  img(xrays (~(put by xrays.img) idx.x x))
+::
+++  set-xray-data
+  |=  [img=image i=idx d=data]
+  ^-  image
+  =/  x=xray  (focus-on img i)
+  (replace-xray img x(data `d))
+::
+::  Return an image modified to be focus on the %void type. If no
+::  void type exists, one will be created.
+::
+++  void-xray
+  |=  img=image
+  ^-  image
+  (post-xray img %void `%void)
+::
+++  empty-image
+  ^-  image
+  [0 0 ~ ~]
+::
+++  focus-on
+  |=  [img=image i=idx]
+  ^-  xray
+  (focus img(focus i))
+::
+++  focus
+  |=  img=image
+  ^-  xray
+  =/  i=idx  focus.img
+  =/  res=(unit xray)  (~(get by xrays.img) i)
+  ?~  res  ~&  ['internal error: invalid xray reference' i]
+           !!
+  u.res
 ::
 ++  tape-to-plum
   |=  =tape
@@ -1374,12 +1498,12 @@
 ++  xray-noun-to-plum
   |=  [img=image n=*]
   ^-  plum
-  |^  (main 0 n)
+  |^  (main focus.img n)
   ::
   ++  main
     |=  [i=idx n=*]
     ^-  plum
-    =/  x=xray  (~(got by img) i)
+    =/  x=xray  (focus-on img i)
     ?~  pats.x  (render-with-data i (need data.x) n)
     (render-with-pattern u.pats.x n)
   ::
@@ -1455,15 +1579,15 @@
     |-
     ^-  (list plum)
     ::
-    =/  x=xray             (~(got by img) i)
+    =/  x=xray             (focus-on img i)
     =/  d=data             (need data.x)
     ::
     ?^  pats.x           [(main i n) acc]
     ?.  ?=([%cell *] d)  [(main i n) acc]
     %=  $
       acc  [(main head.d -:n) acc]
-      i    tail.d
       n    +:n
+      i    tail.d
     ==
   ::
   ++  render-with-data
@@ -1478,6 +1602,7 @@
                  ?~  constant.d  (render-atom aura.d n)
                  (render-const aura.d u.constant.d n)
       [%face *]  (main xray.d n)
+      [%pntr *]  (main xray.d n)
       [%core *]  (core-to-plum garb.d xray.d battery.d)
       [%fork *]  '%fork'                                ::  [%fork =(set idx)]
     ==
@@ -1725,101 +1850,132 @@
 ++  xray-type
   |=  [max-depth=@ max-size=@]
   |^  |=  ty=type
-  ^-  image
-      ::  %-  validate-image
-      ::  %-  dedupe-image
-      =/  res  (main ty *state)
-      (build-image table.+.res)
+      ^-  image
+      =/  result=image  img:(main ty `state`[empty-image 0 ~])
+      result(focus (~(got by type-map.result) ty))
   ::
-  +$  table  (map type xray)
-  +$  state  [count=@ud =table depth=@]
-  ::
-  ::  Given an `entry-table` (which we use to check if a given type is
-  ::  an entry-point), produce a `loop-map`. In following analysis phases,
-  ::  we will be traversing xrays and we need to lookup looks when we
-  ::  come across them.  The `loop-map` structure encodes that.
-  ::
-  ++  build-image
-    |=  t=table
-    ^-  image
-    %-  ~(gas by *image)
-    %+  turn  ~(tap by t)
-    |=  [type =xray]
-    [idx.xray xray]
+  +$  state  [img=image depth=@ trace=(list cord)]
   ::
   ::  Create an new xray and put it in the xray table. If there's already
   ::  a stub xray under this type, replace it.  Otherwise, allocate a
   ::  new index and put it there.
   ::
   ++  with-new-xray
-    |=  [ty=type d=(unit data) st=state]
+    |=  [st=state ty=type]
     ^-  [idx state]
-    ::  ~&  [%with-new-xray ^-(cord ?@(ty ty -.ty)) ty d]
-    =/  old  (~(get by table.st) ty)
-    =^  idx  st
-      ?^  old
-        ::  ~&  [%replacing-xray-at idx.u.old %with-type type.u.old]
-        [idx.u.old st]
-      =/  newidx  count.st
-      =.  count.st  +(count.st)
-      ::  ~&  [%allocating-new-xray-at newidx ty]
-      [newidx st]
-    =/  res  `xray`[idx ty d ~ ~ ~ ~ ~ ~ ~ %.n]
-    =.  table.st  (~(put by table.st) ty res)
-    [idx st]
+    =/  img  (post-xray img.st ty ~)
+    [focus.img st(img img)]
   ::
   ::  The main analysis code. This basically just calls out to other
   ::  helper functions based on which type of type this is.
   ::
+  ::  For %hint, we get analyse the type that this is a hint about, add
+  ::  information to it's xray, and then ourselves to the type-map
+  ::  as a reference to that type (the one that this hint is
+  ::  about). We can delete it from the type-map latter. It just
+  ::  needs to be there for now in order to avoid duplicating work. We
+  ::  do this for %hold types as well. We really don't want to hold onto
+  ::  them, but we don't want to evaluate them repeatedly either.
+  ::
   ++  main
     |=  [ty=type st=state]
     ^-  [idx state]
-    =/  old  (~(get by table.st) ty)                    ::  don't loop
     ::
-    ::  ~&  ~(tall plume (simple-type-to-plum ty 10))
+    =/  old  (~(get by type-map.img.st) ty)             ::  don't loop
+    ?^  old  [u.old st]
     ::
-    ?^  old  [idx.u.old st]
+    =^  res=idx  st  (with-new-xray st ty)
+    ::
+    =/  trace=(list cord)
+      ?:  (lte (lent trace.st) 26)
+        (flop trace.st)
+      %-  zing  :~  (scag 13 (flop trace.st))
+                    ~['...']
+                    (scag 13 trace.st)
+                ==
+    ::
+    ~&  [depth.st res ?@(ty ty -:ty) trace]
+    ::
     ::
     ::  Track recursion depth.
     ::
     %-  |=([i=idx s=state] [i s(depth (dec depth.s))])
     =.  depth.st  +(depth.st)
     ::
-    ?:  (gte depth.st max-depth)
-      (with-new-xray ty `[%atom 'tas' `%deep] st)
-    ?:  (gte count.st max-size)
-      (with-new-xray ty `[%atom 'tas' `%wide] st)
+    ^-  [idx state]
     ::
+    :-  res
     ?-  ty
-      %void      (with-new-xray ty `^-(data ty) st)
-      %noun      (with-new-xray ty `^-(data ty) st)
-      [%atom *]  (with-new-xray ty `^-(data ty) st)
-      [%cell *]  =^  res=idx  st  (with-new-xray ty ~ st)
-                 =^  hed=idx  st  $(ty p.ty)
-                 =^  hed=idx  st  $(ty p.ty)
-                 =^  tyl=idx  st  $(ty q.ty)
-                 (with-new-xray ty `[%cell hed tyl] st)
+      %void      st(img (set-xray-data img.st res %void))
+      %noun      st(img (set-xray-data img.st res %noun))
+      [%atom *]  st(img (set-xray-data img.st res `data`ty))
+      ::
+      [%cell *]  =^  hed=idx  st  (main p.ty st)
+                 =^  tyl=idx  st  (main q.ty st)
+                 =.  img.st  (set-xray-data img.st res [%cell hed tyl])
+                 st
+      ::
       [%core *]  =/  arms=(list term)  (battery-arms q.r.q.ty)
-                 =^  res=idx  st  (with-new-xray ty ~ st)
-                 =^  d=data   st  (xray-core [p.ty q.ty] st)
-                 (with-new-xray ty `d st)
-      [%face *]  =^  res=idx  st  (with-new-xray ty ~ st)
-                 =^  i=idx  st  $(ty q.ty)
-                 (with-new-xray ty `[%face p.ty i] st)
-      [%fork *]  =^  res=idx  st  (with-new-xray ty ~ st)
-                 =^  d=data   st  (fork p.ty st)
-                 (with-new-xray ty `d st)
-      [%hint *]  (hint p.ty q.ty st)                    ::  updates q.ty xray
+                 =^  d=data   st       (xray-core [p.ty q.ty] st)
+                 =.  img.st            (set-xray-data img.st res d)
+                 st
+      ::
+      [%face *]  =^  i=idx  st   (main q.ty st)
+                 =.  img.st  (set-xray-data img.st res [%face p.ty i])
+                 st
+      ::
+      [%fork *]  =^  d=data   st  (fork p.ty st)
+                 =.  img.st  (set-xray-data img.st res d)
+                 st
+      ::
+      [%hint *]  =^  ref      st  (main q.ty st)
+                 =^  updated  st  (hint p.ty (focus-on img.st res) st)
+                 =.  img.st       (replace-xray img.st updated)
+                 =.  img.st       (set-xray-data img.st res [%pntr ref])
+                 st
+      ::
       [%hold *]  ::  ~&  'eval %hold type'
                  ::  ~&  'what is the type of this hoon:'
                  ::  ~&  `wain`~(tall plume (hoon-to-plum q.ty))
                  ::  ~&  q.ty
                  ::  ~&  'with a context of type?'
                  ::  ~&  `wain`~(tall plume (simple-type-to-plum p.ty 10))
-                 ::  ~&  '<repo>'
-                 =^  res  st  (main ~(repo ut ty) st)
-                 ::  ~&  '</repo>'
-                 [res st]
+                 =^  ref  st  (main ~(repo ut ty) st)
+                 =.  img.st   (set-xray-data img.st res [%pntr ref])
+                 st
+    ==
+  ::
+  ::  Analyze a %hint type.
+  ::
+  ::    subject-type: subject of note
+  ::    note: hint information
+  ::    content-type: type of hinted content
+  ::
+  ++  hint
+    |=  [[=subject=type =note] x=xray st=state]
+    ^-  [xray state]
+    ?-  -.note
+      %help
+        =.  helps.x  (~(put in helps.x) p.note)
+        [x st]
+      %know
+        =.  studs.x  (~(put in studs.x) p.note)
+        [x st]
+      %made
+        =^  recipe  st
+          ?~  q.note  [[%direct p.note] st]
+          =^  params=(list idx)  st
+            |-
+            ^-  [(list idx) state]
+            ?~  u.q.note  [~ st]
+            =/  tsld  [%tsld [%limb %$] [%wing i.u.q.note]]
+            =/  part  (~(play ut subject-type) tsld)
+            =^  this  st  (main part st)
+            =^  more  st  $(u.q.note t.u.q.note)
+            [[this more] st]
+          [[%synthetic p.note params] st]
+        =.  recipes.x  (~(put in recipes.x) recipe)
+        [x st]
     ==
   ::
   ++  sexp-plum
@@ -1894,6 +2050,9 @@
   ++  xray-arm
     |=  [st=state =payload=type =coil x=(arm hoon)]
     ^-  [(arm idx) state]
+    ::  ~&  [depth.st (cat 3 'arm=' p.x)]
+    =/  arm-name  ?:(=(p.x '') '$' p.x)
+    =.  trace.st  [arm-name trace.st]
     =.  r.p.coil  %gold
     =.  q.x
       ?.  =(%wet q.p.coil)  q.x
@@ -1906,9 +2065,9 @@
     ::  ~&  ~(tall plume (simple-type-to-plum payload-type 10))
     ::  ~&  'coil-context'
     ::  ~&  ~(tall plume (simple-type-to-plum q.coil 10))
-    ~&  [depth.st p.x]
     =/  thunk  [%hold [%core payload-type coil] q.x]
     =^  i=idx  st  (main thunk st)
+    =.  trace.st  +:trace.st
     [x(q i) st]
   ::
   ::  Analyze a core.
@@ -1933,52 +2092,6 @@
     =/  d=data  [%core p.coil payload-idx chaps]
     [d st]
   ::
-  :: XX This could be very expensive.  If this happens a lot, then we
-  :: should just maintain the reverse table as well. Not hard.
-  ::
-  ++  xray-by-idx
-    |=  [i=idx st=state]
-    ^-  xray
-    (~(got by (build-image table.st)) i)
-  ::
-  ::  Analyze a %hint type.
-  ::
-  ::    subject-type: subject of note
-  ::    note: hint information
-  ::    content-type: type of hinted content
-  ::
-  ++  hint
-    |=  [[=subject=type =note] =payload=type st=state]
-    ^-  [idx state]
-    =^  i=idx  st  (main payload-type st)
-    =/  x=xray  (xray-by-idx i st)
-    =^  x  st
-      ?-    -.note
-          %help
-        =.  helps.x  (~(put in helps.x) p.note)
-        [x st]
-          %know
-        =.  studs.x  (~(put in studs.x) p.note)
-        [x st]
-          %made
-        =^  recipe  st
-          ?~  q.note  [[%direct p.note] st]
-          =^  params=(list idx)  st
-            |-
-            ^-  [(list idx) state]
-            ?~  u.q.note  [~ st]
-            =/  tsld  [%tsld [%limb %$] [%wing i.u.q.note]]
-            =/  part  (~(play ut subject-type) tsld)
-            =^  this  st  (main part st)
-            =^  more  st  $(u.q.note t.u.q.note)
-            [[this more] st]
-          [[%synthetic p.note params] st]
-        =.  recipes.x  (~(put in recipes.x) recipe)
-        [x st]
-      ==
-    =.  table.st  (~(put by table.st) type.x x)           ::  Update!
-    [idx.x st]
-  ::
   ::  +fork: convert a %fork $type to an $xray
   ::
   ::  set: set of union types
@@ -1995,20 +2108,16 @@
     [d st]
   --
 ::
-::  Note that, when processing a %core, we don't have to recurse into
-::  it's context, since the context cannot refer back to the core.
-::
-::  XX Is this even true?
-::
 ++  decorate-xray-image-with-loops
   |=  img=image
   ^-  image
-  =/  i=idx  0
+  =/  i=idx  focus.img
   =/  trace=(set idx)  ~
   |-  ^-  image
-  =/  x    (~(got by img) i)
+  =/  x    (focus-on img i)
   =/  dat  (need data.x)
-  ?:  (~(has in trace) i)  (~(put by img) idx.x x(loop %.y))
+  ?:  (~(has in trace) i)
+    img(xrays (~(put by xrays.img) idx.x x(loop %.y)))
   ?@  dat  img
   =.  trace  (~(put in trace) i)
   ?-  -.dat
@@ -2021,6 +2130,7 @@
            |=  [img=image i=idx]
            ^$(img img, i i)
     %face  $(i xray.dat)
+    %pntr  $(i xray.dat)
     %fork  %+  (foldl image idx)
              [img ~(tap in set.dat)]
            |=  [img=image i=idx]
@@ -2039,7 +2149,8 @@
 ++  trace-xray-image
   |=  img=image
   ^-  image
-  ~&  %+  sort  ~(val by img)
+  ~&  ['focus=' focus.img]
+  ~&  %+  sort  ~(val by xrays.img)
       |=  [x=xray y=xray]
       (lth idx.x idx.y)
   img
@@ -2047,11 +2158,13 @@
 ++  decorate-xray-image-with-patterns
   |=  img=image
   ^-  image
-  |^  %-  ~(gas by *image)
-      %+  turn  ~(tap by img)
-      |=  [i=idx x=xray]
-      ^-  [idx xray]
-      [i x(pats (xray-pats img idx.x))]
+  |^  =/  pairs  %+  turn  ~(tap by xrays.img)
+                 |=  [i=idx x=xray]
+                 ^-  [idx xray]
+                 [i x(pats (xray-pats x))]
+      img(xrays (~(gas by *(map idx xray)) pairs))
+  ::
+  ::  XX Stop using this. Use `simple-nest-pattern` instead.
   ::
   ++  type-nests-under
     |=  t1=type
@@ -2066,12 +2179,12 @@
   ++  is-plum  (type-nests-under -:!>(*plum))
   ++  is-skin  (type-nests-under -:!>(*skin))
   ::
-  ++  reflect  ~(got by img)
+  ++  focus  |=(i=idx (focus-on img i))
   ::
   ++  is-nil
     |=  i=idx
     ^-  ?
-    =/  =data  (need data:(reflect i))
+    =/  =data  (need data:(focus i))
     ?+  data  %.n
       [%atom *]  =(data [%atom ~.n `0])
       [%face *]  $(i xray.data)
@@ -2083,7 +2196,7 @@
     |=  [target=idx ref=idx]
     ^-  ?
     ?:  =(target ref)  %.y
-    =/  =data  (need data:(reflect ref))
+    =/  =data  (need data:(focus ref))
     ?:  ?=([%face *] data)  $(ref xray.data)
     %.n
   ::
@@ -2091,7 +2204,7 @@
     |=  [target=idx cell=idx]
     ^-  ?
     |-
-    =/  =data  (need data:(reflect cell))
+    =/  =data  (need data:(focus cell))
     ?:  ?=([%face *] data)  $(cell xray.data)
     ?.  ?=([%cell *] data)  %.n
     ?.  (is-ref-to target head.data)  %.n
@@ -2101,7 +2214,7 @@
   ++  is-atom-with-aura
     |=  [c=cord i=idx]
     ^-  ?
-    =/  =data  (need data:(reflect i))
+    =/  =data  (need data:(focus i))
     ?+  data  %.n
       [%atom *]  =(data [%atom aura=c constant-unit=~])
       [%face *]  $(i xray.data)
@@ -2114,9 +2227,6 @@
         ^-  (unit pattern)
         =/  elem  (match-unit-type-strict x)
         ?~  elem  ~
-        ~&  x
-        ~&  (reflect u.elem)
-        ::  =/  ignored=img  (trace-xray-image img)
         `[%unit u.elem]
     ::
     ++  match-unit-type-strict
@@ -2135,11 +2245,11 @@
       ?:  (is-nil node)  $(node nil, nil node)
       ?.  (is-nil nil)   ~
       ::
-      =/  node-data=data           (need data:(reflect node))
+      =/  node-data=data           (need data:(focus node))
       ?.  ?=([%cell *] node-data)  ~
       ?.  (is-nil head.node-data)  ~
       =/  elem-idx                 tail.node-data
-      =/  elem-data                (need data:(reflect elem-idx))
+      =/  elem-data                (need data:(focus elem-idx))
       ?.  ?=([%face *] elem-data)  ~
       ::
       `xray.elem-data
@@ -2150,7 +2260,6 @@
   ++  tree-pattern
     |=  =input=xray
     ^-  (unit pattern)
-    ?.  loop.input-xray  ~
     =/  input-idx=idx  idx.input-xray
     =/  indata=data    (need data.input-xray)
     ?.  ?=([%fork *] indata)  ~
@@ -2161,10 +2270,10 @@
     |-
     ?:  (is-nil node)  $(node nil, nil node)
     ?.  (is-nil nil)  ~
-    =/  node-data=data  (need data:(reflect node))
+    =/  node-data=data  (need data:(focus node))
     ?.  ?=([%cell *] node-data)  ~
     ?.  (is-pair-of-refs-to input-idx tail.node-data)  ~
-    =/  elem-data  (need data:(reflect head.node-data))
+    =/  elem-data  (need data:(focus head.node-data))
     ?.  ?=([%face *] elem-data)  ~
     `[%tree xray.elem-data]
   ::
@@ -2194,12 +2303,16 @@
       ^-  (unit idx)
       =/  d=data  (need data.input-xray)
       ?+  d        ~
-        [%face *]  (match-list (reflect xray.d))
+        [%face *]  (match-list (focus xray.d))
         [%fork *]  (match-list-type-strict input-xray)
-        [%cell *]  =/  elem-idx  (match-list (reflect tail.d))
+        [%cell *]  ?:  (is-nil tail.d)  ::  Hack to make path literals work.
+                     ?:  (is-atom-with-aura 'tas' head.d)
+                       `head.d
+                     ~
+                   =/  elem-idx  (match-list (focus tail.d))
                    ?~  elem-idx                       ~
                    ?.  (is-ref-to u.elem-idx head.d)  ~
-                   [~ u.elem-idx]
+                   `u.elem-idx
       ==
     ::
     ++  match-list-type-strict
@@ -2208,7 +2321,6 @@
       =/  fork=idx     idx.fork-xray
       =/  indata=data  (need data.fork-xray)
       ::
-      ?.  loop.fork-xray        ~
       ?.  ?=([%fork *] indata)  ~
       =/  branches              ~(tap in set.indata)
       ?.  ?=([* * ~] branches)  ~
@@ -2219,10 +2331,10 @@
       ?:  (is-nil node)  $(node nil, nil node)
       ?.  (is-nil nil)  ~
       ::
-      =/  node-data=data                   (need data:(reflect node))
+      =/  node-data=data                   (need data:(focus node))
       ?.  ?=([%cell *] node-data)          ~
       ?.  (is-ref-to fork tail.node-data)  ~
-      =/  elem-data                        (need data:(reflect head.node-data))
+      =/  elem-data                        (need data:(focus head.node-data))
       ?.  ?=([%face *] elem-data)          ~
       `xray.elem-data
     --
@@ -2248,7 +2360,7 @@
       ?.  ?=([%core *] input-data)  ~
       =/  context-idx=idx  xray.input-data
       ::
-      =/  context-data=data  (need data:(reflect context-idx))
+      =/  context-data=data  (need data:(focus context-idx))
       ?.  ?=([%cell *] context-data)  ~
       ::
       =/  sample-idx=idx  head.context-data
@@ -2292,10 +2404,10 @@
   ++  vase-pattern  (simple-nest-pattern -:!>(*vase) %vase)
   ::
   ++  xray-pats
-    |=  [img=image i=idx]
+    |=  x=xray
     ^-  (unit pattern)
     ::
-    =/  x=xray  (reflect i)
+    =/  i=idx   idx.x
     =/  t=type  type.x
     =/  d=data  (need data.x)
     ::
@@ -2335,23 +2447,27 @@
   --
 ::
 ++  gc-image
-  |=  input=image
+  |=  img=image
   ^-  image
-  |^  =/  result  *image
-      =/  i=idx   0
-      |-
-      ?:  (~(has by result) i)  result
-      =/  x=xray  (~(got by input) i)
-      =.  result  (~(put by result) i x)
-      %+  (foldl image idx)
-        [result (xray-refs i)]
-      |=  [=image =idx]
-      ^$(result image, i idx)
+  |^  %=  img
+        type-map  ~
+        xrays
+          =/  result  *(map idx xray)
+          =/  i=idx   focus.img
+          |-
+          ?:  (~(has by result) i)  result
+          =/  x=xray  (focus-on img i)
+          =.  result  (~(put by result) i x)
+          %+  (foldl (map idx xray) idx)
+            [result (xray-refs i)]
+          |=  [acc=(map idx xray) =idx]
+          ^$(result acc, i idx)
+      ==
   ::
   ++  xray-refs
     |=  i=idx
     ^-  (list idx)
-    =/  x=xray  (~(got by input) i)
+    =/  x=xray  (focus-on img i)
     %-  zing
     ^-  (list (list idx))
     :~  ?~(data.x ~ (data-refs u.data.x))
@@ -2400,6 +2516,7 @@
       [%cell *]  ~[head.d tail.d]
       [%core *]  [xray.d (battery-refs battery.d)]
       [%face *]  ~[xray.d]
+      [%pntr *]  ~[xray.d]
       [%fork *]  ~(tap in set.d)
     ==
   --
@@ -2407,39 +2524,46 @@
 ++  decorate-xray-image-with-shapes
   |^  |=  st=image
       ^-  image
-      =/  keys  ~(tap in ~(key by st))
+      =/  keys  ~(tap in ~(key by xrays.st))
       %+  (foldl image idx)  [st keys]
       |=  [st=image i=idx]
-      =/  x  (~(got by st) i)
-      =/  shape  (xray-shape st i)
-      (~(put by st) i x(shape `shape))
+      image:(xray-shape st i)
   ::
   ++  xray-shape
     |=  [st=image i=idx]
-    ^-  shape
+    ^-  [shape =image]
     ::
-    =/  x=xray  (~(got by st) i)
+    =/  x=xray  (focus-on st i)
     =/  dat  (need data.x)
-    =/  old  shape.x
-    ?^  old  u.old
+    ?^  shape.x  [u.shape.x st]
     ::
-    ?-  dat
-      %noun      %noun
-      %void      %void
-      [%atom *]  %atom
-      [%cell *]  %cell
-      [%core *]  %cell
-      [%fork *]  (fork-shape st set.dat)
-      [%face *]  (xray-shape st xray.dat)               ::  XX duplicated work
-    ==
+    =^  res=shape  st
+      ?-  dat
+        %noun      [%noun st]
+        %void      [%void st]
+        [%atom *]  [%atom st]
+        [%cell *]  [%cell st]
+        [%core *]  [%cell st]
+        [%fork *]  (fork-shape st set.dat)
+        [%face *]  (xray-shape st xray.dat)
+        [%pntr *]  (xray-shape st xray.dat)
+      ==
+    ::
+    =/  y=xray    x                                     ::  Type system hack.
+    =.  shape.y   `res
+    =.  xrays.st  (~(put by xrays.st) i y)
+    [res st]
   ::
   ++  fork-shape
-    |=  [img=image branches=(set idx)]
-    ^-  shape
-    %+  (foldl shape idx)  [%void ~(tap in branches)]
-    |=  [s=shape =idx]
-    ^-  shape
-    (combine s (xray-shape img idx))                    ::  XX duplicated work
+    |=  [st=image fork=(set idx)]
+    ^-  [shape image]
+    ::
+    %+  (foldl (pair shape image) idx)
+      [[%void st] ~(tap in fork)]
+    |=  [acc=(pair shape image) i=idx]
+    ^-  [shape image]
+    =^  res  st  (xray-shape q.acc i)
+    [(combine p.acc res) st]
   ::
   ++  combine
     |=  [x=shape y=shape]
@@ -2453,49 +2577,24 @@
   --
 ::
 ++  decorate-xray-image-with-roles
-  |^  |=  img=image
+  |^  |=  init=image
       ^-  image
-      =<  xrays
-      ^-  ximage
-      =/  keys=(list idx)  ~(tap in ~(key by img))
-      =/  init=ximage      (image-to-ximage img)
-      %+  (foldl ximage idx)  [init keys]
-      |=  [acc=ximage =idx]
-      ^-  ximage
-      =.  focus.acc  idx
-      =^  =role  acc  (xray-role acc)
-      acc
+      =/  result
+        =/  keys=(list idx)  ~(tap in ~(key by xrays.init))
+        %+  (foldl image idx)  [init keys]
+        |=  [acc=image =idx]
+        ^-  image
+        =.  focus.acc  idx
+        =^  =role  acc  (xray-role acc)
+        acc
+      result(focus focus.init)
   ::
-  +$  ximage  [focus=idx next=idx xrays=image =type=(map type idx)]
-  ::
-  ::  Builds the ximage.
-  ::
-  ++  image-to-ximage
-    |=  img=image
-    ^-  ximage
-    %+  (foldl ximage xray)
-      [init=[0 0 img ~] elems=~(val by img)]
-    |=  [acc=ximage x=xray]
-    ^-  ximage
-    =.  type-map.acc  (~(put by type-map.acc) type.x idx.x)
-    =.  next.acc      (max +(idx.x) next.acc)
-    acc
-  ::
-  ++  focus                                               ::  XX rename
-    |=  xi=ximage
-    ^-  xray
-    =/  res=(unit xray)  (~(get by xrays.xi) focus.xi)
-    ?~  res  ~&  ['internal error: invalid xray reference' focus.xi]
-             !!
-    u.res
-  ::
-  ::
-  ::  Produce an ximage focused on the xray for a given type. If the
-  ::  type isn't already in the ximage, create it first.
+  ::  Produce an image focused on the xray for a given type. If the
+  ::  type isn't already in the image, create it first.
   ::
   ++  with-new-xray
-    |=  [st=ximage ty=type d=data]
-    ^-  ximage
+    |=  [st=image ty=type d=data]
+    ^-  image
     =/  old=(unit idx)  (~(get by type-map.st) ty)
     ?^  old  st(focus u.old)
     =/  idx          next.st
@@ -2506,11 +2605,11 @@
     =.  focus.st     idx
     st(focus idx)
   ::
-  ::  Return an ximage modified to be focus on the %void type. If no
+  ::  Return an image modified to be focus on the %void type. If no
   ::  void type exists, one will be created.
   ::
   ++  void-xray
-    |=  st=ximage
+    |=  st=image
     (with-new-xray st %void %void)
   ::
   ::  Determines the role of an atom xray.
@@ -2519,8 +2618,8 @@
   ::  but it's a nice first example of what the *-role arms do.
   ::
   ++  atom-role
-    |=  [st=ximage =constant=(unit @)]
-    ^-  [role ximage]
+    |=  [st=image =constant=(unit @)]
+    ^-  [role image]
     ?~  constant-unit  [%atom st]
     [[%constant u.constant-unit] st]
   ::
@@ -2529,19 +2628,19 @@
   ::  First, find (or create) an xray for the union type, then call back
   ::  into `role-xray` to get it's type.
   ::
-  ::  The focused xray of the resulting ximage *will* be decorated with
+  ::  The focused xray of the resulting image *will* be decorated with
   ::  role information, the role is just return for convenience.
   ::
   ++  fork-role
-    |=  [st=ximage fork=(set idx)]
-    ^-  [role ximage]
+    |=  [st=image fork=(set idx)]
+    ^-  [role image]
     (xray-role (fork-xray st fork))
   ::
   ::  Calculate the role of a %cell xray.
   ::
   ++  cell-role
-    |=  [st=ximage head=idx]
-    ^-  [role ximage]
+    |=  [st=image head=idx]
+    ^-  [role image]
    ::
     =/  x=xray  (focus st(focus head))
     =/  =shape  (need shape.x)
@@ -2557,17 +2656,17 @@
     ?^  const           [%instance u.const]
     %cell
   ::
-  ::  Produces an ximage updated to have role information for the xray
+  ::  Produces an image updated to have role information for the xray
   ::
-  ::  Produces an ximage updated to have role information for the xray
+  ::  Produces an image updated to have role information for the xray
   ::  in focus.
   ::
   ::  The focused xray of the resulting image *will* be decorated with
   ::  role information, the role is just return for convenience.
   ::
   ++  xray-role
-    |=  st=ximage
-    ^-  [role ximage]
+    |=  st=image
+    ^-  [role image]
     =/  x=xray  (focus st)
     =/  old  role.x
     ?^  old  [u.old st]
@@ -2577,7 +2676,7 @@
     ::  =.  role.x  `%thunk
     ::  =.  xrays.st  (~(put by xrays.st) idx.x x)
     ::
-    %-  |=  [res=role st=ximage]
+    %-  |=  [res=role st=image]
         =.  xrays.st  (~(put by xrays.st) idx.x x(role `res))
         =.  focus.st  idx.x
         [res st]
@@ -2591,31 +2690,32 @@
       [%cell *]  (cell-role st head.dat)
       [%core *]  [%cell st]
       [%face *]  (xray-role st(focus xray.dat))        ::  same as nested role
+      [%pntr *]  (xray-role st(focus xray.dat))        ::  same as nested role
       [%fork *]  (fork-role st set.dat)
     ==
   ::
-  ::  Create a new xray from a union type.  Returns an ximage focused
+  ::  Create a new xray from a union type.  Returns an image focused
   ::  on the result.
   ::
   ++  fork-xray
-    |=  [st=ximage fork=(set idx)]
-    ^-  ximage
+    |=  [st=image fork=(set idx)]
+    ^-  image
     =.  st  (void-xray st)
-    %+  (foldl ximage idx)
+    %+  (foldl image idx)
       [st ~(tap in fork)]
-    |=  [=ximage =idx]
-    (merge ximage focus.ximage idx)
+    |=  [=image =idx]
+    (merge image focus.image idx)
   ::
-  ::  Combine two xrays in an ximage (the one in focus and the one
-  ::  referenced by `i`, producing a new ximage focused on the resulting
+  ::  Combine two xrays in an image (the one in focus and the one
+  ::  referenced by `i`, producing a new image focused on the resulting
   ::  union.
   ::
   ::  First, we compute the role of both xrays, and then we `combine`
   ::  them.
   ::
   ++  merge
-    |=  [st=ximage x=idx y=idx]
-    ^-  ximage
+    |=  [st=image x=idx y=idx]
+    ^-  image
     =/  this=xray  (focus st(focus x))
     =/  that=xray  (focus st(focus y))
     =^  this-role  st  (xray-role st(focus x))        ::  Is this needed?
@@ -2635,7 +2735,7 @@
   ::  this logic and test.
   ::
   ++  simple-forks
-    |=  xi=ximage
+    |=  xi=image
     ^-  (unit (set idx))
     =/  x=xray  (focus xi)
     ?:  loop.x  ~
@@ -2645,7 +2745,7 @@
   ::
   ::  Given two xrays, construct their union type and return it's xray.
   ::
-  ::  Returns an `ximage` focused on the resulting xray.
+  ::  Returns an `image` focused on the resulting xray.
   ::
   ::  Using the `fork` primitive to construct a new type, get the xray
   ::  for that type. If we already have an xray for that, just return
@@ -2654,8 +2754,8 @@
   ::  trivial-forks of both xrays.
   ::
   ++  join
-    |=  [st=ximage i=idx]
-    ^-  ximage
+    |=  [st=image i=idx]
+    ^-  image
     ::  ~&  ['join' focus.st i]
     ?:  =(focus.st i)  st
     =/  this=xray  (focus st)
@@ -2674,12 +2774,12 @@
   ::  =collate: merge option maps
   ::
   ++  collate
-    |=  [st=ximage thick=(map atom idx) thin=(map atom idx)]
-    ^-  [(map atom idx) ximage]
+    |=  [st=image thick=(map atom idx) thin=(map atom idx)]
+    ^-  [(map atom idx) image]
     ::  ~&  'collate'
     =/  list  ~(tap by thin)
     |-
-    ^-  [(map atom idx) ximage]
+    ^-  [(map atom idx) image]
     ?~  list  [thick st]
     =/  item=(unit idx)  (~(get by thick) p.i.list)
     =^  merged=idx  st  ?~  item  [q.i.list st]
@@ -2691,8 +2791,8 @@
   ::  Huge amounts of nasty-ass logic that is probably wrong.
   ::
   ++  combine
-    |=  [st=ximage target=idx]
-    ^-  ximage
+    |=  [st=image target=idx]
+    ^-  image
     ::
     ::  First let's do some setup. Get indicies for this, that, and the
     ::  joined type.
@@ -2701,7 +2801,7 @@
     =/  that      target
     ::
     |-
-    ^-  ximage
+    ^-  image
     ::
     ::  ~&  ['combine' focus.st target]
     ::
@@ -2713,8 +2813,8 @@
     ::  Create the join of two xrays with the specified `role`.
     ::
     =/  join-with-role
-      |=  [st=ximage x=idx y=idx =role]
-      ^-  ximage
+      |=  [st=image x=idx y=idx =role]
+      ^-  image
       ::
       =/  xx  (focus st(focus x))
       =/  yy  (focus st(focus y))
@@ -2731,13 +2831,13 @@
     ::  Produce a joined node with the specified `role`.
     ::
     =/  joined
-      |=  [st=ximage =role]
-      ^-  ximage
+      |=  [st=image =role]
+      ^-  image
       (join-with-role st this that role)
     ::
     ::  Convenience functions for creating junctions
     ::
-    =/  misjunct  |=  [st=ximage x=idx y=idx]
+    =/  misjunct  |=  [st=image x=idx y=idx]
                   ~&  ['MISJUNCTION' x y]
                   =/  xx=xray  (focus st(focus x))
                   =/  yy=xray  (focus st(focus y))
@@ -2746,17 +2846,17 @@
                   ::  ?:  %.y  !!
                   (join-with-role st x y [%misjunction x y])
     ::
-    =/  conjunct  |=  [st=ximage wide=idx tall=idx]
+    =/  conjunct  |=  [st=image wide=idx tall=idx]
                   (join-with-role st wide tall [%conjunction wide tall])
     ::
-    =/  junct     |=  [st=ximage flat=idx deep=idx]
+    =/  junct     |=  [st=image flat=idx deep=idx]
                   (join-with-role st flat deep [%junction flat deep])
     ::
     ::  Join a cell with a junction.
     ::
     =/  cell-junct
-      |=  [st=ximage cell=idx [flat=idx deep=idx]]
-      ^-  ximage
+      |=  [st=image cell=idx [flat=idx deep=idx]]
+      ^-  image
       =.  st  (merge st cell deep)
       =/  deep-merged  focus.st
       (junct st flat deep-merged)
@@ -2764,21 +2864,21 @@
     ::  Join an atom with a junction.
     ::
     =/  atom-junct
-      |=  [st=ximage atom=idx [flat=idx deep=idx]]
-      ^-  ximage
+      |=  [st=image atom=idx [flat=idx deep=idx]]
+      ^-  image
       =.  st  (merge st atom flat)
       =/  flat-merged  focus.st
       (junct st flat-merged deep)
     ::
     =/  tall-conjunct
-      |=  [st=ximage out-tall=idx [wide=idx in-tall=idx]]
-      ^-  ximage
+      |=  [st=image out-tall=idx [wide=idx in-tall=idx]]
+      ^-  image
       =.  st  (merge st out-tall in-tall)
       =/  new-tall  focus.st
       (conjunct st wide new-tall)
     ::
     =/  conjunct-conjunct
-      |=  [st=ximage [xwide=idx xtall=idx] [ywide=idx ytall=idx]]
+      |=  [st=image [xwide=idx xtall=idx] [ywide=idx ytall=idx]]
       =.  st  (merge st xwide ywide)
       =/  new-wide  focus.st
       =/  st  (merge st xtall ytall)
@@ -2930,7 +3030,7 @@
   |=  t=type
   ^-  image
   ::  %-  trace-xray-image
-  %-  gc-image
+  ::  %-  gc-image
   %-  decorate-xray-image-with-roles
   %-  decorate-xray-image-with-shapes
   %-  decorate-xray-image-with-patterns
@@ -2973,7 +3073,7 @@
   ++  xray-to-spec
     |=  [tr=trace i=idx]
     ^-  spec
-    =/  x=xray  (~(got by img) i)
+    =/  x=xray  (focus-on img i)
     =/  d=data  (need data.x)
     ?:  (~(has in tr) i)  [%loop (synthetic i)]
     ?^  recipes.x  (recipe-to-spec tr n.recipes.x)
@@ -3003,6 +3103,7 @@
              ==
       %face  =/  =spec  $(i xray.d)
              ?^(face.d spec [%bsts face.d spec])
+      %pntr  $(i xray.d)
       %fork  =/  =role  (need role.x)
              |^  ?+  role
                      ~&  %unexpected-fork-role
