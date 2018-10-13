@@ -10,6 +10,10 @@
 ::
 ::  # Cleanup Work
 ::
+::  - XX pattern annotation stack overflows on big examples.
+::
+::  - XX shape annotation stack overflows on big examples.
+::
 ::  - XX For now, path literals are not rendered as paths. /a/path
 ::    expands to `[a [path ~]]`, which does not have a list type anywhere
 ::    inside of it. If we make the list pattern matcher accept this type
@@ -17,6 +21,12 @@
 ::    that end with null. For example [1 "str" ~] renders as [1 ~["str"]],
 ::    which is not what we want either. This is going to need a
 ::    more-specific heuristic change.
+::
+::  - XX `hint` information gets deleted during gc. The problem is that
+::    if we write the metadata to a node that is also a pointer (a %hold
+::    for example), it will be deleted. We can't just "write it to the right
+::    place, since we don't know what this is yet. That's the whole reason
+::    why this bullshit was needed in the first place.
 ::
 ::  - XX The `manx` data type has no represent raw text.
 ::
@@ -30,6 +40,8 @@
 ::
 ::  - XX The loop detection code infinite loops when trying to process
 ::    the kernel.
+::
+::  - XX Lists of nil values are not recognized as lists. Why?
 ::
 ::  - XX The pattern matching code has a lot of repeated logic.
 ::
@@ -55,110 +67,125 @@
   ^-  type
   -:!>(`(unit (list cord))`~)
 ::
-++  example
-  !>
+++  xray-the-kernel-example
+  |%  ++  x  ~  --
+::
+++  cores-example
   |^  :*
-    ~  =>  |%  ++  x  3  --
-    ::  ..add
-    ::  ..biff
-    ::  ..egcd
-    ::  ..po
-    ::  ..musk
-    ::  ..zuse
-    ::  ..full
-    ::  ..zuse
-    `(list ~)`~
-    `(list ?)`~
-
-    [~ %.y %.n 1 0x2 ~ ~.knot 'cord' %const]
-    :*  [%tape "a tape"]
-        [%path /path/literal `path`/typed/path]
-        [%gate gate-example]
-        [%core core-example]
-        [%unit `(unit @)`[~ 9]]
-        %woot
-    ==
-    [%hoon hoon-example]
-    [%type -:!>(`(unit (list tape))`~)]
-    [%json-and-xml json-example xml-example]
-    ~
-    ==
-  ::
-  ++  hoon-example
-    ^-  hoon
-    :+  %brcn  ~
-    %-  ~(gas by *(map term tome))
-    ^-  (list (pair term tome))
-    :_  ~
-    ^-  (pair term tome)
-    :-  'chapter'
-    ^-  tome
-    :-  `what`~
-    %-  ~(gas by *(map term hoon))
-    ^-  (list (pair term hoon))
-    :_  ~
-    :-  'arm'
-    :+  %brts  `spec`[%bsts 'x' [%base [%atom ~.ud]]]
-    :-  %clsg
-    ~[[%wing ~['x']] [%$ 0]]
-  ::
-  ++  xml-example
-    |^  ^-  manx
-        :-  ['json' ~]
-        :~  (json-to-xml json-example)
-        ==
-    ++  json-to-xml
-      |=  j=json
-      ^-  manx
-      ?-  j
-        ~       [['nil' ~] ~]
-        [%a *]  [['array' ~] (turn p.j json-to-xml)]
-        [%b *]  [['bool' ~[['val' ?:(p.j "true" "false")]]] ~]
-        [%o *]  [['obj' ~] (turn ~(tap by p.j) pair)]
-        [%n *]  [['num' ~[[['n' 'val'] (trip p.j)]]] ~]
-        [%s *]  [[p.j ~] ~]
+          [%core trivial-core-example]
+          [%gate gate-example]
+          [%core core-example]
+          [%add ..add]
+          [%biff ..biff]
+          [%egcd ..egcd]
+          [%po ..po]
+          [%musk ..musk]
+          [%zuse ..zuse]
+          [%full ..full]
+          [%zuse ..zuse]
       ==
-    ++  pair
-      |=  [t=@t j=json]
-      ^-  manx
-      [['slot' ~[['key' (trip t)]]] ~[(json-to-xml j)]]
-    --
   ::
-  ++  core-example
-    =>  [=gate-example]
-    |%
-    ++  dup  gate-example
-    ++  const
-      |=  x=*  ^-  $-(* *)
-      |=  *    ^-  *
-      x
-    --
-  ::
-  ++  gate-example
-    =>  ~
-    |=  x=@ud
-    ^-  [@ud @ud]
-    [x x]
-  ::
-  ++  json-example
-    ^-  json
-    |^  ar3
-    ++  nil  ~
-    ++  yes  [%b %.y]
-    ++  nah  [%b %.n]
-    ++  foo  'foo'
-    ++  bar  'bar'
-    ++  baz  'baz'
-    ++  one  [%n '1']
-    ++  ten  [%n '10']
-    ++  mil  [%n '100000']
-    ++  arr  [%a ~[one ten mil]]
-    ++  ar2  [%a ~[arr yes nah nil]]
-    ++  obj  [%o (~(gas by *(map @t json)) ~[[foo mil] [baz arr]])]
-    ++  ob2  [%o (~(gas by *(map @t json)) ~[[foo ar2] [bar obj] [baz yes]])]
-    ++  ar3  [%a ~[arr obj ob2 one ten mil yes nah nil]]
-    --
+++  trivial-core-example
+  =>  ~
+  |%  ++  x  3  --
+::
+++  core-example
+  =>  [=gate-example]
+  |%
+  ++  dup  gate-example
+  ++  const
+    |=  x=*  ^-  $-(* *)
+    |=  *    ^-  *
+    x
   --
+::
+++  gate-example
+  =>  ~
+  |=  x=@ud
+  ^-  [@ud @ud]
+  [x x]
+--
+::
+++  test-example
+  :*
+      [%type -:!>(`(unit (list tape))`~)]
+      [%zeros `(list @)`~[0 0]]
+      `?`%.y
+  ==
+::
+++  hoon-example
+  ^-  hoon
+  :+  %brcn  ~
+  %-  ~(gas by *(map term tome))
+  ^-  (list (pair term tome))
+  :_  ~
+  ^-  (pair term tome)
+  :-  'chapter'
+  ^-  tome
+  :-  `what`~
+  %-  ~(gas by *(map term hoon))
+  ^-  (list (pair term hoon))
+  :_  ~
+  :-  'arm'
+  :+  %brts  `spec`[%bsts 'x' [%base [%atom ~.ud]]]
+  :-  %clsg
+  ~[[%wing ~['x']] [%$ 0]]
+::
+++  show-example
+  |^  :*  [~ %.y %.n 1 0x2 ~ ~.knot 'cord' %const]
+          :*  [%tape "a tape"]
+              [%path /path/literal `path`/typed/path]
+              [%unit `(unit @)`[~ 9]]
+              [%list [`?`%.y `(list ?)`~[%.y %.n %.y]]]
+              %nice
+          ==
+          [%hoon hoon-example]
+          [%type -:!>(`(unit (list tape))`~)]
+          [%json-and-xml json-example xml-example]
+          %cool
+      ==
+  ::
+++  xml-example
+  |^  ^-  manx
+      :-  ['json' ~]
+      :~  (json-to-xml json-example)
+      ==
+  ++  json-to-xml
+    |=  j=json
+    ^-  manx
+    ?-  j
+      ~       [['nil' ~] ~]
+      [%a *]  [['array' ~] (turn p.j json-to-xml)]
+      [%b *]  [['bool' ~[['val' ?:(p.j "true" "false")]]] ~]
+      [%o *]  [['obj' ~] (turn ~(tap by p.j) pair)]
+      [%n *]  [['num' ~[[['n' 'val'] (trip p.j)]]] ~]
+      [%s *]  [[p.j ~] ~]
+    ==
+  ++  pair
+    |=  [t=@t j=json]
+    ^-  manx
+    [['slot' ~[['key' (trip t)]]] ~[(json-to-xml j)]]
+  --
+::
+++  json-example
+  ^-  json
+  |^  ob2
+  ++  nil  ~
+  ++  yes  [%b %.y]
+  ++  nah  [%b %.n]
+  ++  foo  'foo'
+  ++  bar  'bar'
+  ++  baz  'baz'
+  ++  one  [%n '1']
+  ++  ten  [%n '10']
+  ++  mil  [%n '100000']
+  ++  arr  [%a ~[one ten mil]]
+  ++  ar2  [%a ~[arr yes nah nil]]
+  ++  obj  [%o (~(gas by *(map @t json)) ~[[foo mil] [baz arr]])]
+  ++  ob2  [%o (~(gas by *(map @t json)) ~[[foo ar2] [bar obj] [baz yes]])]
+  ++  ar3  [%a ~[arr obj ob2 one ten mil yes nah nil]]
+  --
+--
 ::
 +|  %entry-points-for-testing
 ::
@@ -242,7 +269,7 @@
   :-  %txt
   ^-  wain
   ::
-  =.  v  example
+  =.  v  !>(xray-the-kernel-example)  ::  YY
   ::
   =/  t=type   p.v
   =/  n=*      q.v
@@ -251,8 +278,11 @@
   =/  i=image  ((xray-type 999.999 999.999) t)
   ~&  %done-xraying-type
   ::
+  ~&  %start-xray-gc
+  =.  i  (gc-image i)
+  ~&  %done-with-xray-gc
+  ::
   ::  =.  i  (trace-xray-image i)
-  ::  =.  i  !!
   ::
   ~&  %start-loop-detection
   =.  i  (decorate-xray-image-with-loops i)
@@ -260,25 +290,21 @@
   ::
   ::  =.  i  (trace-xray-image i)
   ::
-  ~&  %start-pattern-annotation
-  =.  i  (decorate-xray-image-with-patterns i)
-  ~&  %done-with-pattern-annotation
+  ::  ~&  %start-pattern-annotation
+  ::  =.  i  (decorate-xray-image-with-patterns i)
+  ::  ~&  %done-with-pattern-annotation
   ::
   ::  =.  i  (trace-xray-image i)
   ::
-  ~&  %start-shape-annotation
-  =.  i  (decorate-xray-image-with-shapes i)
-  ~&  %done-with-shape-annotation
+  ::  ~&  %start-shape-annotation
+  ::  =.  i  (decorate-xray-image-with-shapes i)
+  ::  ~&  %done-with-shape-annotation
   ::
   ::  =.  i  (trace-xray-image i)
   ::
-  ~&  %start-role-annotation
-  =.  i  (decorate-xray-image-with-roles i)
-  ~&  %done-with-role-annotation
-  ::
-  ::  ~&  %start-xray-gc
-  ::  =.  i  (gc-image i)
-  ::  ~&  %done-with-xray-gc
+  ::  ~&  %start-role-annotation
+  ::  =.  i  (decorate-xray-image-with-roles i)
+  ::  ~&  %done-with-role-annotation
   ::
   ::  =.  i  (trace-xray-image i)
   ::
@@ -1420,7 +1446,7 @@
       recipes=(set recipe)
       helps=(set help)
       shape=(unit shape)
-      loop=?
+      loop=(unit ?)
   ==
 ::
 +$  image
@@ -1444,7 +1470,7 @@
                     =/  newidx  next.img
                     =.  next.img  +(next.img)
                     [newidx img]
-  =/  x=xray  [idx ty d ~ ~ ~ ~ ~ ~ ~ %.n]
+  =/  x=xray  [idx ty d ~ ~ ~ ~ ~ ~ ~ ~]
   =.  xrays.img     (~(put by xrays.img) idx x)
   =.  type-map.img  (~(put by type-map.img) ty idx)
   img(focus idx)
@@ -1476,19 +1502,32 @@
   ^-  image
   [0 0 ~ ~]
 ::
+++  lookup-xray
+  |=  [img=image i=idx]
+  ^-  xray
+  =/  res=(unit xray)  (~(get by xrays.img) i)
+  ?~  res  ~&  ['internal error: invalid xray reference' i]  !!
+  u.res
+::
 ++  focus-on
   |=  [img=image i=idx]
   ^-  xray
-  (focus img(focus i))
+  =/  x=xray  (lookup-xray img i)
+  ?~  data.x  x
+  x
+::
+::  XX This is slow, we shouldn't be doing this all over the place. It's
+::  simple and correct, though.
+::
+++  deref
+  |=  [img=image i=idx]
+  ^-  idx
+  idx:(focus-on img i)
 ::
 ++  focus
   |=  img=image
   ^-  xray
-  =/  i=idx  focus.img
-  =/  res=(unit xray)  (~(get by xrays.img) i)
-  ?~  res  ~&  ['internal error: invalid xray reference' i]
-           !!
-  u.res
+  (focus-on img focus.img)
 ::
 ++  tape-to-plum
   |=  =tape
@@ -1602,9 +1641,30 @@
                  ?~  constant.d  (render-atom aura.d n)
                  (render-const aura.d u.constant.d n)
       [%face *]  (main xray.d n)
-      [%pntr *]  (main xray.d n)
+      [%pntr *]  !!
       [%core *]  (core-to-plum garb.d xray.d battery.d)
-      [%fork *]  '%fork'                                ::  [%fork =(set idx)]
+      [%fork *]  (render-fork i n)
+    ==
+  ::
+  ++  render-fork
+    |=  [i=idx n=*]
+    ^-  plum
+    ::
+    =/  x=xray  (focus-on img i)
+    ?~  role.x  ~&  x  '%evil-fork'
+    =/  r=role  u.role.x
+    ::
+    ?+  r  '%bad-fork'
+      [%union *]        '%union'                        ::  XX TODO
+      [%option *]
+        =/  pairs=(list (pair atom idx))  ~(tap by map.r)
+        |-
+        ?~  pairs  !!
+        ?.  =(p.i.pairs n)  $(pairs t.pairs)
+        (main q.i.pairs n)
+      [%junction *]     '%junction'                     ::  XX TODO
+      [%conjunction *]  '%conjunction'                  ::  XX TODO
+      [%misjunction *]  '%misjunction'                  ::  XX TODO
     ==
   ::
   ++  render-gate
@@ -1794,7 +1854,7 @@
     ::
     ++  toptag  =/  a  atribs
                 ?~  a  (cat 3 topstr '>')
-                [%tree topfmt a]
+                [%sbrk [%tree topfmt a]]
     ::
     ::  Note that `kidfmt` uses "the ace-ace rune" (scare quotes) to
     ::  get indentation.
@@ -1851,8 +1911,9 @@
   |=  [max-depth=@ max-size=@]
   |^  |=  ty=type
       ^-  image
-      =/  result=image  img:(main ty `state`[empty-image 0 ~])
-      result(focus (~(got by type-map.result) ty))
+      =/  st=state  [empty-image 0 ~]
+      =^  result  st  (main ty st)
+      img.st(focus result)
   ::
   +$  state  [img=image depth=@ trace=(list cord)]
   ::
@@ -1894,7 +1955,7 @@
                     (scag 13 trace.st)
                 ==
     ::
-    ~&  [depth.st res ?@(ty ty -:ty) trace]
+    ::  ~&  [depth.st res ?@(ty ty -:ty) trace]  XX  TRACE
     ::
     ::
     ::  Track recursion depth.
@@ -2109,33 +2170,47 @@
   --
 ::
 ++  decorate-xray-image-with-loops
-  |=  img=image
+  |=  init=image
   ^-  image
-  =/  i=idx  focus.img
+  ::
+  =/  all-indicies=(list idx)  ~(tap in ~(key by xrays.init))
+  %+  (foldl image idx)
+    [init all-indicies]
+  |=  [img=image i=idx]  ^-  image
+  ::
   =/  trace=(set idx)  ~
+  ::
   |-  ^-  image
+  ::
   =/  x    (focus-on img i)
   =/  dat  (need data.x)
-  ?:  (~(has in trace) i)
-    img(xrays (~(put by xrays.img) idx.x x(loop %.y)))
-  ?@  dat  img
-  =.  trace  (~(put in trace) i)
-  ?-  -.dat
-    %atom  img
-    %cell  =.  img  $(i head.dat)
-           $(i tail.dat)
-    %core  =.  img  $(i xray.dat)
-           %+  (foldl image idx)
-             [img (battery-refs battery.dat)]
-           |=  [img=image i=idx]
-           ^$(img img, i i)
-    %face  $(i xray.dat)
-    %pntr  $(i xray.dat)
-    %fork  %+  (foldl image idx)
-             [img ~(tap in set.dat)]
-           |=  [img=image i=idx]
-           ^$(img img, i i)
-  ==
+  ::
+  ?.  =(~ loop.x)  img                                  ::  don't repeat work
+  ::
+  =.  img
+    ?:  (~(has in trace) i)                             ::  found loop
+      (replace-xray img x(loop `%.y))
+    ?@  dat  img                                        ::  no references
+    =.  trace  (~(put in trace) i)
+    ?-  -.dat
+      %atom  img
+      %cell  =.  img  $(i head.dat)
+             $(i tail.dat)
+      %core  =.  img  $(i xray.dat)
+             %+  (foldl image idx)
+               [img (battery-refs battery.dat)]
+             |=  [img=image i=idx]
+             ^$(img img, i i)
+      %face  $(i xray.dat)
+      %pntr  !!                                         ::  gc before this
+      %fork  %+  (foldl image idx)
+               [img ~(tap in set.dat)]
+             |=  [img=image i=idx]
+             ^$(img img, i i)
+    ==
+  =.  x  (focus-on img i)                          ::  get updated xray
+  ?^  loop.x  img                                       ::  loop found
+  (replace-xray img x(loop `%.n))                       ::  no loop found
 ::
 ++  battery-refs
   |=  b=(battery idx)
@@ -2150,9 +2225,9 @@
   |=  img=image
   ^-  image
   ~&  ['focus=' focus.img]
-  ~&  %+  sort  ~(val by xrays.img)
-      |=  [x=xray y=xray]
-      (lth idx.x idx.y)
+  ~&  %+  sort  ~(tap by xrays.img)
+      |=  [[xi=idx x=xray] [yi=idx y=xray]]
+      (lth xi yi)
   img
 ::
 ++  decorate-xray-image-with-patterns
@@ -2195,6 +2270,10 @@
   ++  is-ref-to
     |=  [target=idx ref=idx]
     ^-  ?
+    ::
+    =.  target  (deref img target) ::  XX
+    =.  ref     (deref img ref) ::  XX
+    ::
     ?:  =(target ref)  %.y
     =/  =data  (need data:(focus ref))
     ?:  ?=([%face *] data)  $(ref xray.data)
@@ -2204,6 +2283,10 @@
     |=  [target=idx cell=idx]
     ^-  ?
     |-
+    ::
+    =.  target  (deref img target) ::  XX
+    =.  cell    (deref img cell) ::  XX
+    ::
     =/  =data  (need data:(focus cell))
     ?:  ?=([%face *] data)  $(cell xray.data)
     ?.  ?=([%cell *] data)  %.n
@@ -2225,7 +2308,7 @@
   ++  unit-pattern
     |^  |=  x=xray
         ^-  (unit pattern)
-        =/  elem  (match-unit-type-strict x)
+        =/  elem  (match-unit-type-strict (focus idx.x))
         ?~  elem  ~
         `[%unit u.elem]
     ::
@@ -2260,7 +2343,8 @@
   ++  tree-pattern
     |=  =input=xray
     ^-  (unit pattern)
-    =/  input-idx=idx  idx.input-xray
+    =.  input-xray  (focus idx.input-xray)
+    =/  input-idx=idx  (deref img idx.input-xray)
     =/  indata=data    (need data.input-xray)
     ?.  ?=([%fork *] indata)  ~
     =/  branches  ~(tap in set.indata)
@@ -2272,7 +2356,8 @@
     ?.  (is-nil nil)  ~
     =/  node-data=data  (need data:(focus node))
     ?.  ?=([%cell *] node-data)  ~
-    ?.  (is-pair-of-refs-to input-idx tail.node-data)  ~
+    ?.  (is-pair-of-refs-to input-idx (deref img tail.node-data))
+      ~
     =/  elem-data  (need data:(focus head.node-data))
     ?.  ?=([%face *] elem-data)  ~
     `[%tree xray.elem-data]
@@ -2290,6 +2375,7 @@
   ++  list-pattern
     |^  |=  x=xray
         ^-  (unit pattern)
+        ::  ~&  ['list-pattern' idx.x]
         =/  elem  (match-list x)
         ?~  elem  ~
         ?:  (is-atom-with-aura 'tD' u.elem)   [~ %tape]
@@ -2301,15 +2387,17 @@
     ++  match-list
       |=  =input=xray
       ^-  (unit idx)
+      =.  input-xray  (focus idx.input-xray)
+      ::  ~&  ['match-list' idx.input-xray (need data.input-xray)]  ::  TRACE
       =/  d=data  (need data.input-xray)
-      ?+  d        ~
+      ?+  d        ~  ::  ~&  ['match-list' idx.input-xray 'failure']  ~
         [%face *]  (match-list (focus xray.d))
         [%fork *]  (match-list-type-strict input-xray)
-        [%cell *]  ?:  (is-nil tail.d)  ::  Hack to make path literals work.
-                     ?:  (is-atom-with-aura 'tas' head.d)
+        [%cell *]  =/  elem-idx=(unit idx)
+                     ?:  ?&((is-nil tail.d) (is-atom-with-aura 'tas' head.d))
+                       ::  ~&  ['match-list' idx.input-xray 'looks-like-path']
                        `head.d
-                     ~
-                   =/  elem-idx  (match-list (focus tail.d))
+                     (match-list (focus tail.d))
                    ?~  elem-idx                       ~
                    ?.  (is-ref-to u.elem-idx head.d)  ~
                    `u.elem-idx
@@ -2318,12 +2406,15 @@
     ++  match-list-type-strict
       |=  =fork=xray
       ^-  (unit idx)
-      =/  fork=idx     idx.fork-xray
+      ::  ~&  ['match-list-type-strict' idx.fork-xray (need data.fork-xray)]  ::  TRACE
+      =/  fork=idx     (deref img idx.fork-xray)
       =/  indata=data  (need data.fork-xray)
       ::
       ?.  ?=([%fork *] indata)  ~
       =/  branches              ~(tap in set.indata)
       ?.  ?=([* * ~] branches)  ~
+      ::
+      ::  ~&  ['match-list-type-strict' idx.fork-xray 'is-a-2fork']
       ::
       =/  nil   i.branches
       =/  node  i.t.branches
@@ -2331,11 +2422,17 @@
       ?:  (is-nil node)  $(node nil, nil node)
       ?.  (is-nil nil)  ~
       ::
+      ::  ~&  ['match-list-type-strict' idx.fork-xray 'is-a-nil-and-noun']
+      ::
       =/  node-data=data                   (need data:(focus node))
       ?.  ?=([%cell *] node-data)          ~
+      ::  ~&  ['match-list-type-strict' idx.fork-xray 'is-a-nil-and-cell']
       ?.  (is-ref-to fork tail.node-data)  ~
+      ::  ~&  ['match-list-type-strict' idx.fork-xray 'loops']
       =/  elem-data                        (need data:(focus head.node-data))
       ?.  ?=([%face *] elem-data)          ~
+      ::  ~&  ['match-list-type-strict' idx.fork-xray 'has-face. success!']
+      ::
       `xray.elem-data
     --
   ::
@@ -2346,6 +2443,7 @@
   ++  core-pattern
     |^  |=  x=xray
         ^-  (unit pattern)
+        =.  x  (focus idx.x)
         =/  gear  (match-gear x)
         ?~  gear  ~
         =/  gate  (match-gate x sample.u.gear battery.u.gear)
@@ -2363,8 +2461,8 @@
       =/  context-data=data  (need data:(focus context-idx))
       ?.  ?=([%cell *] context-data)  ~
       ::
-      =/  sample-idx=idx  head.context-data
-      =.  context-idx     tail.context-data
+      =/  sample-idx=idx  (deref img head.context-data)
+      =.  context-idx     (deref img tail.context-data)
       `[%gear sample-idx context-idx battery.input-data]
     ::
     ++  match-gate
@@ -2407,6 +2505,8 @@
     |=  x=xray
     ^-  (unit pattern)
     ::
+    =.  x  (focus idx.x) :: XX
+    ::
     =/  i=idx   idx.x
     =/  t=type  type.x
     =/  d=data  (need data.x)
@@ -2446,28 +2546,143 @@
     ~
   --
 ::
+::  1. Build a list of reachable, non-reference nodes.
+::  2. Build a table of references to what they reference.
+::  3. Map over the type-map, and replace every value using the table from #2.
+::  4. Rebuild the xrays map, only keeping xrays from set #1.
+::  5. Map over the xrays, and replace every reference using the table from #2.
+::
 ++  gc-image
   |=  img=image
   ^-  image
-  |^  %=  img
-        type-map  ~
-        xrays
-          =/  result  *(map idx xray)
-          =/  i=idx   focus.img
-          |-
-          ?:  (~(has by result) i)  result
-          =/  x=xray  (focus-on img i)
-          =.  result  (~(put by result) i x)
-          %+  (foldl (map idx xray) idx)
-            [result (xray-refs i)]
-          |=  [acc=(map idx xray) =idx]
-          ^$(result acc, i idx)
-      ==
+  ::
+  |^  =/  tbl  (build-table [~ ~] focus.img)
+      ::  ~&  ~(tap by refs.tbl)
+      =.  focus.img  (fix-idx tbl focus.img)
+      ::
+      =.  type-map.img  (fix-type-map tbl type-map.img)
+      ::  ~&  ~(tap by type-map.img)
+      =.  xrays.img  (fix-xrays tbl xrays.img)
+      ::  ~&  ~(tap by xrays.img)
+      ::  ?:  %.y  !!
+      ::
+      :: ~&  [%deleted ~(tap in ~(key by refs.tbl))]
+      ~&  [%gc-results ~(wyt by type-map.img) ~(wyt by xrays.img)]
+      ::
+      ::  ~&  ~(tap by refs.tbl)
+      ::
+      img
+  ::
+  +$  table  [live=(set idx) refs=(map idx idx)]
+  ::
+  ++  build-table
+    |=  [tbl=table i=idx]
+    ^-  table
+    ::
+    ?:  (~(has in live.tbl) i)  tbl                     ::  already processed
+    ?:  (~(has by refs.tbl) i)  tbl                     ::  already processed
+    ::
+    =/  x=xray  (lookup-xray img i)
+    =/  d=data  (need data.x)
+    ::
+    =.  tbl
+      ?.  ?=([%pntr *] d)
+        tbl(live (~(put in live.tbl) i))
+      tbl(refs (~(put by refs.tbl) i (deref img i)))
+    ::
+    %+  (foldl table idx)
+      [tbl (xray-refs i)]
+    build-table
+    ::
+  ++  gc-xrays
+    |=  [tbl=table xrays=(map idx xray)]
+    ^-  _xrays
+    %+  (foldl (map idx xray) (pair idx xray))
+      [*(map idx xray) ~(tap by xrays)]
+    |=  [acc=(map idx xray) [i=idx x=xray]]
+    ?.  (~(has in live.tbl) i)  acc
+    (~(put by acc) i x)
+  ::
+  ++  fix-type-map
+    |=  [tbl=table =(map type idx)]
+    ^-  _map
+    %+  (foldl _map (pair type idx))
+      [*_map ~(tap by map)]
+    |=  [acc=_map [ty=type i=idx]]
+    =/  dest  (~(get by refs.tbl) i)
+    ?^  dest  (~(put by acc) ty u.dest)
+    ?.  (~(has in live.tbl))  acc
+    (~(put in acc) ty i)
+  ::
+  ++  fix-xrays
+    |=  [tbl=table xrays=(map idx xray)]
+    ^-  _xrays
+    %+  (foldl (map idx xray) (pair idx xray))
+      [*(map idx xray) ~(tap by xrays)]
+    |=  [acc=(map idx xray) [i=idx x=xray]]
+    ?.  (~(has in live.tbl) i)  acc                     ::  Drop unused xrays
+    (~(put by acc) i (fix-xray tbl x))
+  ::
+  ::  XX Do roles too (but this runs before role annotation for now)
+  ::
+  ++  fix-xray
+    |=  [tbl=table x=xray]  ^-  xray
+    %=  x
+      data     `(fix-data tbl (need data.x))
+      recipes  %-  ~(gas in *(set recipe))
+               %+  turn  ~(tap in recipes.x)
+              |=  r=recipe  (fix-recipe tbl r)
+    ==
+  ::
+  ++  fix-data
+    |=  [tbl=table d=data]  ^-  data
+    ::
+    =/  fix  |=(i=idx (fix-idx tbl i))
+    ::
+    ?-  d
+      %noun      d
+      %void      d
+      [%atom *]  d
+      [%cell *]  d(head (fix head.d), tail (fix tail.d))
+      [%core *]  d(xray (fix xray.d), battery (fix-battery tbl battery.d))
+      [%face *]  d(xray (fix xray.d))
+      [%fork *]  d(set (~(gas in *(set idx)) (turn ~(tap in set.d) fix)))
+      [%pntr *]  d(xray (fix xray.d))
+    ==
+  ::
+  ++  turn-battery
+    |*  item=mold
+    |=  [b=(battery item) f=$-(item item)]  ^-  (battery item)
+    %-  ~(run by b)
+    |=  [w=what chap=(map term item)]  ^-  [what (map term item)]
+    :-  w
+    %-  ~(run by chap)
+    |=  i=item  ^-  item
+    (f i)
+  ::
+  ++  fix-battery
+    |=  [tbl=table b=(battery idx)]  ^-  (battery idx)
+    %+  (turn-battery idx)  b
+    |=  i=idx  ^-  idx
+    (fix-idx tbl i)
+  ::
+  ++  fix-idx
+    |=  [tbl=table i=idx]  ^-  idx
+    =/  res=(unit idx)  (~(get by refs.tbl) i)
+    ?^  res  u.res
+    i
+  ::
+  ++  fix-recipe
+    |=  [tbl=table r=recipe]  ^-  recipe
+    ?-  r
+      [%direct *]     r
+      [%synthetic *]  r(list (turn list.r |=(i=idx (fix-idx tbl i))))
+    ==
   ::
   ++  xray-refs
     |=  i=idx
     ^-  (list idx)
-    =/  x=xray  (focus-on img i)
+    =/  x=xray  (lookup-xray img i)
     %-  zing
     ^-  (list (list idx))
     :~  ?~(data.x ~ (data-refs u.data.x))
@@ -2546,12 +2761,12 @@
         [%core *]  [%cell st]
         [%fork *]  (fork-shape st set.dat)
         [%face *]  (xray-shape st xray.dat)
-        [%pntr *]  (xray-shape st xray.dat)
+        [%pntr *]  !!
       ==
     ::
     =/  y=xray    x                                     ::  Type system hack.
     =.  shape.y   `res
-    =.  xrays.st  (~(put by xrays.st) i y)
+    =.  xrays.st  (~(put by xrays.st) idx.y y)
     [res st]
   ::
   ++  fork-shape
@@ -2592,13 +2807,16 @@
   ::  Produce an image focused on the xray for a given type. If the
   ::  type isn't already in the image, create it first.
   ::
+  ::  These xrays are for fake types that we create to restructure forks,
+  ::  therefore they will never by loops.
+  ::
   ++  with-new-xray
     |=  [st=image ty=type d=data]
     ^-  image
     =/  old=(unit idx)  (~(get by type-map.st) ty)
     ?^  old  st(focus u.old)
     =/  idx          next.st
-    =/  res=xray     [idx ty `d ~ ~ ~ ~ ~ ~ ~ %.n]
+    =/  res=xray     [idx ty `d ~ ~ ~ ~ ~ ~ ~ `%.n]
     =.  next.st      +(idx)
     =.  xrays.st     (~(put by xrays.st) idx.res res)
     =.  type-map.st  (~(put by type-map.st) type.res idx.res)
@@ -2690,7 +2908,7 @@
       [%cell *]  (cell-role st head.dat)
       [%core *]  [%cell st]
       [%face *]  (xray-role st(focus xray.dat))        ::  same as nested role
-      [%pntr *]  (xray-role st(focus xray.dat))        ::  same as nested role
+      [%pntr *]  !!
       [%fork *]  (fork-role st set.dat)
     ==
   ::
@@ -2738,7 +2956,7 @@
     |=  xi=image
     ^-  (unit (set idx))
     =/  x=xray  (focus xi)
-    ?:  loop.x  ~
+    ?:  (need loop.x)  ~
     =/  d=data  (need data.x)
     ?.  ?=([%fork *] d)  ~
     `set.d
@@ -3029,15 +3247,16 @@
 ++  analyze-type
   |=  t=type
   ^-  image
-  ::  %-  trace-xray-image
-  ::  %-  gc-image
+  %-  trace-xray-image
   %-  decorate-xray-image-with-roles
   %-  decorate-xray-image-with-shapes
   %-  decorate-xray-image-with-patterns
   %-  decorate-xray-image-with-loops
-  ::  %-  trace-xray-image
+  %-  gc-image
+  %-  trace-xray-image
   %-  (xray-type 999.999 999.999)
   t
+  ::
 ::
 ::  -xray-image-to-spec: convert to spec
 ::
@@ -3062,7 +3281,7 @@
   ++  wrap-with-loop-binding
     |=  [xr=xray sp=spec]
     ^-  spec
-    ?.  loop.xr  sp
+    ?.  (need loop.xr)  sp
     =/  nm  (synthetic idx.xr)
     [%bsbs [%loop nm] [[nm sp] ~ ~]]
   ::
@@ -3101,9 +3320,9 @@
                %zinc  [%bstc payld batt]
                %iron  [%bsnt payld batt]
              ==
+      %pntr  !!
       %face  =/  =spec  $(i xray.d)
              ?^(face.d spec [%bsts face.d spec])
-      %pntr  $(i xray.d)
       %fork  =/  =role  (need role.x)
              |^  ?+  role
                      ~&  %unexpected-fork-role
