@@ -10,17 +10,8 @@
 ::
 ::  # Cleanup Work
 ::
-::  - XX pattern annotation stack overflows on big examples.
-::
-::  - XX shape annotation stack overflows on big examples.
-::
-::  - XX For now, path literals are not rendered as paths. /a/path
-::    expands to `[a [path ~]]`, which does not have a list type anywhere
-::    inside of it. If we make the list pattern matcher accept this type
-::    of thing, then we instead get annoying behaviors with in tuples
-::    that end with null. For example [1 "str" ~] renders as [1 ~["str"]],
-::    which is not what we want either. This is going to need a
-::    more-specific heuristic change.
+::  - XX role annotation gets caught up in an infinite fork when
+::    processing the kernel.
 ::
 ::  - XX `hint` information gets deleted during gc. The problem is that
 ::    if we write the metadata to a node that is also a pointer (a %hold
@@ -37,9 +28,6 @@
 ::
 ::    If it turns out to be a performance bottleneck, there's lots of
 ::    low-hanging fruit there.
-::
-::  - XX The loop detection code infinite loops when trying to process
-::    the kernel.
 ::
 ::  - XX Lists of nil values are not recognized as lists. Why?
 ::
@@ -291,21 +279,21 @@
   ::
   ::  =.  i  (trace-xray-image i)
   ::
-  ::  ~&  %start-pattern-annotation
-  ::  =.  i  (decorate-xray-image-with-patterns i)
-  ::  ~&  %done-with-pattern-annotation
+  ~&  %start-pattern-annotation
+  =.  i  (decorate-xray-image-with-patterns i)
+  ~&  %done-with-pattern-annotation
   ::
   ::  =.  i  (trace-xray-image i)
   ::
-  ::  ~&  %start-shape-annotation
-  ::  =.  i  (decorate-xray-image-with-shapes i)
-  ::  ~&  %done-with-shape-annotation
+  ~&  %start-shape-annotation
+  =.  i  (decorate-xray-image-with-shapes i)
+  ~&  %done-with-shape-annotation
   ::
   ::  =.  i  (trace-xray-image i)
   ::
-  ::  ~&  %start-role-annotation
-  ::  =.  i  (decorate-xray-image-with-roles i)
-  ::  ~&  %done-with-role-annotation
+  ~&  %start-role-annotation
+  =.  i  (decorate-xray-image-with-roles i)
+  ~&  %done-with-role-annotation
   ::
   ::  =.  i  (trace-xray-image i)
   ::
@@ -2260,14 +2248,11 @@
       [%face *]  $(i xray.data)
     ==
   ::
-  ::  Is `ref`, dereferencing faces, a loop-reference to `target`?
+  ::  Is `ref`, after dereferencing faces, a loop-reference to `target`?
   ::
   ++  is-ref-to
     |=  [target=idx ref=idx]
     ^-  ?
-    ::
-    =.  target  (deref img target) ::  XX
-    =.  ref     (deref img ref)    ::  XX
     ::
     ?:  =(target ref)  %.y
     =/  =data  (need data:(focus ref))
@@ -2278,10 +2263,6 @@
     |=  [target=idx cell=idx]
     ^-  ?
     |-
-    ::
-    =.  target  (deref img target) ::  XX
-    =.  cell    (deref img cell)   ::  XX
-    ::
     =/  =data  (need data:(focus cell))
     ?:  ?=([%face *] data)  $(cell xray.data)
     ?.  ?=([%cell *] data)  %.n
@@ -2338,8 +2319,7 @@
   ++  tree-pattern
     |=  =input=xray
     ^-  (unit pattern)
-    =.  input-xray  (focus idx.input-xray)
-    =/  input-idx=idx  (deref img idx.input-xray)
+    =/  input-idx=idx  idx.input-xray
     =/  indata=data    (need data.input-xray)
     ?.  ?=([%fork *] indata)  ~
     =/  branches  ~(tap in set.indata)
@@ -2351,7 +2331,7 @@
     ?.  (is-nil nil)  ~
     =/  node-data=data  (need data:(focus node))
     ?.  ?=([%cell *] node-data)  ~
-    ?.  (is-pair-of-refs-to input-idx (deref img tail.node-data))
+    ?.  (is-pair-of-refs-to input-idx tail.node-data)
       ~
     =/  elem-data  (need data:(focus head.node-data))
     ?.  ?=([%face *] elem-data)  ~
@@ -2382,15 +2362,12 @@
     ++  match-list
       |=  =input=xray
       ^-  (unit idx)
-      =.  input-xray  (focus idx.input-xray)
-      ::  ~&  ['match-list' idx.input-xray (need data.input-xray)]  ::  TRACE
       =/  d=data  (need data.input-xray)
-      ?+  d        ~  ::  ~&  ['match-list' idx.input-xray 'failure']  ~
+      ?+  d        ~
         [%face *]  (match-list (focus xray.d))
         [%fork *]  (match-list-type-strict input-xray)
         [%cell *]  =/  elem-idx=(unit idx)
                      ?:  ?&((is-nil tail.d) (is-atom-with-aura 'tas' head.d))
-                       ::  ~&  ['match-list' idx.input-xray 'looks-like-path']
                        `head.d
                      (match-list (focus tail.d))
                    ?~  elem-idx                       ~
@@ -2401,15 +2378,12 @@
     ++  match-list-type-strict
       |=  =fork=xray
       ^-  (unit idx)
-      ::  ~&  ['match-list-type-strict' idx.fork-xray (need data.fork-xray)]  ::  TRACE
-      =/  fork=idx     (deref img idx.fork-xray)
+      =/  fork=idx     idx.fork-xray
       =/  indata=data  (need data.fork-xray)
       ::
       ?.  ?=([%fork *] indata)  ~
       =/  branches              ~(tap in set.indata)
       ?.  ?=([* * ~] branches)  ~
-      ::
-      ::  ~&  ['match-list-type-strict' idx.fork-xray 'is-a-2fork']
       ::
       =/  nil   i.branches
       =/  node  i.t.branches
@@ -2417,16 +2391,11 @@
       ?:  (is-nil node)  $(node nil, nil node)
       ?.  (is-nil nil)  ~
       ::
-      ::  ~&  ['match-list-type-strict' idx.fork-xray 'is-a-nil-and-noun']
-      ::
       =/  node-data=data                   (need data:(focus node))
       ?.  ?=([%cell *] node-data)          ~
-      ::  ~&  ['match-list-type-strict' idx.fork-xray 'is-a-nil-and-cell']
       ?.  (is-ref-to fork tail.node-data)  ~
-      ::  ~&  ['match-list-type-strict' idx.fork-xray 'loops']
       =/  elem-data                        (need data:(focus head.node-data))
       ?.  ?=([%face *] elem-data)          ~
-      ::  ~&  ['match-list-type-strict' idx.fork-xray 'has-face. success!']
       ::
       `xray.elem-data
     --
@@ -2456,8 +2425,8 @@
       =/  context-data=data  (need data:(focus context-idx))
       ?.  ?=([%cell *] context-data)  ~
       ::
-      =/  sample-idx=idx  (deref img head.context-data)
-      =.  context-idx     (deref img tail.context-data)
+      =/  sample-idx=idx  head.context-data
+      =.  context-idx     tail.context-data
       `[%gear sample-idx context-idx battery.input-data]
     ::
     ++  match-gate
@@ -2499,8 +2468,6 @@
   ++  xray-pats
     |=  x=xray
     ^-  (unit pattern)
-    ::
-    =.  x  (focus idx.x) :: XX
     ::
     =/  i=idx   idx.x
     =/  t=type  type.x
@@ -2737,10 +2704,12 @@
       =/  keys  ~(tap in ~(key by xrays.st))
       %+  (foldl image idx)  [st keys]
       |=  [st=image i=idx]
-      image:(xray-shape st i)
+      image:(xray-shape st ~ i)
+  ::
+  ::  The trace `tr` is used to prevent infinite forks.
   ::
   ++  xray-shape
-    |=  [st=image i=idx]
+    |=  [st=image tr=(set idx) i=idx]
     ^-  [shape =image]
     ::
     =/  x=xray  (focus-on st i)
@@ -2754,8 +2723,10 @@
         [%atom *]  [%atom st]
         [%cell *]  [%cell st]
         [%core *]  [%cell st]
-        [%fork *]  (fork-shape st set.dat)
-        [%face *]  (xray-shape st xray.dat)
+        [%fork *]  =/  fork-trace  (~(put in set.dat) i)
+                   =.  set.dat  (~(dif in set.dat) fork-trace)
+                   (fork-shape st fork-trace set.dat)
+        [%face *]  (xray-shape st tr xray.dat)
         [%pntr *]  !!
       ==
     ::
@@ -2765,14 +2736,14 @@
     [res st]
   ::
   ++  fork-shape
-    |=  [st=image fork=(set idx)]
+    |=  [st=image tr=(set idx) fork=(set idx)]
     ^-  [shape image]
     ::
     %+  (foldl (pair shape image) idx)
       [[%void st] ~(tap in fork)]
     |=  [acc=(pair shape image) i=idx]
     ^-  [shape image]
-    =^  res  st  (xray-shape q.acc i)
+    =^  res  st  (xray-shape q.acc tr i)
     [(combine p.acc res) st]
   ::
   ++  combine
@@ -3051,11 +3022,11 @@
     ::  Convenience functions for creating junctions
     ::
     =/  misjunct  |=  [st=image x=idx y=idx]
-                  ~&  ['MISJUNCTION' x y]
+                  ::  ~&  ['MISJUNCTION' x y]  ::  XX
                   =/  xx=xray  (focus st(focus x))
                   =/  yy=xray  (focus st(focus y))
-                  ~&  [x '=' (need data.xx) (need role.xx)]
-                  ~&  [y '=' (need data.yy) (need role.yy)]
+                  ::  ~&  [x '=' (need data.xx) (need role.xx)]  ::  XX
+                  ::  ~&  [y '=' (need data.yy) (need role.yy)]  ::  XX
                   ::  ?:  %.y  !!
                   (join-with-role st x y [%misjunction x y])
     ::
