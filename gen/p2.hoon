@@ -195,6 +195,7 @@
    |*  [state=mold elem=mold]
    |=  [[st=state xs=(list elem)] f=$-([state elem] state)]
    ^-  state
+   |-
    ?~  xs  st
    =.  st  (f st i.xs)
    $(xs t.xs, st st)
@@ -1502,27 +1503,21 @@
   ^-  image
   [0 0 ~ ~]
 ::
-++  lookup-xray
+++  focus-on
   |=  [img=image i=idx]
   ^-  xray
   =/  res=(unit xray)  (~(get by xrays.img) i)
   ?~  res  ~&  ['internal error: invalid xray reference' i]  !!
   u.res
 ::
-++  focus-on
-  |=  [img=image i=idx]
-  ^-  xray
-  =/  x=xray  (lookup-xray img i)
-  ?~  data.x  x
-  x
-::
-::  XX This is slow, we shouldn't be doing this all over the place. It's
-::  simple and correct, though.
-::
 ++  deref
   |=  [img=image i=idx]
   ^-  idx
-  idx:(focus-on img i)
+  |-
+  =/  x=xray  (focus-on img i)
+  =/  d=data  (need data.x)
+  ?.  ?=([%pntr *] d)  idx.x
+  $(i xray.d)
 ::
 ++  focus
   |=  img=image
@@ -2272,7 +2267,7 @@
     ^-  ?
     ::
     =.  target  (deref img target) ::  XX
-    =.  ref     (deref img ref) ::  XX
+    =.  ref     (deref img ref)    ::  XX
     ::
     ?:  =(target ref)  %.y
     =/  =data  (need data:(focus ref))
@@ -2285,7 +2280,7 @@
     |-
     ::
     =.  target  (deref img target) ::  XX
-    =.  cell    (deref img cell) ::  XX
+    =.  cell    (deref img cell)   ::  XX
     ::
     =/  =data  (need data:(focus cell))
     ?:  ?=([%face *] data)  $(cell xray.data)
@@ -2582,7 +2577,7 @@
     ?:  (~(has in live.tbl) i)  tbl                     ::  already processed
     ?:  (~(has by refs.tbl) i)  tbl                     ::  already processed
     ::
-    =/  x=xray  (lookup-xray img i)
+    =/  x=xray  (focus-on img i)
     =/  d=data  (need data.x)
     ::
     =.  tbl
@@ -2682,7 +2677,7 @@
   ++  xray-refs
     |=  i=idx
     ^-  (list idx)
-    =/  x=xray  (lookup-xray img i)
+    =/  x=xray  (focus-on img i)
     %-  zing
     ^-  (list (list idx))
     :~  ?~(data.x ~ (data-refs u.data.x))
