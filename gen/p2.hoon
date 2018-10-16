@@ -86,9 +86,10 @@
           [%po ..po]
           [%musk ..musk]
           [%zuse ..zuse]
-          [%full ..full]
       ==
   ::
+  --
+::
 ++  trivial-core-example
   =>  ~
   |%  ++  x  3  --
@@ -108,13 +109,14 @@
   |=  x=@ud
   ^-  [@ud @ud]
   [x x]
---
 ::
 ++  test-example
   :*
     `?`%.y
      %.y
      %.n
+     [%gate gate-example]
+     [%core trivial-core-example]
   ==
 ::
 ++  hoon-example
@@ -250,12 +252,13 @@
   :-  %txt
   ^-  wain
   ::
-  ::  =.  v  !>(xray-the-kernel-example)                    ::  YY
-  ::  =.  v  !>(test-example)                               ::  YY
-  ::  =.  v  !>(xray-the-parser-example)                    ::  YY
-  ::  =.  v  !>(show-example)                               ::  YY
-  ::  =.  v  !>(all-examples)                               ::  YY
-  =.  v  !>(zuse-example)                               ::  YY
+  ::  v  !>(xray-the-kernel-example)                    ::  YY
+  ::  v  !>(test-example)                               ::  YY
+  ::  v  !>(xray-the-parser-example)                    ::  YY
+  ::  v  !>(show-example)                               ::  YY
+  ::  v  !>(all-examples)                               ::  YY
+  ::  v  !>(test-example)                               ::  YY
+  =.  v  !>(type-example)                               ::  YY
   ::
   =/  t=type   p.v
   =/  n=*      q.v
@@ -1624,7 +1627,7 @@
                  (render-const aura.d u.constant.d n)
       [%face *]  (main xray.d n)
       [%pntr *]  !!
-      [%core *]  (core-to-plum garb.d xray.d battery.d)
+      [%core *]  (render-core garb.d xray.d battery.d)
       [%fork *]  (render-fork i n)
     ==
   ::
@@ -1652,14 +1655,13 @@
   ++  render-gate
     |=  [=sample=idx =product=idx]
     ^-  plum
-    %+  hoon-to-plum  999
-    :+  %brts                                           ::  {$brts spec hoon}
+    %-  spec-to-plum  :*
+      %bshp
       (xray-image-to-spec sample-idx img)
-    :+  %kthp
       (xray-image-to-spec product-idx img)
-    [%wing ~['...']]                                    ::  XX TODO
+    ==
   ::
-  ++  core-to-plum
+  ++  render-core
     |=  [=garb xray=idx =(battery idx)]
     ^-  plum
     ::
@@ -1671,7 +1673,8 @@
       |=  [t=term i=idx]
       =.  t  ?:(=('' t) '$' t)
       ^-  [term hoon]
-      [t [%wing ~['...']]]                              ::  XX TODO
+      :-  t
+      [%zpzp ~]
     ::
     =/  batt=(map term tome)
       %-  ~(gas by *(map term tome))
@@ -2538,6 +2541,18 @@
   ::
   +$  table  [live=(set idx) refs=(map idx idx)]
   ::
+  ::  Get all the keys in a map the correspond to a value. Expensive.
+  ::
+  ++  reverse-lookup
+    |*  [key=mold val=mold]
+    |=  [tbl=(map key val) match=val]
+    ^-  (set key)
+    %+  (foldl (set key) (pair key val))
+      [~ ~(tap by tbl)]
+    |=  [acc=(set key) k=key v=val]
+    ?.  =(match v)  acc
+    (~(put in acc) k)
+  ::
   ++  build-table
     |=  [tbl=table i=idx]
     ^-  table
@@ -2586,15 +2601,39 @@
     ?.  (~(has in live.tbl) i)  acc                     ::  Drop unused xrays
     (~(put by acc) i (fix-xray tbl x))
   ::
-  ::  XX Do roles too (but this runs before role annotation for now)
+  ::  All the xrays which are simply references to `i`.
+  ::
+  ::  XX Just reverse the `refs.tbl` map first and store it in `tbl`
+  ::  as another field.  This is probably too slow.
+  ::
+  ++  points-to
+    |=  [tbl=table i=idx]  ^-  (set idx)
+    ((reverse-lookup idx idx) refs.tbl i)
+  ::
+  ::  There is hint data on the %pntr xrays. Find all of them and collect
+  ::  the hints into one place.
+  ::
+  ++  collect-hints
+    |=  [tbl=table target=xray]  ^-  xray
+    %+  (foldl xray idx)
+      [target ~(tap in (points-to tbl idx.target))]
+    |=  [acc=xray ref=idx]
+    =/  ref-xray=xray  (focus-on img ref)
+    =/  helps    ^-  (set help)    (~(uni in helps.acc) helps.ref-xray)
+    =/  studs    ^-  (set stud)    studs.acc  ::  ^-  (set stud)    (~(uni in studs.acc) studs.ref-xray)
+    =/  recipes  ^-  (set recipe)  (~(uni in recipes.acc) recipes.ref-xray)
+    acc(helps helps, studs studs, recipes recipes)
+  ::
+  ::  XX `roles` contains references too, but this runs before role annotation.
   ::
   ++  fix-xray
     |=  [tbl=table x=xray]  ^-  xray
+    =.  x  (collect-hints tbl x)
     %=  x
       data     `(fix-data tbl (need data.x))
       recipes  %-  ~(gas in *(set recipe))
                %+  turn  ~(tap in recipes.x)
-              |=  r=recipe  (fix-recipe tbl r)
+               |=  r=recipe  (fix-recipe tbl r)
     ==
   ::
   ++  fix-data
@@ -3373,14 +3412,10 @@
              ?^(face.d spec [%bsts face.d spec])
       %fork  =/  =role  (need role.x)
              |^  ?+  role
-                     ~&  %unexpected-fork-role
-                     ~&  [d role choices]
-                     !!
+                     ~&  [%unexpected-fork-role idx.x d role choices]
+                     [%bswt choices]
                    [%option *]       [%bswt choices]
                    [%union *]        [%bscn choices]
-                   %wide             [%bswt choices] :: XX bskt?
-                   %cell             [%bswt choices] :: XX bskt?
-                   %noun             [%bswt choices]
                    [%misjunction *]  [%bswt choices]
                    [%junction *]     [%bsvt ^$(i flat.role) ^$(i deep.role)]
                    [%conjunction *]  [%bskt ^$(i wide.role) ^$(i tall.role)]
