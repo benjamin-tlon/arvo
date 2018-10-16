@@ -10,9 +10,6 @@
 ::
 ::  # Cleanup Work
 ::
-::  - XX There's no principled way to ignore the context of cores. That's
-::    the next task.
-::
 ::  - XX `hint` information gets deleted during gc. The problem is that
 ::    if we write the metadata to a node that is also a pointer (a %hold
 ::    for example), it will be deleted. We can't just "write it to the right
@@ -75,6 +72,9 @@
 ++  xray-the-kernel-example
   |%  ++  x  ~  --
 ::
+++  zuse-example
+  [%zuse ..zuse]
+::
 ++  cores-example
   |^  :*
           [%core trivial-core-example]
@@ -87,7 +87,6 @@
           [%musk ..musk]
           [%zuse ..zuse]
           [%full ..full]
-          [%zuse ..zuse]
       ==
   ::
 ++  trivial-core-example
@@ -205,30 +204,6 @@
    =.  st  (f st i.xs)
    $(xs t.xs, st st)
 ::
-++  is-kernel
-  |=  ty=type
-  ^-  ?
-  ::
-  ?.  ?=([%core *] ty)  %.n
-  ::
-  =/  arms=(list term)  (battery-arms q.r.q.ty)
-  =/  armset=(set term)  (~(gas in *(set term)) arms)
-  ::
-  ?:  =(-:!>(..zuse) ty)
-    ::  ~&  'is-zuse'
-    %.y
-  ::
-  ?:  (~(has in armset) 'sign-arvo')
-    ::  ~&  'has sign-arvo'
-    %.y
-  ::
-  ?:  (~(has in armset) 'add')
-    ::  ~&  'has add'
-    %.y
-  ::
-  %.n
-::
-::
 ++  battery-arms
   |=  =(battery hoon)
   ^-  (list term)
@@ -275,17 +250,18 @@
   :-  %txt
   ^-  wain
   ::
-  =.  v  !>(all-examples)                               ::  YY
-  =.  v  !>(show-example)                               ::  YY
-  =.  v  !>(xray-the-kernel-example)                    ::  YY
-  =.  v  !>(xray-the-parser-example)                    ::  YY
-  =.  v  !>(test-example)                               ::  YY
+  ::  =.  v  !>(xray-the-kernel-example)                    ::  YY
+  ::  =.  v  !>(test-example)                               ::  YY
+  ::  =.  v  !>(xray-the-parser-example)                    ::  YY
+  ::  =.  v  !>(show-example)                               ::  YY
+  ::  =.  v  !>(all-examples)                               ::  YY
+  =.  v  !>(zuse-example)                               ::  YY
   ::
   =/  t=type   p.v
   =/  n=*      q.v
   ::
   ~&  %start-xraying-type
-  =/  i=image  ((xray-type 999.999 999.999) t)
+  =/  i=image  ((xray-type 1) t)
   ~&  %done-xraying-type
   ::
   ::  =.  i  (trace-xray-image i)
@@ -301,6 +277,7 @@
   ~&  %done-with-loop-detection
   ::
   ::  =.  i  (trace-xray-image i)
+  ::  ?:  %.y  !!
   ::
   ~&  %start-pattern-annotation
   =.  i  (decorate-xray-image-with-patterns i)
@@ -1913,7 +1890,7 @@
   --
 ::
 ++  xray-type
-  |=  [max-depth=@ max-size=@]
+  |=  [core-depth=@ud]
   |^  |=  ty=type
       ^-  image
       =/  st=state  [empty-image 0 ~]
@@ -1959,14 +1936,6 @@
                     ~['...']
                     (scag 13 trace.st)
                 ==
-    ::
-    ::  ~&  [depth.st res ?@(ty ty -:ty) trace]  XX  TRACE
-    ::
-    ::
-    ::  Track recursion depth.
-    ::
-    %-  |=([i=idx s=state] [i s(depth (dec depth.s))])
-    =.  depth.st  +(depth.st)
     ::
     ^-  [idx state]
     ::
@@ -2131,6 +2100,8 @@
     =.  trace.st  [arm-name trace.st]
     =.  r.p.coil  %gold
     =^  i=idx  st
+      ?:  =(0 core-depth)  (noun-xray st)
+      =.  core-depth       (dec core-depth)
       ?:  =(%wet q.p.coil)  (noun-xray st)
       (main [%hold [%core payload-type coil] q.x] st)
     =.  trace.st  +:trace.st
@@ -2732,11 +2703,16 @@
   |=  [img=image i=idx]
   ^-  (set idx)
   ::
+  :: ~&  ['ROOT' i]
   =/  acc=(set idx)  ~
+  =/  stk=(set idx)  ~
   ::
   |-  ^-  (set idx)
   ::
   ?:  (~(has in acc) i)  acc
+  ?:  (~(has in stk) i)  acc
+  ::
+  =.  stk  (~(put in stk) i)
   ::
   =/  x=xray  (focus-on img i)
   =/  d=data  (need data.x)
@@ -2747,12 +2723,12 @@
     [%atom *]  (~(put in acc) i)
     [%cell *]  (~(put in acc) i)
     [%core *]  (~(put in acc) i)
-    [%face *]  ^$(i xray.d)
-    [%pntr *]  ^$(i xray.d)
+    [%face *]  $(i xray.d)
+    [%pntr *]  $(i xray.d)
     [%fork *]  %+  (foldl (set idx) idx)
                  [acc ~(tap in set.d)]
-               |=  [acc=(set idx) br=idx]
-               ^$(acc acc, i br)
+               |=  [=(set idx) =idx]
+               ^$(acc set, i idx)
   ==
 ::
 ++  decorate-xray-image-with-shapes
@@ -2819,10 +2795,10 @@
       ^-  image
       =/  keys=(list idx)  ~(tap in ~(key by xrays.init))
       ::
-      =.  keys                                          ::  XX debugging only
-        %+  sort  keys
-        |=  [x=idx y=idx]
-        (lth x y)
+      ::  =.  keys                                          ::  XX debugging only
+      ::    %+  sort  keys
+      ::    |=  [x=idx y=idx]
+      ::    (lth x y)
       ::
       =/  result
         %+  (foldl image idx)  [init keys]
@@ -2861,9 +2837,6 @@
   ::
   ::  Determines the role of an atom xray.
   ::
-  ::  This is trivial enough that it should probably be done inline,
-  ::  but it's a nice first example of what the *-role arms do.
-  ::
   ++  atom-role
     |=  =constant=(unit @)
     ^-  role
@@ -2881,7 +2854,6 @@
   ++  fork-role
     |=  [st=image stack=(set idx) fork=(set idx)]
     ^-  [role image]
-    ::   =.  fork  (~(dif in fork) stack)
     (xray-role (fork-xray st stack fork) stack)
   ::
   ::  Calculate the role of a %cell xray.
@@ -2893,9 +2865,8 @@
     =/  =shape  (need shape.x)
     =/  =data   (need data.x)
    ::
-    =/  const
-      ?.  ?=([%atom *] data)  ~
-      constant.data
+    =/  const  ?.  ?=([%atom *] data)  ~
+               constant.data
     ::
     ?:  =(shape %cell)  %wide
     ?^  const           [%instance u.const]
@@ -2917,7 +2888,7 @@
     =/  old  role.x
     ?^  old  [u.old st]                    ::  Don't repeat work.
     ::
-    ~&  idx.x  ::   shape.x (need data.x) %trace stack]
+    :: ~&  idx.x  ::   shape.x (need data.x) %trace stack]
     ::
     =/  dat=data  (need data.x)
     ::
@@ -2934,7 +2905,7 @@
         [%pntr *]  !!
         [%fork *]  =.  stack    (~(put in stack) idx.x)
                    =.  set.dat  (~(dif in set.dat) stack)
-                   (fork-role st stack set.dat)
+                   (fork-role st stack (xray-branches st idx.x))
       ==
     ::
     =.  xrays.st  (~(put by xrays.st) idx.x x(role `res))
@@ -2963,16 +2934,14 @@
   ++  merge
     |=  [st=image stack=(set idx) x=idx y=idx]
     ^-  image
-    ~&  ['merge' x y]
+    :: ~&  ['merge' x y]
     =/  this=xray  (focus st(focus x))
     =/  that=xray  (focus st(focus y))
-    =^  this-role  st  (xray-role st(focus x) stack)    ::  Is this needed?
     =.  stack  (~(put in stack) x)
-    =^  that-role  st  (xray-role st(focus y) stack)    ::  Is this needed?
     =.  stack  (~(put in stack) y)
     ?:  =(%void type.this)  st(focus idx.that)
     ?:  =(%void type.that)  st(focus idx.this)
-    (combine st(focus idx.this) stack idx.that)
+    (combine st stack idx.this idx.that)
   ::
   ::  `combine` is complicated. Let's introduce it's helper-functions first:
   ::
@@ -3020,7 +2989,7 @@
   ++  collate-union
     |=  [st=image stack=(set idx) thick=(map atom idx) thin=(map atom idx)]
     ^-  [(map atom idx) image]
-    ~&  'collate-union'
+    :: ~&  'collate-union'
     =/  list=(list (pair atom idx))  ~(tap by thin)
     |-
     ^-  [(map atom idx) image]
@@ -3037,7 +3006,7 @@
   ++  collate-option
     |=  [st=image stack=(set idx) thick=(map atom idx) thin=(map atom idx)]
     ^-  [(map atom idx) image]
-    ~&  'collate-option'
+    :: ~&  'collate-option'
     =/  list=(list (pair atom idx))  ~(tap by thin)
     |-
     ^-  [(map atom idx) image]
@@ -3058,12 +3027,12 @@
     |=  [st=image stack=(set idx) =atom =x=idx =y=idx]
     ^-  image
     ::
-    ~&  ['merge-instances' atom x-idx y-idx]
+    :: ~&  ['merge-instances' atom x-idx y-idx]
     ::
     =/  x-xray=xray    (focus-on st x-idx)
     =/  x-data=data    (need data.x-xray)
     |-  ^-  image
-    ~&  ['x' x-idx x-data]
+    :: ~&  ['x' x-idx x-data]
     ?:  ?=([%face *] x-data)  $(x-data (need data:(focus-on st xray.x-data)))
     ?>  ?=([%cell *] x-data)
     =/  x-tail=idx     tail.x-data
@@ -3071,7 +3040,7 @@
     =/  y-xray=xray     (focus-on st y-idx)
     =/  y-data=data     (need data.y-xray)
     |-  ^-  image
-    ~&  ['y' y-idx y-data]
+    :: ~&  ['y' y-idx y-data]
     ?:  ?=([%face *] y-data)  $(y-data (need data:(focus-on st xray.y-data)))
     ?>  ?=([%cell *] y-data)
     =/  y-tail=idx      tail.y-data
@@ -3095,21 +3064,14 @@
     st(focus idx.res-xray)
   ::
   ++  combine
-    |=  [st=image stack=(set idx) target=idx]
+    |=  [st=image stack=(set idx) this=idx that=idx]
     ^-  image
     ::
-    ::  First let's do some setup. Get indicies for this, that, and the
-    ::  joined type.
-    ::
-    =/  this      focus.st
-    =/  that      target
-    ::
-    |-
-    ^-  image
+    |-  ^-  image
     ::
     ?:  =(this that)  st(focus this)
     ::
-    ~&  ['combine' this that]
+    :: ~&  ['combine' this that]
 
     =^  this-role  st  (xray-role st(focus this) stack)
     =^  that-role  st  (xray-role st(focus that) stack)
@@ -3340,7 +3302,7 @@
   %-  decorate-xray-image-with-loops
   %-  gc-image
   %-  trace-xray-image
-  %-  (xray-type 999.999 999.999)
+  %-  (xray-type 1)
   t
   ::
 ::
