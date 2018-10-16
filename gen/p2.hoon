@@ -277,9 +277,9 @@
   ::
   =.  v  !>(all-examples)                               ::  YY
   =.  v  !>(show-example)                               ::  YY
-  =.  v  !>(test-example)                               ::  YY
   =.  v  !>(xray-the-kernel-example)                    ::  YY
   =.  v  !>(xray-the-parser-example)                    ::  YY
+  =.  v  !>(test-example)                               ::  YY
   ::
   =/  t=type   p.v
   =/  n=*      q.v
@@ -313,17 +313,6 @@
   ~&  %done-with-shape-annotation
   ::
   ::  =.  i  (trace-xray-image i)
-  ~&  (~(got by xrays.i) 27)
-  ~&  (~(got by xrays.i) 27.165)
-  ::
-  ~&  (~(got by xrays.i) 2.862)
-  ~&  (~(got by xrays.i) 7.434)
-  ~&  (~(got by xrays.i) 12.845)
-  ~&  (~(got by xrays.i) 27.136)
-  ~&  (~(got by xrays.i) 27.146)
-  ~&  (~(got by xrays.i) 42.196)
-  ::
-  ?:  %.y  !!
   ::
   ~&  %start-role-annotation
   =.  i  (decorate-xray-image-with-roles i)
@@ -1462,7 +1451,6 @@
   $:  =idx
       =type
       data=(unit data)
-      ::  fork=(unit (pair idx idx))
       role=(unit role)
       pats=(unit pattern)
       studs=(set stud)
@@ -2739,6 +2727,33 @@
       [%fork *]  ~(tap in set.d)
     ==
   --
+::
+++  xray-branches
+  |=  [img=image i=idx]
+  ^-  (set idx)
+  ::
+  =/  acc=(set idx)  ~
+  ::
+  |-  ^-  (set idx)
+  ::
+  ?:  (~(has in acc) i)  acc
+  ::
+  =/  x=xray  (focus-on img i)
+  =/  d=data  (need data.x)
+  ::
+  ?-  d
+    %noun      (~(put in acc) i)
+    %void      (~(put in acc) i)
+    [%atom *]  (~(put in acc) i)
+    [%cell *]  (~(put in acc) i)
+    [%core *]  (~(put in acc) i)
+    [%face *]  ^$(i xray.d)
+    [%pntr *]  ^$(i xray.d)
+    [%fork *]  %+  (foldl (set idx) idx)
+                 [acc ~(tap in set.d)]
+               |=  [acc=(set idx) br=idx]
+               ^$(acc acc, i br)
+  ==
 ::
 ++  decorate-xray-image-with-shapes
   |^  |=  st=image
