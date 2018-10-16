@@ -10,8 +10,8 @@
 ::
 ::  # Cleanup Work
 ::
-::  - XX role annotation gets caught up in an infinite fork when
-::    processing the kernel.
+::  - XX There's no principled way to ignore the context of cores. That's
+::    the next task.
 ::
 ::  - XX `hint` information gets deleted during gc. The problem is that
 ::    if we write the metadata to a node that is also a pointer (a %hold
@@ -19,7 +19,7 @@
 ::    place, since we don't know what this is yet. That's the whole reason
 ::    why this bullshit was needed in the first place.
 ::
-::  - XX The `manx` data type has no represent raw text.
+::  - XX The `manx` data type has no way to represent raw text.
 ::
 ::    There must be some undocumented convention for how to do
 ::    this. Figure out what it is and implement it.
@@ -29,7 +29,11 @@
 ::    If it turns out to be a performance bottleneck, there's lots of
 ::    low-hanging fruit there.
 ::
+::  - XX Try to find a way to drop the `%pntr` constructor from `%data`.
+::
 ::  - XX Lists of nil values are not recognized as lists. Why?
+::
+::  - XX The whole `focus` field in `image` is confusing. Just drop it.
 ::
 ::  - XX The pattern matching code has a lot of repeated logic.
 ::
@@ -37,6 +41,7 @@
 ::    going to pan out, but now it really needs to be refactored.
 ::
 /?  310
+/+  libhoon
 :-  %say
 !:
 ::
@@ -50,10 +55,22 @@
 ::
 +|  %examples
 ::
-
+++  all-examples
+  :*
+    [%show-example show-example]
+    [%type-example type-example]
+    [%cores-example cores-example]
+    [%xray-the-kernel-example xray-the-kernel-example]
+    %eof
+  ==
+::
 ++  type-example
   ^-  type
   -:!>(`(unit (list cord))`~)
+::
+++  xray-the-parser-example
+  =>  ..musk
+  |%  ++  x  ~  --
 ::
 ++  xray-the-kernel-example
   |%  ++  x  ~  --
@@ -96,9 +113,9 @@
 ::
 ++  test-example
   :*
-      [%type -:!>(`(unit (list tape))`~)]
-      [%zeros `(list @)`~[0 0]]
-      `?`%.y
+    `?`%.y
+     %.y
+     %.n
   ==
 ::
 ++  hoon-example
@@ -258,7 +275,11 @@
   :-  %txt
   ^-  wain
   ::
-  =.  v  !>(xray-the-kernel-example)  ::  YY
+  =.  v  !>(all-examples)                               ::  YY
+  =.  v  !>(show-example)                               ::  YY
+  =.  v  !>(test-example)                               ::  YY
+  =.  v  !>(xray-the-kernel-example)                    ::  YY
+  =.  v  !>(xray-the-parser-example)                    ::  YY
   ::
   =/  t=type   p.v
   =/  n=*      q.v
@@ -266,6 +287,8 @@
   ~&  %start-xraying-type
   =/  i=image  ((xray-type 999.999 999.999) t)
   ~&  %done-xraying-type
+  ::
+  ::  =.  i  (trace-xray-image i)
   ::
   ~&  %start-xray-gc
   =.  i  (gc-image i)
@@ -290,6 +313,17 @@
   ~&  %done-with-shape-annotation
   ::
   ::  =.  i  (trace-xray-image i)
+  ~&  (~(got by xrays.i) 27)
+  ~&  (~(got by xrays.i) 27.165)
+  ::
+  ~&  (~(got by xrays.i) 2.862)
+  ~&  (~(got by xrays.i) 7.434)
+  ~&  (~(got by xrays.i) 12.845)
+  ~&  (~(got by xrays.i) 27.136)
+  ~&  (~(got by xrays.i) 27.146)
+  ~&  (~(got by xrays.i) 42.196)
+  ::
+  ?:  %.y  !!
   ::
   ~&  %start-role-annotation
   =.  i  (decorate-xray-image-with-roles i)
@@ -1428,7 +1462,7 @@
   $:  =idx
       =type
       data=(unit data)
-      fork=(unit (pair idx idx))
+      ::  fork=(unit (pair idx idx))
       role=(unit role)
       pats=(unit pattern)
       studs=(set stud)
@@ -1459,7 +1493,7 @@
                     =/  newidx  next.img
                     =.  next.img  +(next.img)
                     [newidx img]
-  =/  x=xray  [idx ty d ~ ~ ~ ~ ~ ~ ~ ~]
+  =/  x=xray  [idx ty d ~ ~ ~ ~ ~ ~ ~]
   =.  xrays.img     (~(put by xrays.img) idx x)
   =.  type-map.img  (~(put by type-map.img) ty idx)
   img(focus idx)
@@ -1642,7 +1676,7 @@
       [%option *]
         =/  pairs=(list (pair atom idx))  ~(tap by map.r)
         |-
-        ?~  pairs  !!
+        ?~  pairs  '%invalid-option'
         ?.  =(p.i.pairs n)  $(pairs t.pairs)
         (main q.i.pairs n)
       [%junction *]     '%junction'                     ::  XX TODO
@@ -2091,6 +2125,16 @@
   +*  chap  [item]  (pair term (pair what (map term item)))
   +*  arm   [item]  (pair term item)
   ::
+  ++  noun-xray
+    |=  st=state
+    ^-  [idx state]
+    =^  i  st   (with-new-xray st %noun)
+    =.  img.st  (set-xray-data img.st i %noun)
+    [i st]
+  ::
+  ::  In general, there's no way to determine the type of an arm of a
+  ::  wet  core, so we just assign all wet arms the type `%noun`.
+  ::
   ++  xray-arm
     |=  [st=state =payload=type =coil x=(arm hoon)]
     ^-  [(arm idx) state]
@@ -2098,9 +2142,11 @@
     =/  arm-name  ?:(=(p.x '') '$' p.x)
     =.  trace.st  [arm-name trace.st]
     =.  r.p.coil  %gold
-    =.  q.x
-      ?.  =(%wet q.p.coil)  q.x
-      [%rock p=%tas q='wet-arm']
+    =^  i=idx  st
+      ?:  =(%wet q.p.coil)  (noun-xray st)
+      (main [%hold [%core payload-type coil] q.x] st)
+    =.  trace.st  +:trace.st
+    [x(q i) st]
 
     ::  ~&  'XRAY-ARM'
     ::  ~&  'hoon'
@@ -2109,10 +2155,6 @@
     ::  ~&  ~(tall plume (simple-type-to-plum payload-type 10))
     ::  ~&  'coil-context'
     ::  ~&  ~(tall plume (simple-type-to-plum q.coil 10))
-    =/  thunk  [%hold [%core payload-type coil] q.x]
-    =^  i=idx  st  (main thunk st)
-    =.  trace.st  +:trace.st
-    [x(q i) st]
   ::
   ::  Analyze a core.
   ::
@@ -2723,8 +2765,8 @@
         [%atom *]  [%atom st]
         [%cell *]  [%cell st]
         [%core *]  [%cell st]
-        [%fork *]  =/  fork-trace  (~(put in set.dat) i)
-                   =.  set.dat  (~(dif in set.dat) fork-trace)
+        [%fork *]  =/  fork-trace  (~(put in tr) i)
+                   =.  set.dat  (~(dif in set.dat) tr)
                    (fork-shape st fork-trace set.dat)
         [%face *]  (xray-shape st tr xray.dat)
         [%pntr *]  !!
@@ -2760,14 +2802,20 @@
 ++  decorate-xray-image-with-roles
   |^  |=  init=image
       ^-  image
+      =/  keys=(list idx)  ~(tap in ~(key by xrays.init))
+      ::
+      =.  keys                                          ::  XX debugging only
+        %+  sort  keys
+        |=  [x=idx y=idx]
+        (lth x y)
+      ::
       =/  result
-        =/  keys=(list idx)  ~(tap in ~(key by xrays.init))
         %+  (foldl image idx)  [init keys]
-        |=  [acc=image =idx]
+        |=  [st=image =idx]
         ^-  image
-        =.  focus.acc  idx
-        =^  =role  acc  (xray-role acc)
-        acc
+        =.  focus.st  idx
+        =^  =role  st  (xray-role st ~)
+        st
       result(focus focus.init)
   ::
   ::  Produce an image focused on the xray for a given type. If the
@@ -2782,7 +2830,7 @@
     =/  old=(unit idx)  (~(get by type-map.st) ty)
     ?^  old  st(focus u.old)
     =/  idx          next.st
-    =/  res=xray     [idx ty `d ~ ~ ~ ~ ~ ~ ~ `%.n]
+    =/  res=xray     [idx ty `d ~ ~ ~ ~ ~ ~ `%.n]
     =.  next.st      +(idx)
     =.  xrays.st     (~(put by xrays.st) idx.res res)
     =.  type-map.st  (~(put by type-map.st) type.res idx.res)
@@ -2802,10 +2850,10 @@
   ::  but it's a nice first example of what the *-role arms do.
   ::
   ++  atom-role
-    |=  [st=image =constant=(unit @)]
-    ^-  [role image]
-    ?~  constant-unit  [%atom st]
-    [[%constant u.constant-unit] st]
+    |=  =constant=(unit @)
+    ^-  role
+    ?~  constant-unit  %atom
+    [%constant u.constant-unit]
   ::
   ::  Determine the role of %fork type.
   ::
@@ -2813,29 +2861,27 @@
   ::  into `role-xray` to get it's type.
   ::
   ::  The focused xray of the resulting image *will* be decorated with
-  ::  role information, the role is just return for convenience.
+  ::  role information, the role is just returned for convenience.
   ::
   ++  fork-role
-    |=  [st=image fork=(set idx)]
+    |=  [st=image stack=(set idx) fork=(set idx)]
     ^-  [role image]
-    (xray-role (fork-xray st fork))
+    ::   =.  fork  (~(dif in fork) stack)
+    (xray-role (fork-xray st stack fork) stack)
   ::
   ::  Calculate the role of a %cell xray.
   ::
   ++  cell-role
-    |=  [st=image head=idx]
-    ^-  [role image]
+    |=  x=xray
+    ^-  role
    ::
-    =/  x=xray  (focus st(focus head))
     =/  =shape  (need shape.x)
     =/  =data   (need data.x)
    ::
-    =/  is-wide  =(shape %cell)
+    =/  const
+      ?.  ?=([%atom *] data)  ~
+      constant.data
     ::
-    =/  const  ?.  ?=([%atom *] data)  ~
-               constant.data
-    ::
-    :_  st
     ?:  =(shape %cell)  %wide
     ?^  const           [%instance u.const]
     %cell
@@ -2849,46 +2895,48 @@
   ::  role information, the role is just return for convenience.
   ::
   ++  xray-role
-    |=  st=image
+    |=  [st=image stack=(set idx)]
     ^-  [role image]
     =/  x=xray  (focus st)
+    ::
     =/  old  role.x
-    ?^  old  [u.old st]
+    ?^  old  [u.old st]                    ::  Don't repeat work.
     ::
-    ::  Hack to prevent infinite loops.
+    ~&  idx.x  ::   shape.x (need data.x) %trace stack]
     ::
-    ::  =.  role.x  `%thunk
-    ::  =.  xrays.st  (~(put by xrays.st) idx.x x)
+    =/  dat=data  (need data.x)
     ::
-    %-  |=  [res=role st=image]
-        =.  xrays.st  (~(put by xrays.st) idx.x x(role `res))
-        =.  focus.st  idx.x
-        [res st]
-    =/  dat  (need data.x)
-    ::  ~&  ['xray-role' focus.st]
-    ::  ~&  ['data' dat]
-    ?-  dat
-      %noun      [%noun st]
-      %void      [%void st]
-      [%atom *]  (atom-role st constant.dat)
-      [%cell *]  (cell-role st head.dat)
-      [%core *]  [%cell st]
-      [%face *]  (xray-role st(focus xray.dat))        ::  same as nested role
-      [%pntr *]  !!
-      [%fork *]  (fork-role st set.dat)
-    ==
+    =^  res=role  st
+      ?:  ?=([~ %void] shape.x)  [%void st]
+      ?:  ?=([~ %noun] shape.x)  [%noun st]
+      ?-  dat
+        %noun      :_  st  %noun
+        %void      :_  st  %void
+        [%atom *]  :_  st  (atom-role constant.dat)
+        [%cell *]  :_  st  (cell-role (focus-on st head.dat))
+        [%core *]  :_  st  %cell
+        [%face *]  (xray-role st(focus xray.dat) stack)
+        [%pntr *]  !!
+        [%fork *]  =.  stack    (~(put in stack) idx.x)
+                   =.  set.dat  (~(dif in set.dat) stack)
+                   (fork-role st stack set.dat)
+      ==
+    ::
+    =.  xrays.st  (~(put by xrays.st) idx.x x(role `res))
+    =.  focus.st  idx.x
+    [res st]
   ::
   ::  Create a new xray from a union type.  Returns an image focused
   ::  on the result.
   ::
   ++  fork-xray
-    |=  [st=image fork=(set idx)]
+    |=  [st=image stack=(set idx) fork=(set idx)]
     ^-  image
     =.  st  (void-xray st)
     %+  (foldl image idx)
       [st ~(tap in fork)]
     |=  [=image =idx]
-    (merge image focus.image idx)
+    (merge image stack focus.image idx)
   ::
   ::  Combine two xrays in an image (the one in focus and the one
   ::  referenced by `i`, producing a new image focused on the resulting
@@ -2898,31 +2946,28 @@
   ::  them.
   ::
   ++  merge
-    |=  [st=image x=idx y=idx]
+    |=  [st=image stack=(set idx) x=idx y=idx]
     ^-  image
+    ~&  ['merge' x y]
     =/  this=xray  (focus st(focus x))
     =/  that=xray  (focus st(focus y))
-    =^  this-role  st  (xray-role st(focus x))        ::  Is this needed?
-    =^  that-role  st  (xray-role st(focus y))        ::  Is this needed?
+    =^  this-role  st  (xray-role st(focus x) stack)    ::  Is this needed?
+    =.  stack  (~(put in stack) x)
+    =^  that-role  st  (xray-role st(focus y) stack)    ::  Is this needed?
+    =.  stack  (~(put in stack) y)
     ?:  =(%void type.this)  st(focus idx.that)
     ?:  =(%void type.that)  st(focus idx.this)
-    (combine st(focus idx.this) idx.that)
+    (combine st(focus idx.this) stack idx.that)
   ::
   ::  `combine` is complicated. Let's introduce it's helper-functions first:
   ::
   ::  -simple-forks: produce a simple fork set if any.
   ::
-  ::  XX In the old code, we didn't produce one for loop entry points. Why
-  ::  was that? Do we need to reintroduce that logic?
-  ::
-  ::  XX I did! I don't remember why, though. I should probably delete
-  ::  this logic and test.
-  ::
   ++  simple-forks
     |=  xi=image
     ^-  (unit (set idx))
     =/  x=xray  (focus xi)
-    ?:  (need loop.x)  ~
+    ::  ?:  (need loop.x)  ~
     =/  d=data  (need data.x)
     ?.  ?=([%fork *] d)  ~
     `set.d
@@ -2955,27 +3000,87 @@
                    (~(uni in u.these) u.those)
     (with-new-xray st ty dat)
   ::
-  ::  =collate: merge option maps
+  ::  =collate-union: merge union maps
   ::
-  ++  collate
-    |=  [st=image thick=(map atom idx) thin=(map atom idx)]
+  ++  collate-union
+    |=  [st=image stack=(set idx) thick=(map atom idx) thin=(map atom idx)]
     ^-  [(map atom idx) image]
-    ::  ~&  'collate'
-    =/  list  ~(tap by thin)
+    ~&  'collate-union'
+    =/  list=(list (pair atom idx))  ~(tap by thin)
     |-
     ^-  [(map atom idx) image]
     ?~  list  [thick st]
     =/  item=(unit idx)  (~(get by thick) p.i.list)
     =^  merged=idx  st  ?~  item  [q.i.list st]
-                        =.  st  (merge st u.item q.i.list)
+                        =.  st  (merge-instances st stack p.i.list u.item q.i.list)
                         [focus.st st]
     =/  new-thick  (~(put by thick) p.i.list merged)
     $(list t.list, thick new-thick)
   ::
-  ::  Huge amounts of nasty-ass logic that is probably wrong.
+  ::  =collate-option: merge option maps
+  ::
+  ++  collate-option
+    |=  [st=image stack=(set idx) thick=(map atom idx) thin=(map atom idx)]
+    ^-  [(map atom idx) image]
+    ~&  'collate-option'
+    =/  list=(list (pair atom idx))  ~(tap by thin)
+    |-
+    ^-  [(map atom idx) image]
+    ?~  list  [thick st]
+    =/  item=(unit idx)  (~(get by thick) p.i.list)
+    =^  merged=idx  st  ?~  item  [q.i.list st]
+                        =.  st  (merge st stack u.item q.i.list)
+                        [focus.st st]
+    =/  new-thick  (~(put by thick) p.i.list merged)
+    $(list t.list, thick new-thick)
+  ::
+  ::  We want to merge two cell-types that have the same head; gross.
+  ::
+  ::  First, get both tail types, merge them, produce a new cell type
+  ::  with the merged tail.
+  ::
+  ++  merge-instances
+    |=  [st=image stack=(set idx) =atom =x=idx =y=idx]
+    ^-  image
+    ::
+    ~&  ['merge-instances' atom x-idx y-idx]
+    ::
+    =/  x-xray=xray    (focus-on st x-idx)
+    =/  x-data=data    (need data.x-xray)
+    |-  ^-  image
+    ~&  ['x' x-idx x-data]
+    ?:  ?=([%face *] x-data)  $(x-data (need data:(focus-on st xray.x-data)))
+    ?>  ?=([%cell *] x-data)
+    =/  x-tail=idx     tail.x-data
+    ::
+    =/  y-xray=xray     (focus-on st y-idx)
+    =/  y-data=data     (need data.y-xray)
+    |-  ^-  image
+    ~&  ['y' y-idx y-data]
+    ?:  ?=([%face *] y-data)  $(y-data (need data:(focus-on st xray.y-data)))
+    ?>  ?=([%cell *] y-data)
+    =/  y-tail=idx      tail.y-data
+    ::
+    =/  head-xray=xray  (focus-on st head.x-data)
+    ::
+    =.  st               (merge st stack x-tail y-tail)
+    =/  merged-tail=idx  focus.st
+    =/  tail-xray=xray   (focus-on st merged-tail)
+    ::
+    =/  res-ty=type    [%cell type.head-xray type.tail-xray]
+    =/  res-data=data  [%cell idx.head-xray idx.tail-xray]
+    =.  st             (with-new-xray st res-ty res-data)
+    =/  res-idx        focus.st
+    ::
+    =/  res-xray=xray   (focus-on st res-idx)
+    =.  shape.res-xray  `%cell
+    =.  role.res-xray   `[%instance atom]
+    =.  xrays.st        (~(put by xrays.st) res-idx res-xray)
+    ::
+    st(focus idx.res-xray)
   ::
   ++  combine
-    |=  [st=image target=idx]
+    |=  [st=image stack=(set idx) target=idx]
     ^-  image
     ::
     ::  First let's do some setup. Get indicies for this, that, and the
@@ -2987,12 +3092,12 @@
     |-
     ^-  image
     ::
-    ::  ~&  ['combine' focus.st target]
+    ?:  =(this that)  st(focus this)
     ::
-    ?:  =(this that)  st
+    ~&  ['combine' this that]
 
-    =^  this-role  st  (xray-role st(focus this))
-    =^  that-role  st  (xray-role st(focus that))
+    =^  this-role  st  (xray-role st(focus this) stack)
+    =^  that-role  st  (xray-role st(focus that) stack)
     ::
     ::  Create the join of two xrays with the specified `role`.
     ::
@@ -3041,7 +3146,7 @@
     =/  cell-junct
       |=  [st=image cell=idx [flat=idx deep=idx]]
       ^-  image
-      =.  st  (merge st cell deep)
+      =.  st  (merge st stack cell deep)
       =/  deep-merged  focus.st
       (junct st flat deep-merged)
     ::
@@ -3050,22 +3155,22 @@
     =/  atom-junct
       |=  [st=image atom=idx [flat=idx deep=idx]]
       ^-  image
-      =.  st  (merge st atom flat)
+      =.  st  (merge st stack atom flat)
       =/  flat-merged  focus.st
       (junct st flat-merged deep)
     ::
     =/  tall-conjunct
       |=  [st=image out-tall=idx [wide=idx in-tall=idx]]
       ^-  image
-      =.  st  (merge st out-tall in-tall)
+      =.  st  (merge st stack out-tall in-tall)
       =/  new-tall  focus.st
       (conjunct st wide new-tall)
     ::
     =/  conjunct-conjunct
       |=  [st=image [xwide=idx xtall=idx] [ywide=idx ytall=idx]]
-      =.  st  (merge st xwide ywide)
+      =.  st  (merge st stack xwide ywide)
       =/  new-wide  focus.st
-      =/  st  (merge st xtall ytall)
+      =/  st  (merge st stack xtall ytall)
       =/  new-tall  focus.st
       :: XX Merging the talls or the wides might produce a misjunction! In
       :: either case, the result should also be a misjunction, not a
@@ -3140,15 +3245,15 @@
       ?-  -.that-role
         %constant     =/  this-arg=(map atom idx)  [[atom.this-role this] ~ ~]
                       =/  that-arg=(map atom idx)  [[atom.that-role that] ~ ~]
-                      =^  res  st  (collate st this-arg that-arg)
+                      =^  res  st  (collate-option st stack this-arg that-arg)
                       (joined st [%option res])
         %instance     (junct st this that)
         %option       =/  that-arg=(map atom idx)  map.that-role
                       =/  this-arg=(map atom idx)  [[atom.this-role this] ~ ~]
-                      =^  res  st  (collate st this-arg that-arg)
+                      =^  res  st  (collate-option st stack this-arg that-arg)
                       (joined st [%option res])
         %union        (junct st this that)
-        %junction     =.  st  (merge st this flat.that-role)
+        %junction     =.  st  (merge st stack this flat.that-role)
                       =/  merged  focus.st
                       (junct st merged deep.that-role)
         %conjunction  (junct st this that)
@@ -3158,13 +3263,13 @@
       ?+  -.that-role  $(this that, that this)
         %instance     =/  this-arg=(map atom idx)  [[atom.this-role this] ~ ~]
                       =/  that-arg=(map atom idx)  [[atom.that-role that] ~ ~]
-                      =^  res  st  (collate st this-arg that-arg)
+                      =^  res  st  (collate-union st stack this-arg that-arg)
                       (joined st [%union res])
         %option       (junct st this that)
         %union        =/  this-arg  [[atom.this-role this] ~ ~]
-                      =^  res  st   (collate st map.that-role this-arg)
+                      =^  res  st   (collate-union st stack map.that-role this-arg)
                       (joined st [%union res])
-        %junction     =.  st  (merge st this deep.that-role)
+        %junction     =.  st  (merge st stack this deep.that-role)
                       =/  merged  focus.st
                       (junct st flat.that-role merged)
         %conjunction  (tall-conjunct st this [wide tall]:that-role)
@@ -3172,10 +3277,10 @@
     ::
         %option
       ?+  -.that-role  $(this that, that this)
-        %option       =^  res  st  (collate st map.this-role map.that-role)
+        %option       =^  res  st  (collate-option st stack map.this-role map.that-role)
                       (joined st [%option res])
         %union        (junct st this that)
-        %junction     =.  st  (merge st this flat.that-role)
+        %junction     =.  st  (merge st stack this flat.that-role)
                       =/  merged  focus.st
                       (junct st merged deep.that-role)
         %conjunction  (junct st this that)
@@ -3183,9 +3288,9 @@
     ::
         %union
       ?+  -.that-role  $(this that, that this)
-        %union        =^  res  st  (collate st map.this-role map.that-role)
+        %union        =^  res  st  (collate-union st stack map.this-role map.that-role)
                       (joined st [%union res])
-        %junction     =.  st  (merge st this deep.that-role)
+        %junction     =.  st  (merge st stack this deep.that-role)
                       =/  merged  focus.st
                       (junct st flat.that-role merged)
         %conjunction  (tall-conjunct st this [tall wide]:that-role)
@@ -3193,12 +3298,12 @@
     ::
         %junction
       ?+  -.that-role  $(this that, that this)
-        %junction     =.  st  (merge st flat.this-role flat.that-role)
+        %junction     =.  st  (merge st stack flat.this-role flat.that-role)
                       =/  flat  focus.st
-                      =.  st  (merge st deep.this-role deep.that-role)
+                      =.  st  (merge st stack deep.this-role deep.that-role)
                       =/  deep  focus.st
                       (junct st flat deep)
-        %conjunction  =.  st  (merge st deep.this-role that)
+        %conjunction  =.  st  (merge st stack deep.this-role that)
                       =/  merged  focus.st
                       (junct st flat.this-role merged)
       ==
