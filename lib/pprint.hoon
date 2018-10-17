@@ -29,9 +29,11 @@
 ::
 ::  - XX Find some way to test the shit out of the fork logic.
 ::
+::  - XX Printing !>(**) blows up. Why?
+::
 /?  310
 ::
-/+  libhoon
+::  /+  libhoon
 ::
 !:
 |%
@@ -3042,13 +3044,19 @@
 ++  analyze-type
   |=  [t=type core-depth=@]
   ^-  xrayed-type
-  %-  decorate-xrayed-type-with-roles
-  %-  decorate-xrayed-type-with-shapes
-  %-  decorate-xrayed-type-with-patterns
-  %-  decorate-xrayed-type-with-loops
-  %-  gc-image
-  %-  (xray-type core-depth)
-  t
+  ~&  %xray-type
+  =/  xt=xrayed-type  ((xray-type core-depth) t)
+  ~&  %gc-image
+  =.  xt  (gc-image xt)
+  ~&  %decorate-xrayed-type-with-loops
+  =.  xt  (decorate-xrayed-type-with-loops xt)
+  ~&  %decorate-xrayed-type-with-patterns
+  =.  xt  (decorate-xrayed-type-with-patterns xt)
+  ~&  %decorate-xrayed-type-with-shapes
+  =.  xt  (decorate-xrayed-type-with-shapes xt)
+  ~&  %decorate-xrayed-type-with-roles
+  =.  xt  (decorate-xrayed-type-with-roles xt)
+  xt
   ::
 ::
 ::  -xrayed-type-to-spec: convert to spec

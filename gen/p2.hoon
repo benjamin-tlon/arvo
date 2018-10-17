@@ -11,10 +11,11 @@
     ::  v  !>(xray-the-kernel-example)
     ::  v  !>(test-example)
     ::  v  !>(xray-the-parser-example)
-    =.  v  !>(demo-example)
     ::  v  !>(type-example)
     ::  v  !>(xml-example)
     ::  v  !>(test-example)
+    ::  v  !>(demo-example)
+    ~&  p.v
     (render-vase:pprint v)
 ::
 |%
