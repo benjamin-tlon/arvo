@@ -1,32 +1,18 @@
+::  # Cleanup
 ::
-::  Here, try this:
-::
-::  > +hoon-printer :~  '*$@(? [a=* (unit $?(@ @ ~))])'
-::                      '*$%([$a $?(^ @)] [$b ~])'
-::                      '*(unit ?(%a %b))'
-::                      '*(list ?(%a %b))'
-::                      '*$%([%e @] [%j (list ~)])'
-::                  ==
-::
-::  # Cleanup Work
-::
-::  - XX `hint` information gets deleted during gc. The problem is that
-::    if we write the metadata to a node that is also a pointer (a %hold
-::    for example), it will be deleted. We can't just "write it to the right
-::    place, since we don't know what this is yet. That's the whole reason
-::    why this bullshit was needed in the first place.
-::
-::  - XX The `manx` data type has no way to represent raw text.
-::
-::    There must be some undocumented convention for how to do
-::    this. Figure out what it is and implement it.
+::  - XX Create patterns and printers for maps and sets.
 ::
 ::  - XX The pattern matching code is basically brute-force.
 ::
 ::    If it turns out to be a performance bottleneck, there's lots of
 ::    low-hanging fruit there.
 ::
-::  - XX Try to find a way to drop the `%pntr` constructor from `%data`.
+::  - XX Try to find a way to drop the `%pntr` constructor from
+::    `%data`. The consumer of an `xray` does not care.
+::
+::  - Simply lying about the type of deep arms is not robust. I am just
+::    claiming that they are nouns, but if another thing in the xray
+::    actually needs it, it will think it's a noun too.
 ::
 ::  - XX Lists of nil values are not recognized as lists. Why?
 ::
@@ -54,16 +40,17 @@
 ::
 ++  all-examples
   :*
-    [%show-example show-example]
-    [%type-example type-example]
-    [%cores-example cores-example]
-    [%xray-the-kernel-example xray-the-kernel-example]
+    :-  %demo   demo-example
+    :-  %type   type-example
+    :-  %cores  core-example
+    :-  %add    ..add
+    :-  zuse-example
     %eof
   ==
 ::
 ++  type-example
   ^-  type
-  -:!>(`(unit (list cord))`~)
+  -:!>(`(map ? (unit (list cord)))`~)
 ::
 ++  xray-the-parser-example
   =>  ..musk
@@ -77,15 +64,9 @@
 ::
 ++  cores-example
   |^  :*
-          [%core trivial-core-example]
+          [%trivial trivial-core-example]
           [%gate gate-example]
           [%core core-example]
-          [%add ..add]
-          [%biff ..biff]
-          [%egcd ..egcd]
-          [%po ..po]
-          [%musk ..musk]
-          [%zuse ..zuse]
       ==
   ::
   --
@@ -137,19 +118,19 @@
   :-  %clsg
   ~[[%wing ~['x']] [%$ 0]]
 ::
-++  show-example
-  |^  :*  [~ %.y %.n 1 0x2 ~ ~.knot 'cord' %const]
-          :*  [%tape "a tape"]
-              [%path /path/literal `path`/typed/path]
-              [%unit `(unit @)`[~ 9]]
-              [%list [`?`%.y `(list ?)`~[%.y %.n %.y]]]
-              %nice
-          ==
-          [%hoon hoon-example]
-          [%type -:!>(`(unit (list tape))`~)]
-          [%json-and-xml json-example xml-example]
-          %cool
+++  demo-example
+  :*  [~ %.y %.n 1 0x2 ~ ~.knot 'cord' %const]
+      :*  [%tape "a tape"]
+          [%path /path/literal `path`/typed/path]
+          [%unit `(unit @)`[~ 9]]
+          [%list [`?`%.y `(list ?)`~[%.y %.n %.y]]]
+          %nice
       ==
+      [%hoon hoon-example]
+      [%type -:!>(`(unit (list tape))`~)]
+      [%json-and-xml json-example xml-example]
+      %cool
+  ==
   ::
 ++  xml-example
   |^  ^-  manx
@@ -165,7 +146,7 @@
       [%b *]  [['bool' ~[['val' ?:(p.j "true" "false")]]] ~]
       [%o *]  [['obj' ~] (turn ~(tap by p.j) pair)]
       [%n *]  [['num' ~[[['n' 'val'] (trip p.j)]]] ~]
-      [%s *]  [[p.j ~] ~]
+      [%s *]  [['str' ~[['' (trip p.j)]]] ~]
     ==
   ++  pair
     |=  [t=@t j=json]
@@ -179,6 +160,7 @@
   ++  nil  ~
   ++  yes  [%b %.y]
   ++  nah  [%b %.n]
+  ++  str  [%s 'Very long test string. Test test test test test test test.']
   ++  foo  'foo'
   ++  bar  'bar'
   ++  baz  'baz'
@@ -186,12 +168,11 @@
   ++  ten  [%n '10']
   ++  mil  [%n '100000']
   ++  arr  [%a ~[one ten mil]]
-  ++  ar2  [%a ~[arr yes nah nil]]
+  ++  ar2  [%a ~[arr yes nah nil str]]
   ++  obj  [%o (~(gas by *(map @t json)) ~[[foo mil] [baz arr]])]
   ++  ob2  [%o (~(gas by *(map @t json)) ~[[foo ar2] [bar obj] [baz yes]])]
   ++  ar3  [%a ~[arr obj ob2 one ten mil yes nah nil]]
   --
---
 ::
 +|  %entry-points-for-testing
 ::
@@ -255,10 +236,11 @@
   ::  v  !>(xray-the-kernel-example)                    ::  YY
   ::  v  !>(test-example)                               ::  YY
   ::  v  !>(xray-the-parser-example)                    ::  YY
-  ::  v  !>(show-example)                               ::  YY
-  ::  v  !>(all-examples)                               ::  YY
+  ::  v  !>(demo-example)                               ::  YY
   ::  v  !>(test-example)                               ::  YY
-  =.  v  !>(type-example)                               ::  YY
+  ::  v  !>(type-example)                               ::  YY
+  =.  v  !>(all-examples)                               ::  YY
+  =.  v  !>(xml-example)                                ::  YY
   ::
   =/  t=type   p.v
   =/  n=*      q.v
@@ -315,7 +297,7 @@
   ^-  plum
   =/  t=type   p.v
   =/  n=*      q.v
-  =/  i=image  (analyze-type t)
+  =/  i=image  (analyze-type t 1)
   (xray-noun-to-plum i n)
 ::
 ::  Pretty-print a type given as a string.
@@ -344,7 +326,7 @@
 ++  type-to-plum
   |=  t=type
   ^-  plum
-  =/  img=image  (analyze-type t)
+  =/  img=image  (analyze-type t 1)
   (spec-to-plum (xray-image-to-spec focus.img img))
 ::
 ::  Pretty-print a hoon in tall mode using `plume`.
@@ -1827,8 +1809,14 @@
     ?@  m  m
     (cat 3 -:m (cat 3 ':' +:m))
   ::
+  ++  manx-text
+    |=  [[=mane =mart] =marl]  ^-  (unit tape)
+    ?~  mart  ~
+    ?:  =('' n.i.mart)  `v.i.mart
+    $(mart t.mart)
+  ::
   ++  manx-to-plum
-    |=  [[=mane =mart] =marl]
+    |=  [[=mane attrs=mart] =marl]
     ^-  plum
     |^  result
     ::
@@ -1841,21 +1829,43 @@
                 ?~  a  (cat 3 topstr '>')
                 [%sbrk [%tree topfmt a]]
     ::
+    ++  txtstr  ^-  (unit plum)
+                =/  res  (manx-text [[mane attrs] marl])
+                ?~  res  res
+                `(crip u.res)
+                ::  `[%para '' ~[(crip u.res)]]
+    ::
     ::  Note that `kidfmt` uses "the ace-ace rune" (scare quotes) to
     ::  get indentation.
-    ++  childs  [%tree kidfmt (turn marl manx-to-plum)]
+    ::
+    ++  childs  ^-  plum
+                =/  body  txtstr
+                ?~  body  [%tree kidfmt (turn marl manx-to-plum)]
+                    [%tree kidfmt [u.body (turn marl manx-to-plum)]]
     ++  kidfmt  ^-  plumfmt  :-  `['' `['' '']]  `['  ' `['' '']]
     ::
     ++  topfmt  =/  widetopstr  (cat 3 topstr ' ')
                 :-  wide=[~ ' ' [~ widetopstr '>']]
                     tall=[~ topstr [~ '' '>']]
     ++  topstr  (cat 3 '<' tagstr)
-    ++  atribs  (turn mart attr-to-plum)
+    ++  atribs  (turn (drop-body attrs) attr-to-plum)
     ::
     ++  endtag  (cat 3 '</' (cat 3 tagstr '>'))
     ++  endfmt  [[~ '' [~ '</' '>']] ~]
     ::
     ++  atrfmt  [[~ '="' [~ '' '"']] ~]                 ::  XX Escaping
+    ::
+    ::  All attributes except the bullshit '' attribute. (It indicates
+    ::  the tag body).
+    ::
+    ++  drop-body
+      |=  l=mart
+      ^-  mart
+      =/  acc=mart  ~
+      |-  ^-  mart
+      ?~  l  (flop acc)
+      ?:  =('' n.i.l)  $(l t.l)
+      $(l t.l, acc [i.l acc])
     ::
     ++  attr-to-plum
       |=  [m=^mane t=tape]
@@ -2620,8 +2630,14 @@
     |=  [acc=xray ref=idx]
     =/  ref-xray=xray  (focus-on img ref)
     =/  helps    ^-  (set help)    (~(uni in helps.acc) helps.ref-xray)
-    =/  studs    ^-  (set stud)    studs.acc  ::  ^-  (set stud)    (~(uni in studs.acc) studs.ref-xray)
     =/  recipes  ^-  (set recipe)  (~(uni in recipes.acc) recipes.ref-xray)
+    ::
+    =/  studs    ^-  (set stud)                         ::  Type system hack
+                 %+  (foldl (set stud) stud)
+                   [studs.acc ~(tap in studs.ref-xray)]
+                 |=  [acc=(set stud) new=stud]
+                 (~(put in acc) new)
+    ::
     acc(helps helps, studs studs, recipes recipes)
   ::
   ::  XX `roles` contains references too, but this runs before role annotation.
@@ -3332,16 +3348,14 @@
   --
 ::
 ++  analyze-type
-  |=  t=type
+  |=  [t=type core-depth=@]
   ^-  image
-  %-  trace-xray-image
   %-  decorate-xray-image-with-roles
   %-  decorate-xray-image-with-shapes
   %-  decorate-xray-image-with-patterns
   %-  decorate-xray-image-with-loops
   %-  gc-image
-  %-  trace-xray-image
-  %-  (xray-type 1)
+  %-  (xray-type core-depth)
   t
   ::
 ::
