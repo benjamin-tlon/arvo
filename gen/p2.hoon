@@ -10,18 +10,11 @@
 ::  - XX Try to find a way to drop the `%pntr` constructor from
 ::    `%data`. The consumer of an `xray` does not care.
 ::
-::  - Simply lying about the type of deep arms is not robust. I am just
+::  - XX Simply lying about the type of deep arms is not robust. I am just
 ::    claiming that they are nouns, but if another thing in the xray
 ::    actually needs it, it will think it's a noun too.
 ::
-::  - XX Lists of nil values are not recognized as lists. Why?
-::
 ::  - XX The whole `focus` field in `image` is confusing. Just drop it.
-::
-::  - XX The pattern matching code has a lot of repeated logic.
-::
-::    This made sense before when I wasn't sure that this approach was
-::    going to pan out, but now it really needs to be refactored.
 ::
 /?  310
 /+  libhoon
@@ -93,11 +86,10 @@
 ::
 ++  test-example
   :*
-    `?`%.y
-     %.y
-     %.n
-     [%gate gate-example]
-     [%core trivial-core-example]
+    `(list ?)`~[%.y %.n]
+    `(list ~)`~[~ ~]
+    `(unit ~)``~
+    /a/path
   ==
 ::
 ++  hoon-example
@@ -143,7 +135,7 @@
     ?-  j
       ~       [['nil' ~] ~]
       [%a *]  [['array' ~] (turn p.j json-to-xml)]
-      [%b *]  [['bool' ~[['val' ?:(p.j "true" "false")]]] ~]
+      [%b *]  [['bool' ~[['' ?:(p.j "true" "false")]]] ~]
       [%o *]  [['obj' ~] (turn ~(tap by p.j) pair)]
       [%n *]  [['num' ~[[['n' 'val'] (trip p.j)]]] ~]
       [%s *]  [['str' ~[['' (trip p.j)]]] ~]
@@ -237,10 +229,10 @@
   ::  v  !>(test-example)                               ::  YY
   ::  v  !>(xray-the-parser-example)                    ::  YY
   ::  v  !>(demo-example)                               ::  YY
-  ::  v  !>(test-example)                               ::  YY
   ::  v  !>(type-example)                               ::  YY
   =.  v  !>(all-examples)                               ::  YY
   =.  v  !>(xml-example)                                ::  YY
+  =.  v  !>(test-example)                               ::  YY
   ::
   =/  t=type   p.v
   =/  n=*      q.v
@@ -2228,55 +2220,37 @@
   img
 ::
 ++  decorate-xray-image-with-patterns
-  |=  img=image
-  ^-  image
+  |=  img=image  ^-  image
+  ::
   |^  =/  pairs  %+  turn  ~(tap by xrays.img)
                  |=  [i=idx x=xray]
                  ^-  [idx xray]
                  [i x(pats (xray-pats x))]
       img(xrays (~(gas by *(map idx xray)) pairs))
   ::
-  ::  XX Stop using this. Use `simple-nest-pattern` instead.
-  ::
-  ++  type-nests-under
-    |=  t1=type
-    ^-  $-(type ?)
-    |=  t2=type
-    ^-  ?
-    (~(nest ut t1) | t2)
-  ::
-  ++  is-hoon  (type-nests-under -:!>(*hoon))
-  ++  is-json  (type-nests-under -:!>(*json))
-  ++  is-nock  (type-nests-under -:!>(*nock))
-  ++  is-plum  (type-nests-under -:!>(*plum))
-  ++  is-skin  (type-nests-under -:!>(*skin))
-  ::
-  ++  focus  |=(i=idx (focus-on img i))
+  ++  focus
+    |=  i=idx  ^-  xray
+    (focus-on img i)
   ::
   ++  is-nil
-    |=  i=idx
-    ^-  ?
-    =/  =data  (need data:(focus i))
-    ?+  data  %.n
-      [%atom *]  =(data [%atom ~.n `0])
-      [%face *]  $(i xray.data)
+    |=  i=idx  ^-  ?
+    =/  d=data  (need data:(focus i))
+    ?+  d  %.n
+      [%atom *]  =(d [%atom ~.n `0])
+      [%face *]  $(i xray.d)
     ==
   ::
   ::  Is `ref`, after dereferencing faces, a loop-reference to `target`?
   ::
   ++  is-ref-to
-    |=  [target=idx ref=idx]
-    ^-  ?
-    ::
+    |=  [target=idx ref=idx]  ^-  ?
     ?:  =(target ref)  %.y
     =/  =data  (need data:(focus ref))
     ?:  ?=([%face *] data)  $(ref xray.data)
     %.n
   ::
   ++  is-pair-of-refs-to
-    |=  [target=idx cell=idx]
-    ^-  ?
-    |-
+    |=  [target=idx cell=idx]  ^-  ?
     =/  =data  (need data:(focus cell))
     ?:  ?=([%face *] data)  $(cell xray.data)
     ?.  ?=([%cell *] data)  %.n
@@ -2285,13 +2259,34 @@
     %.y
   ::
   ++  is-atom-with-aura
-    |=  [c=cord i=idx]
-    ^-  ?
+    |=  [c=cord i=idx]  ^-  ?
     =/  =data  (need data:(focus i))
     ?+  data  %.n
       [%atom *]  =(data [%atom aura=c constant-unit=~])
       [%face *]  $(i xray.data)
     ==
+  ::
+  ::  If the xray is a exactly two things, nil and a cell type, then
+  ::  return the xray for the cell type.
+  ::
+  ++  fork-of-nil-and-cell
+    |=  x=xray  ^-  (unit idx)
+    ::
+    =/  d=data  (need data.x)
+    ::
+    ?.  ?=([%fork *] d)  ~
+    ::
+    =/  branches  ~(tap in set.d)
+    ?.  ?=([* * ~] branches)  ~
+    ::
+    =/  nil   i.branches
+    =/  node  i.t.branches
+    |-
+    ::
+    ?:  (is-nil node)  $(node nil, nil node)
+    ?.  (is-nil nil)   ~
+    ::
+    `node
   ::
   ::  Is this xray a unit? (the %unit pattern)
   ::
@@ -2305,20 +2300,12 @@
     ++  match-unit-type-strict
       |=  =input=xray
       ^-  (unit idx)
-      =/  input-idx=idx  idx.input-xray
-      =/  indata=data    (need data.input-xray)
       ::
-      ?.  ?=([%fork *] indata)  ~
-      =/  branches              ~(tap in set.indata)
-      ?.  ?=([* * ~] branches)  ~
+      =/  node=(unit idx)  (fork-of-nil-and-cell input-xray)
+      ?~  node  ~
       ::
-      =/  nil   i.branches
-      =/  node  i.t.branches
-      |-
-      ?:  (is-nil node)  $(node nil, nil node)
-      ?.  (is-nil nil)   ~
+      =/  node-data=data  (need data:(focus u.node))
       ::
-      =/  node-data=data           (need data:(focus node))
       ?.  ?=([%cell *] node-data)  ~
       ?.  (is-nil head.node-data)  ~
       =/  elem-idx                 tail.node-data
@@ -2390,24 +2377,16 @@
       ==
     ::
     ++  match-list-type-strict
-      |=  =fork=xray
+      |=  =input=xray
       ^-  (unit idx)
-      =/  fork=idx     idx.fork-xray
-      =/  indata=data  (need data.fork-xray)
       ::
-      ?.  ?=([%fork *] indata)  ~
-      =/  branches              ~(tap in set.indata)
-      ?.  ?=([* * ~] branches)  ~
+      =/  node=(unit idx)  (fork-of-nil-and-cell input-xray)
+      ?~  node  ~
       ::
-      =/  nil   i.branches
-      =/  node  i.t.branches
-      |-
-      ?:  (is-nil node)  $(node nil, nil node)
-      ?.  (is-nil nil)  ~
-      ::
-      =/  node-data=data                   (need data:(focus node))
+      =/  node-data=data                   (need data:(focus u.node))
       ?.  ?=([%cell *] node-data)          ~
-      ?.  (is-ref-to fork tail.node-data)  ~
+      ?.  (is-ref-to idx.input-xray tail.node-data)  ~
+      ::
       =/  elem-data                        (need data:(focus head.node-data))
       ?.  ?=([%face *] elem-data)          ~
       ::
@@ -2478,6 +2457,28 @@
   ++  spec-pattern  (simple-nest-pattern -:!>(*spec) %spec)
   ++  manx-pattern  (simple-nest-pattern -:!>(*manx) %manx)
   ++  vase-pattern  (simple-nest-pattern -:!>(*vase) %vase)
+  ++  hoon-pattern  (simple-nest-pattern -:!>(*hoon) %hoon)
+  ++  json-pattern  (simple-nest-pattern -:!>(*json) %json)
+  ++  nock-pattern  (simple-nest-pattern -:!>(*nock) %nock)
+  ++  plum-pattern  (simple-nest-pattern -:!>(*plum) %plum)
+  ++  skin-pattern  (simple-nest-pattern -:!>(*skin) %skin)
+  ::
+  ++  patterns
+    ^-  (list $-(xray (unit pattern)))
+    :~  tree-pattern
+        list-pattern
+        unit-pattern
+        core-pattern
+        spec-pattern
+        type-pattern
+        manx-pattern
+        vase-pattern
+        hoon-pattern
+        json-pattern
+        nock-pattern
+        plum-pattern
+        skin-pattern
+    ==
   ::
   ++  xray-pats
     |=  x=xray
@@ -2487,39 +2488,17 @@
     =/  t=type  type.x
     =/  d=data  (need data.x)
     ::
-    ::  Atom printing works fine just using the data field.
+    ::  Atom printing works just fine using the data field.
     ?:  ?=([%atom *] d)  ~
     ::
-    =/  tree-pat  (tree-pattern x)
-    ?^  tree-pat  tree-pat
+    =/  match  patterns
     ::
-    =/  unit-pat  (unit-pattern x)
-    ?^  unit-pat  unit-pat
+    |-  ^-  (unit pattern)
+    ?~  match  ~
+    =/  pat  (i.match x)
+    ?^  pat  pat
+    $(match t.match)
     ::
-    =/  core-pat  (core-pattern x)
-    ?^  core-pat  core-pat
-    ::
-    =/  list-pat  (list-pattern x)
-    ?^  list-pat  list-pat
-    ::
-    =/  spec-pat  (spec-pattern x)
-    ?^  spec-pat  spec-pat
-    ::
-    =/  type-pat  (type-pattern x)
-    ?^  type-pat  type-pat
-    ::
-    =/  manx-pat  (manx-pattern x)
-    ?^  manx-pat  manx-pat
-    ::
-    =/  vase-pat  (vase-pattern x)
-    ?^  vase-pat  vase-pat
-    ::
-    ?:  (is-hoon t)  `%hoon
-    ?:  (is-json t)  `%json
-    ?:  (is-nock t)  `%nock
-    ?:  (is-plum t)  `%plum
-    ?:  (is-skin t)  `%skin
-    ~
   --
 ::
 ::  1. Build a list of reachable, non-reference nodes.
