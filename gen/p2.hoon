@@ -7,7 +7,9 @@
 ::
 =<  |=  {^ {{v=vase ~} ~}}
     :-  %txt
-    ^-  wain
+    ^-  tank
+    :-  %plum
+    ^-  plum
     ::  v  !>(xray-the-kernel-example)
     ::  v  !>(test-example)
     ::  v  !>(xray-the-parser-example)
@@ -16,7 +18,7 @@
     ::  v  !>(test-example)
     ::  v  !>(demo-example)
     ~&  p.v
-    (render-vase:pprint v)
+    (vase-to-plum:pprint v)
 ::
 |%
 ::
