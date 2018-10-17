@@ -230,9 +230,9 @@
   ::  v  !>(xray-the-parser-example)                    ::  YY
   ::  v  !>(demo-example)                               ::  YY
   ::  v  !>(type-example)                               ::  YY
+  ::  v  !>(xml-example)                                ::  YY
+  ::  v  !>(test-example)                               ::  YY
   =.  v  !>(all-examples)                               ::  YY
-  =.  v  !>(xml-example)                                ::  YY
-  =.  v  !>(test-example)                               ::  YY
   ::
   =/  t=type   p.v
   =/  n=*      q.v
@@ -2111,14 +2111,6 @@
       (main [%hold [%core payload-type coil] q.x] st)
     =.  trace.st  +:trace.st
     [x(q i) st]
-
-    ::  ~&  'XRAY-ARM'
-    ::  ~&  'hoon'
-    ::  ~&  ~(tall plume (hoon-to-plum 999 q.x))
-    ::  ~&  'payload-type'
-    ::  ~&  ~(tall plume (simple-type-to-plum payload-type 10))
-    ::  ~&  'coil-context'
-    ::  ~&  ~(tall plume (simple-type-to-plum q.coil 10))
   ::
   ::  Analyze a core.
   ::
@@ -2825,14 +2817,9 @@
   --
 ::
 ++  decorate-xray-image-with-roles
-  |^  |=  init=image
-      ^-  image
-      =/  keys=(list idx)  ~(tap in ~(key by xrays.init))
+  |^  |=  init=image  ^-  image
       ::
-      ::  =.  keys                                          ::  XX debugging only
-      ::    %+  sort  keys
-      ::    |=  [x=idx y=idx]
-      ::    (lth x y)
+      =/  keys=(list idx)  ~(tap in ~(key by xrays.init))
       ::
       =/  result
         %+  (foldl image idx)  [init keys]
@@ -2841,6 +2828,7 @@
         =.  focus.st  idx
         =^  =role  st  (xray-role st ~)
         st
+      ::
       result(focus focus.init)
   ::
   ::  Produce an image focused on the xray for a given type. If the
@@ -3407,6 +3395,8 @@
              |^  ?+  role
                      ~&  [%unexpected-fork-role idx.x d role choices]
                      [%bswt choices]
+                   %noun             [%base %noun]
+                   %void             [%base %void]
                    [%option *]       [%bswt choices]
                    [%union *]        [%bscn choices]
                    [%misjunction *]  [%bswt choices]
