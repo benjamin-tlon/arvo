@@ -10,7 +10,7 @@
 ::    - Faces repeat the work done for the type they reference.
 ::    - When detecting whether a cell is part of an "informal" list,
 ::      we recurse into the tail repeatedly. For example, the following
-::      example will do the "formal-list" test 6 times:
+::      example will do the "formal-list" test 3 times:
 ::
 ::      - `[1 2 `(list @)`~]`
 ::
@@ -21,16 +21,31 @@
 ::    claiming that they are nouns, but if another thing in the xray
 ::    actually needs it, it will think it's a noun too.
 ::
+::  - XX We shouldn't need `traverse-right`.
+::
+::  - XX It should be possible to wrote a `traverse-battery` routine.
+::
+::  - XX Finish the logic for printing a noun given a fork.
+::
+::  - XX Find some way to test the shit out of the fork logic.
+::
 /?  310
 /+  libhoon
 :-  %say
 !:
 ::
-::  =<  render-hoon
-::  =<  render-type
-=<  render-vase
-::  compile-and-render-type
-::  =<  render-all-hoons-referenced-inside-of-type
+=<  |=  {^ {{v=vase ~} ~}}
+    :-  %txt
+    ^-  wain
+    ::  v  !>(xray-the-kernel-example)
+    ::  v  !>(test-example)
+    ::  v  !>(xray-the-parser-example)
+    ::  v  !>(demo-example)
+    ::  v  !>(type-example)
+    ::  v  !>(xml-example)
+    ::  v  !>(test-example)
+    =.  v  !>(..traverse)
+    (render-vase v)
 ::
 |%
 ::
@@ -171,7 +186,7 @@
   ++  ar3  [%a ~[arr obj ob2 one ten mil yes nah nil]]
   --
 ::
-+|  %entry-points-for-testing
++|  %utils
 ::
 ::  Left-fold over a list.
 ::
@@ -185,13 +200,20 @@
    $(xs t.xs, st st)
 ::
 ++  battery-arms
-  |=  =(battery hoon)
+  |*  item=mold
+  |=  =(battery item)
   ^-  (list term)
   %-  zing
   %+  turn  ~(val by battery)
-  |=  [=what arms=(map term hoon)]
+  |=  [=what arms=(map term item)]
   ^-  (list term)
   ~(tap in ~(key by arms))
+::
+::  Append an element to the end of a list.
+::
+++  snoc
+  |*  {a/(list) b/*}
+  (weld a ^+(a [b]~))
 ::
 ::  This is basically a `mapM` over a list using the State monad.
 ::
@@ -199,7 +221,7 @@
 ::  except that a state variable `st` is threaded through the
 ::  execution. The list is processed from left to right.
 ::
-++  traverse-left
+++  traverse
    |*  [a=mold b=mold s=mold]
    |=  [[xs=(list a) st=s] f=$-([a s] [b s])]
    ^-  [(list b) s]
@@ -208,7 +230,7 @@
    =^  rs  st  $(xs t.xs, st st)
    [[r rs] st]
 ::
-::  Same as `traverse-left` but executes state updates in reverse order.
+::  Same as `traverse` but executes state updates in reverse order.
 ::
 ++  traverse-right
    |*  [a=mold b=mold s=mold]
@@ -219,154 +241,53 @@
    =^  r   st  (f i.xs st)
    [[r rs] st]
 ::
-++  kernel-type
-  ^-  type
-  -:!>(..zuse)
++|  %entry-points-for-testing
 ::
-::  Pretty-print a value given as a string.
+::  Generator to pretty-print a vase.
 ::
 ++  render-vase
-  |=  {^ {{v=vase ~} ~}}
-  :-  %txt
-  ^-  wain
-  ::
-  ::  v  !>(xray-the-kernel-example)                    ::  YY
-  ::  v  !>(test-example)                               ::  YY
-  ::  v  !>(xray-the-parser-example)                    ::  YY
-  ::  v  !>(demo-example)                               ::  YY
-  ::  v  !>(type-example)                               ::  YY
-  ::  v  !>(xml-example)                                ::  YY
-  ::  v  !>(test-example)                               ::  YY
-  =.  v  !>(all-examples)                               ::  YY
-  ::
-  =/  t=type   p.v
-  =/  n=*      q.v
-  ::
-  ~&  %start-xraying-type
-  =/  xt=xrayed-type  ((xray-type 1) t)
-  ~&  %done-xraying-type
-  ::
-  ::  =.  xt  (trace-xray-image xt)
-  ::
-  ~&  %start-xray-gc
-  =.  xt  (gc-image xt)
-  ~&  %done-with-xray-gc
-  ::
-  ::  =.  xt  (trace-xray-image xt)
-  ::
-  ~&  %start-loop-detection
-  =.  xt  (decorate-xrayed-type-with-loops xt)
-  ~&  %done-with-loop-detection
-  ::
-  ::  =.  xt  (trace-xray-image xt)
-  ::  ?:  %.y  !!
-  ::
-  ~&  %start-pattern-annotation
-  =.  xt  (decorate-xrayed-type-with-patterns xt)
-  ~&  %done-with-pattern-annotation
-  ::
-  ::  =.  xt  (trace-xray-image xt)
-  ::
-  ~&  %start-shape-annotation
-  =.  xt  (decorate-xrayed-type-with-shapes xt)
-  ~&  %done-with-shape-annotation
-  ::
-  ::  =.  xt  (trace-xray-image xt)
-  ::
-  ~&  %start-role-annotation
-  =.  xt  (decorate-xrayed-type-with-roles xt)
-  ~&  %done-with-role-annotation
-  ::
-  ::  =.  xt  (trace-xray-image xt)
-  ::
-  ~&  %start-converting-to-plum
-  =/  =plum  (xray-noun-to-plum xt n)
-  ~&  %done-converting-to-plum
-  ::
-  ~(tall plume plum)
-  ::
-  ::  ~(tall plume (vase-to-plum example))
+  |=  =vase  ^-  wain
+  ~(tall plume (vase-to-plum vase))
 ::
-::  Pretty-print a value given as a string.
-::
-++  vase-to-plum
-  |=  v=vase
-  ^-  plum
-  =/  t=type          p.v
-  =/  n=*             q.v
-  (xray-noun-to-plum (analyze-type t 1) n)
+++  render-type
+  |=  =type  ^-  wain
+  ~(tall plume (type-to-plum type))
 ::
 ::  Pretty-print a type given as a string.
 ::
-++  compile-and-render-type
-  |=  {^ {{tys=(list cord) ~} ~}}
-  :-  %txt
-  ^-  wain
-  %-  zing
-  %+  turn  tys
-  |=  c=cord
-  ^-  (list cord)
-  =/  t=type  -:(ride -:!>(..zuse) c)
+++  render-type-from-cord
+  |=  =cord  ^-  wain
+  =/  t=type  -:(ride -:!>(..zuse) cord)
   ~(tall plume (type-to-plum t))
 ::
-::  Pretty-print a type.
+::  Pretty-print a vase.
 ::
-++  render-type
-  |=  {^ {{=type ~} ~}}
-  :-  %txt
-  ^-  wain
-  ~(tall plume (type-to-plum type))
+++  vase-to-plum
+  |=  v=vase  ^-  plum
+  (render-noun-using-xray (analyze-type p.v 1) q.v)
 ::
 ::  Pretty-print a type.
 ::
 ++  type-to-plum
-  |=  t=type
-  ^-  plum
+  |=  t=type  ^-  plum
   (spec-to-plum (xrayed-type-to-spec (analyze-type t 1)))
 ::
-::  Pretty-print a hoon in tall mode using `plume`.
+::  Pretty-print a hoon.
 ::
 ++  render-hoon
-  |=  {^ {{demo=hoon ~} ~}}
-  :-  %txt
-  ^-  wain
-  ~(tall plume (hoon-to-plum 999 demo))
-::
-++  cat-errors
-  |*  xs=(list (unit @))
-  ^-  (unit @)
-  |-
-  ^-  (unit @)
-  ?~  xs    ~
-  ?^  i.xs  i.xs
-  $(xs t.xs)
+  |=  =hoon  ^-  wain
+  ~(tall plume (hoon-to-plum 999 hoon))
 ::
 ::  This is just a helper function for testing out this code.  It just digs
 ::  through a type and finds hoon values referenced within that type,
 ::  and then renders the result.
 ::
-++  render-all-hoons-referenced-inside-of-type
-  |=  {^ {{demo=type ~} ~}}
-  :-  %txt
-  ^-  wain
-  ?.  ?=([%core *] demo)  [%zpzp ~]
-  =*  tomes=(list tome)  ~(val by q.r.q.demo)
+++  render-all-hoons-inside-of-type
+  |=  =type  ^-  wain
+  ?.  ?=([%core *] type)  [%zpzp ~]
+  =*  tomes=(list tome)  ~(val by q.r.q.type)
   =*  hoons=(list hoon)  (turn tomes |=(t=tome [%cltr ~(val by q.t)]))
   ~(tall plume (hoon-to-plum 999 [%cltr hoons]))
-::
-+|  %utils
-::
-::  Append an element to the end of a list.
-::
-++  snoc
-  |*  {a/(list) b/*}
-  (weld a ^+(a [b]~))
-::
-::  Prepend an element to the front of a list.
-::
-++  cons
-  |*  {a/* b/(list *)}
-  [a b]
 ::
 +|  %types
 ::
@@ -810,23 +731,6 @@
     ++  wing       wing-to-plum
     ++  wingseq    wingseq-to-plum
     ::
-    ::  Note [TisCol Order]
-    ::  ~~~~~~~~~~~~~~~~~~~
-    ::  By accumulating over the updates list from the front, we are
-    ::  effectivly reversing the assignment order of the forms in `.=`.
-    ::  This is semantically correct:
-    ::
-    ::      > =a 3
-    ::      > =b 4
-    ::      > =:  a  4  b  a  ==  b
-    ::      3
-    ::      > +hoon-printer !,  *hoon  =:  a  4  b  a  ==  b
-    ::      <|=.(b a =.(a 4 b))|>
-    ::      > =.(a 4 =.(b a b))
-    ::      4
-    ::      > =.(b a =.(a 4 b))
-    ::      3
-    ::
     ::  Here's an example of what a hint looks like.
     ::
     ::      ~>(%mean.[%leaf "need"] !!)
@@ -848,9 +752,26 @@
       |-  ^-  hoon
       ?~  rem  acc
       $(rem t.rem, acc `hoon`[%tsdt `^wing`p.i.rem `hoon`q.i.rem `hoon`acc])
+      ::
+      ::  Note [TisCol Order]
+      ::  ~~~~~~~~~~~~~~~~~~~
+      ::  By accumulating over the updates list from the front, we are
+      ::  effectivly reversing the assignment order of the forms in `.=`.
+      ::  This is semantically correct:
+      ::
+      ::      > =a 3
+      ::      > =b 4
+      ::      > =:  a  4  b  a  ==  b
+      ::      3
+      ::      > +hoon-printer !,  *hoon  =:  a  4  b  a  ==  b
+      ::      <|=.(b a =.(a 4 b))|>
+      ::      > =.(a 4 =.(b a b))
+      ::      4
+      ::      > =.(b a =.(a 4 b))
+      ::      3
   --
 ::
-::  Render a hint to a plum.
+::  Pretty-print a hint.
 ::
 ++  hint-to-plum
   |=  hint=$@(term (pair term hoon))
@@ -862,7 +783,7 @@
       (hoon-to-plum 999 q.hint)
   ==
 ::
-::  Render a battery (basically a list of terms,hoon pairs to a plum).
+::  Pretty-print a hoon battery.
 ::
 ++  battery-to-plum-list
   |=  =(map term hoon)
@@ -874,7 +795,7 @@
   :+  %tree  fmt
   [term (hoon-to-plum 999 hoon) ~]
 ::
-::  XX Document this.
+::  Pretty-print a core.
 ::
 ++  core-to-plum
   |=  [=knot head=(unit plum) =(map term hoon)]
@@ -1363,6 +1284,7 @@
         --
     ==
   --
+::
 +$  idx  @ud
 ::
 +$  shape  ?(%void %noun %atom %cell %junc)
@@ -1418,6 +1340,7 @@
   ==
 ::
 +$  xrayed-type  [root=idx =image]
+::
 +$  image  [next=idx xrays=(map idx xray) =type=(map type idx)]
 ::
 ::  Create an new xray and put it in the xray table. If there's already
@@ -1462,8 +1385,6 @@
   ^-  [idx image]
   (post-xray img %void `%void)
 ::
-++  empty-image  ^-(image [0 ~ ~])
-::
 ++  focus-on
   |=  [img=image i=idx]
   ^-  xray
@@ -1476,7 +1397,7 @@
   ^-  plum
   (simple-wide-plum '"' '' '"' `(list plum)`tape)
 ::
-++  xray-noun-to-plum
+++  render-noun-using-xray
   |=  [xt=xrayed-type =top=noun]
   ^-  plum
   ::
@@ -1884,7 +1805,7 @@
   |=  [core-depth=@ud]
   |^  |=  ty=type
       ^-  xrayed-type
-      =/  st=state  [empty-image 0]
+      =/  st=state  [[0 ~ ~] 0]
       =^  res  st  (main ty st)
       [res img.st]
   ::
@@ -1932,7 +1853,7 @@
                  =.  img.st  (set-xray-data img.st res [%cell hed tyl])
                  st
       ::
-      [%core *]  =/  arms=(list term)  (battery-arms q.r.q.ty)
+      [%core *]  =/  arms=(list term)  ((battery-arms hoon) q.r.q.ty)
                  =^  d=data   st       (xray-core [p.ty q.ty] st)
                  =.  img.st            (set-xray-data img.st res d)
                  st
@@ -2013,7 +1934,7 @@
     ++  arms
       |=  =coil
       ^-  plum
-      =/  arms  (battery-arms q.r.coil)
+      =/  arms  ((battery-arms hoon) q.r.coil)
       =.  arms  (turn arms |=(c=cord ?:(=('' c) '$' c)))
       ?:  (gte (lent arms) 50)  'KERNEL'
       (sexp-plum 'arms' (chapters-to-plum-list q.r.coil))
@@ -2117,7 +2038,7 @@
     |=  [types=(set type) st=state]
     ^-  [data state]
     =^  xrays  st
-      %+  (traverse-left type idx state)
+      %+  (traverse type idx state)
         [~(tap in types) st]
       |=  [ty=type st=state]
       (main ty st)
@@ -2377,8 +2298,8 @@
         =/  gear  (match-gear x)
         ?~  gear  ~
         =/  gate  (match-gate x sample.u.gear battery.u.gear)
-        ?~  gate  gear
-        gate
+        ?^  gate  gate
+        ~  ::  XX  gear
     ::
     ++  match-gear
       |=  =input=xray
@@ -3068,8 +2989,6 @@
     ::
     ?:  =(this that)  [this st]
     ::
-    :: ~&  ['combine' this that]
-
     =^  this-role=role  st  (xray-role st this)
     =^  that-role=role  st  (xray-role st that)
     ::
@@ -3081,9 +3000,6 @@
       ::
       =/  xx  (focus-on st x)
       =/  yy  (focus-on st y)
-      ::  ~&  ['join-with-role' x y role]
-      ::  ~&  [x '=' (need data.xx) (need role.xx)]
-      ::  ~&  [y '=' (need data.yy) (need role.yy)]
       ::
       =^  joined=idx  st  (join st x y)
       =/  j=xray          (focus-on st joined)
@@ -3100,12 +3016,8 @@
     ::  Convenience functions for creating junctions
     ::
     =/  misjunct  |=  [st=image x=idx y=idx]
-                  ::  ~&  ['MISJUNCTION' x y]  ::  XX
                   =/  xx=xray  (focus-on st x)
                   =/  yy=xray  (focus-on st y)
-                  ::  ~&  [x '=' (need data.xx) (need role.xx)]  ::  XX
-                  ::  ~&  [y '=' (need data.yy) (need role.yy)]  ::  XX
-                  ::  ?:  %.y  !!
                   (join-with-role st x y [%misjunction x y])
     ::
     =/  conjunct  |=  [st=image wide=idx tall=idx]
@@ -3141,9 +3053,11 @@
       ^-  [idx image]
       =^  new-wide  st  (merge st xwide ywide)
       =^  new-tall  st  (merge st xtall ytall)
+      ::
       :: XX Merging the talls or the wides might produce a misjunction! In
       :: either case, the result should also be a misjunction, not a
       :: conjunction. This is wrong.
+      ::
       (conjunct st new-wide new-tall)
     ::
     ?@  this-role
@@ -3396,61 +3310,3 @@
     ?~  chapter-list  ~
     (~(uni by q.q.i.chapter-list) $(chapter-list t.chapter-list))
 --
-
-
-::  Data = Noun | Void
-::       | Atom | Cnst @
-::       | Cell Data Data
-::       | Fork [Data]
-::
-::  Shape = Noun | Void
-::        | Atom | Cnst
-::        | Cell
-::        | Junc
-::
-::  :: Data -> Shape
-::  shape Noun       = Noun
-::  shape Void       = Void
-::  shape Atom       = Atom
-::  shape (Cnst _)   = Cnst
-::  shape (Cell a b) = Cell
-::  shape (Fork bs)  = foldl forkShape Void (map forkShape bs)
-::
-::  :: Shape -> Shape -> Shape
-::  forkShape X    X    = X
-::  forkShape Noun _    = Noun
-::  forkShape Void x    = x
-::  forkShape Cnst Cnst = Atom
-::  forkShape Atom Cnst = Atom
-::  forkShape Atom Cell = Junc
-::  forkShape Junc _    = Junc
-::
-::  :: Data -> Unit Role
-::  role Noun        = ~
-::  role Void        = ~
-::  role (Atom ~)    = ~
-::  role (Atom c)    = ~
-::  role (Cell hd _) = cellRole (shape hd)
-::  role (Fork x y)  = forkRole (shape x, role x) (shape y, role y)
-::
-::  :: Shape -> Unit Role
-::  cellRole Cell = Wide
-::  cellRole Atom = Tall
-::  cellRole Cnst = Instance
-::  cellRole _    = ~
-::
-::  :: (Shape,Role) -> (Shape,Role) -> Role
-::  forkRole =
-::      Option  <- option + option
-::      Union   <- union  + union
-::      Conjunc <- tall   + wide
-::      Junc    <- atom   + cell
-::      Misjunc <- otherwise
-::    where
-::      option = role==Option || role==Instance
-::      union  = shape==Cnst  || role==Union
-::      atom   = shape==Atom  || shape==Cnst
-::      cell   = shape==Cell
-::      tall   = role==Tall
-::      wide   = role==Wide
-::      cell   = shape==Cell
