@@ -33,7 +33,9 @@
 ::
 /?  310
 ::
-!:
+/+  plum
+=,  plum
+::
 |%
 ::
 +|  %utils
@@ -1397,16 +1399,6 @@
         [x st]
     ==
   ::
-  ++  sexp-plum
-    |=  [sym=cord kids=(list plum)]
-    ^-  plum
-    =/  head=cord     (cat 3 '(' sym)
-    =/  headspc=cord  (cat 3 head ' ')
-    =/  symcol=cord  (cat 3 sym ':')
-    =/  fmt=plumfmt   [[~ ' ' [~ headspc ')']] [~ symcol [~ '' '']]]
-    ?~  kids  (cat 3 '(' (cat 3 sym ')'))
-    [%sbrk [%tree fmt kids]]
-  ::
   ++  simple-type-to-plum
     =/  armsfmt=plumfmt  [[~ ' ' [~ '(' ')']] ~]
     ::
@@ -1418,7 +1410,7 @@
       =/  arms  ((battery-arms hoon) q.r.coil)
       =.  arms  (turn arms |=(c=cord ?:(=('' c) '$' c)))
       ?:  (gte (lent arms) 50)  'KERNEL'
-      (sexp-plum 'arms' (chapters-to-plum-list q.r.coil))
+      (sexp 'arms' (chapters-to-plum-list q.r.coil))
 
     ++  main
       |=  [ty=type maxdepth=@ud]
@@ -1428,14 +1420,14 @@
       ?-  ty
         %void      '!!'
         %noun      '*'
-        [%atom *]  (sexp-plum 'atom' p.ty ?~(q.ty '~' (scot %ud u.q.ty)) ~)
-        [%cell *]  (sexp-plum 'cons' (main p.ty d) (main q.ty d) ~)
-        [%core *]  =/  payload  (sexp-plum 'payload' (main p.ty d) ~)
-                   (sexp-plum 'core' (arms q.ty) payload ~)
-        [%face *]  (sexp-plum 'face' (type-face-to-plum p.ty) (main q.ty d) ~)
+        [%atom *]  (sexp 'atom' p.ty ?~(q.ty '~' (scot %ud u.q.ty)) ~)
+        [%cell *]  (sexp 'cons' (main p.ty d) (main q.ty d) ~)
+        [%core *]  =/  payload  (sexp 'payload' (main p.ty d) ~)
+                   (sexp 'core' (arms q.ty) payload ~)
+        [%face *]  (sexp 'face' (type-face-to-plum p.ty) (main q.ty d) ~)
         [%fork *]  =/  forks  %+  turn  ~(tap in p.ty)  |=(t=type (main t d))
-                   (sexp-plum 'fork' forks)
-        [%hint *]  (sexp-plum 'hint' 'hint' (main q.ty d) ~)
+                   (sexp 'fork' forks)
+        [%hint *]  (sexp 'hint' 'hint' (main q.ty d) ~)
         [%hold *]  'HOLD'
       ==
     --
