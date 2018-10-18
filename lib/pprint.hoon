@@ -5,67 +5,37 @@
 ::
 |^  ^-  $:  render-noun=$-([=ximage =noun] =plum)
             render-vase=$-(vase wain)
+            render-hoon=$-(hoon wain)
+            render-type=$-(type wain)
+            render-type-simple=$-(type wain)
         ==
-    [render-noun render-vase]
+    [render-noun render-vase render-hoon render-type render-type-simple]
 ::
 +|  %utils
 ::
 +$  battery  (map term (pair what (map term hoon)))
 ::
-::  Given a battery expression (from a hoon expression), produce a list
-::  of arm names.
-::
-++  arm-names
-  |=  =battery
-  ^-  (list term)
-  %-  zing
-  %+  turn  ~(val by battery)
-  |=  [=what arms=(map term hoon)]
-  ^-  (list term)
-  ~(tap in ~(key by arms))
-::
-::  This is basically a `mapM` over a list using the State monad.
-::
-::  Another way to think about this is that it is the same as `turn`,
-::  except that a state variable `st` is threaded through the
-::  execution. The list is processed from left to right.
-::
-++  traverse
-   |*  [a=mold b=mold s=mold]
-   |=  [[xs=(list a) st=s] f=$-([a s] [b s])]
-   ^-  [(list b) s]
-   ?~  xs  [~ st]
-   =^  r   st  (f i.xs st)
-   =^  rs  st  $(xs t.xs, st st)
-   [[r rs] st]
-::
-::  Same as `traverse` but executes state updates in reverse order.
-::
-++  traverse-right
-   |*  [a=mold b=mold s=mold]
-   |=  [[xs=(list a) st=s] f=$-([a s] [b s])]
-   ^-  [(list b) s]
-   ?~  xs  [~ st]
-   =^  rs  st  $(xs t.xs, st st)
-   =^  r   st  (f i.xs st)
-   [[r rs] st]
-::
-+|  %entry-points-for-testing
++|  %render
 ::
 ++  render-vase
   |=  =vase
   ^-  wain
   ~(tall plume (vase-to-plum vase))
 ::
-::  Pretty-print a vase.
-::
-++  vase-to-plum
-  |=  v=vase  ^-  plum
-  (render-noun (xray-type 1 p.v) q.v)
+++  render-type-simple
+  |=  =type
+  ^-  wain
+  ~(tall plume (type-to-plum-simple type 100))
 ::
 ++  render-type
   |=  =type  ^-  wain
   ~(tall plume (type-to-plum type))
+::
+::  Pretty-print a hoon.
+::
+++  render-hoon
+  |=  =hoon  ^-  wain
+  ~(tall plume (hoon-to-plum 999 hoon))
 ::
 ::  Pretty-print a type given as a string.
 ::
@@ -73,18 +43,6 @@
   |=  =cord  ^-  wain
   =/  t=type  -:(ride -:!>(..zuse) cord)
   ~(tall plume (type-to-plum t))
-::
-::  Pretty-print a type.
-::
-++  type-to-plum
-  |=  t=type  ^-  plum
-  (spec-to-plum (ximage-to-spec (xray-type 1 t)))
-::
-::  Pretty-print a hoon.
-::
-++  render-hoon
-  |=  =hoon  ^-  wain
-  ~(tall plume (hoon-to-plum 999 hoon))
 ::
 ::  This is just a helper function for testing out this code.  It just digs
 ::  through a type and finds hoon values referenced within that type,
@@ -97,7 +55,19 @@
   =*  hoons=(list hoon)  (turn tomes |=(t=tome [%cltr ~(val by q.t)]))
   ~(tall plume (hoon-to-plum 999 [%cltr hoons]))
 ::
-+|  %pretty-printer
++|  %to-plum
+::
+::  Pretty-print a vase.
+::
+++  vase-to-plum
+  |=  v=vase  ^-  plum
+  (render-noun (xray-type 1 p.v) q.v)
+::
+::  Pretty-print a type.
+::
+++  type-to-plum
+  |=  t=type  ^-  plum
+  (spec-to-plum (ximage-to-spec (xray-type 1 t)))
 ::
 ::  Render an `axis`.
 ::
@@ -1076,19 +1046,9 @@
     ==
   --
 ::
-++  simple-type-to-plum
-  =/  armsfmt=plumfmt  [[~ ' ' [~ '(' ')']] ~]
-  ::
+++  type-to-plum-simple
   |^  main
   ::
-  ++  arms
-    |=  =coil
-    ^-  plum
-    =/  arms  (arm-names q.r.coil)
-    =.  arms  (turn arms |=(c=cord ?:(=('' c) '$' c)))
-    ?:  (gte (lent arms) 50)  'KERNEL'
-    (sexp 'arms' (chapters-to-plum-list q.r.coil))
-
   ++  main
     |=  [ty=type maxdepth=@ud]
     ^-  plum
@@ -1107,28 +1067,48 @@
       [%hint *]  (sexp 'hint' 'hint' (main q.ty d) ~)
       [%hold *]  'HOLD'
     ==
+  ::
+  ++  arms
+    |=  =coil
+    ^-  plum
+    =/  arms  (arm-names q.r.coil)
+    =.  arms  (turn arms |=(c=cord ?:(=('' c) '$' c)))
+    ?:  (gte (lent arms) 50)  'KERNEL'
+    (sexp 'arms' (chapters-to-plum-list q.r.coil))
+  ::
+  ::  Given a battery expression (from a hoon expression), produce a list
+  ::  of arm names.
+  ::
+  ++  arm-names
+    |=  =battery
+    ^-  (list term)
+    %-  zing
+    %+  turn  ~(val by battery)
+    |=  [=what arms=(map term hoon)]
+    ^-  (list term)
+    ~(tap in ~(key by arms))
+  ::
+  ++  type-face-to-plum
+    |=  f=$@(term tune)
+    ^-  plum
+    ?@  f  f
+    (tune-to-plum f)
+  ::
+  ++  tune-to-plum
+    |=  =tune
+    ^-  plum
+    =/  aliases  p.tune
+    =/  bridges  q.tune
+    =/  fmt  [[~ ' ' [~ '[' ']']] ~]
+    =/  aliases  [%sbrk [%tree fmt 'aliases' (turn ~(tap by p.tune) alias-to-plum)]]
+    =/  bridges  [%sbrk [%tree fmt 'bridges' (turn q.tune |=(h=hoon (hoon-to-plum 999 h)))]]
+    [%sbrk [%tree fmt 'tune' bridges aliases ~]]
+  ::
+  ++  alias-to-plum
+    |=  [=term =(unit hoon)]
+    ^-  plum
+    =/  fmt  [[~ ' ' [~ '(' ')']] ~]
+    [%sbrk [%tree fmt 'alias' term ?~(unit '~' (hoon-to-plum 999 u.unit)) ~]]
+  ::
   --
-::
-++  type-face-to-plum
-  |=  f=$@(term tune)
-  ^-  plum
-  ?@  f  f
-  (tune-to-plum f)
-::
-++  tune-to-plum
-  |=  =tune
-  ^-  plum
-  =/  aliases  p.tune
-  =/  bridges  q.tune
-  =/  fmt  [[~ ' ' [~ '[' ']']] ~]
-  =/  aliases  [%sbrk [%tree fmt 'aliases' (turn ~(tap by p.tune) alias-to-plum)]]
-  =/  bridges  [%sbrk [%tree fmt 'bridges' (turn q.tune |=(h=hoon (hoon-to-plum 999 h)))]]
-  [%sbrk [%tree fmt 'tune' bridges aliases ~]]
-::
-++  alias-to-plum
-  |=  [=term =(unit hoon)]
-  ^-  plum
-  =/  fmt  [[~ ' ' [~ '(' ')']] ~]
-  [%sbrk [%tree fmt 'alias' term ?~(unit '~' (hoon-to-plum 999 u.unit)) ~]]
-::
 --
