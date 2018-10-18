@@ -14,7 +14,15 @@
 ::  There is probably no reason to look at the utility routines unless
 ::  you are writing something to generate `plum`s.
 ::
-|%
+|^  :*  plume=plume
+        fixed=fixed
+        tall-fixed=tall-fixed
+        tall-running=tall-running
+        rune=rune
+        simple-wide=simple-wide
+        subtree=subtree
+        sexp=sexp
+     ==
 ::
 ::  This is the pretty-printer.  Use the `flat` arm to render a plum
 ::  into a single line and use the `tall` arm to get a nice multi-line

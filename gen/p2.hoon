@@ -1,9 +1,10 @@
 /?  310
 ::
-/+  xray
+/+  pprint
+::
+!:
 ::
 :-  %say
-!:
 ::
 =<  |=  {^ {{v=vase ~} ~}}
     :-  %txt
@@ -15,7 +16,7 @@
     ::  v  !>(test-example)
     ::  v  !>(demo-example)
     ~&  p.v
-    (render-vase:xray v)
+    (render-vase:pprint v)
 ::
 |%
 ::
