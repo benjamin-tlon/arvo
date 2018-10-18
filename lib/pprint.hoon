@@ -621,27 +621,6 @@
     [`[' ' `[(cat 3 intro '(') ')']] `[intro `['' final]]]
   --
 ::
-++  focus-on
-  |=  [img=xtable i=key]
-  ^-  xray
-  =/  res=(unit xray)  (~(get by xrays.img) i)
-  ?~  res  ~&  ['internal error: invalid xray reference' i]  !!
-  u.res
-::
-++  tape-to-plum
-  |=  =tape
-  ^-  plum
-  (simple-wide '"' '' '"' `(list plum)`tape)
-::
-++  battery-refs
-  |=  b=xbattery
-  ^-  (list key)
-  %-  zing
-  %+  turn  ~(val by b)
-  |=  [=what =(map term key)]
-  ^-  (list key)
-  ~(val by map)
-::
 ++  render-noun
   |=  [xt=ximage =top=noun]
   ^-  plum
@@ -827,197 +806,6 @@
     ^-  plum
     '%tour'                                             ::  XX TODO
   ::
-  ++  json-to-plum
-    ::
-    ::  Note that `arrayfmt` and `objfmt` use core-like formatting in
-    ::  the tall case. This is kind-of a hack but works well!
-    ::
-    =/  arrfmt=plumfmt  :-  wide=`[' ' `['[' ']']]
-                            tall=`['[ ' `['' ']']]
-    ::
-    =/  objfmt=plumfmt  :-  wide=`[' ' `['{' '}']]
-                            tall=`['{ ' `['' '}']]
-    ::
-    ::  Note that `kidfmt` uses the magical "ace-ace" rune to get
-    ::  4-space indentation.
-    =/  kidfmt=plumfmt  [wide=`['' ~] tall=`['  ' `['' '']]]
-    ::
-    =/  colfmt=plumfmt  [wide=`[' ' ~] tall=`['' `['' '']]]
-    ::
-    |^  jsn
-    ::
-    ++  str  |=  t=@t
-             ^-  cord
-             (cat 3 '"' (cat 3 t '"'))                  ::  XX Escaping
-    ::
-    ++  key  |=  t=@t
-             ^-  cord
-             (cat 3 (str t) ':')
-    ::
-    ++  kid  |=  kids=(list plum)
-             ^-  plum
-             [%tree kidfmt kids]
-    ::
-    ++  jsn  |=  j=json
-             ^-  plum
-             ?-  j
-               ~       'null'
-               [%a *]  (arr p.j)
-               [%b *]  ?:(p.j 'true' 'false')
-               [%o *]  (obj p.j)
-               [%n *]  p.j
-               [%s *]  (str p.j)
-             ==
-    ::
-    ++  arr  |=  l=(list json)
-             ^-  plum
-             [%sbrk [%tree arrfmt (seq (turn l jsn))]]
-    ::
-    ++  obj  |=  m=(map @t json)
-             ^-  plum
-             [%sbrk [%tree objfmt (seq (turn ~(tap by m) col))]]
-    ::
-    ++  col  |=  [k=@t v=json]
-             ^-  plum
-             [%sbrk [%tree colfmt ~[(key k) (kid (jsn v) ~)]]]
-    ::
-    ::
-    ::  Adds a comma to the end of every plum but the last.
-    ::
-    ++  seq  |=  ps=(list plum)
-             ^-  (list plum)
-             =/  acc=(list plum)  ~
-             |-
-             ?~  ps    (flop acc)
-             ?~  t.ps  (flop [i.ps acc])
-             %=  $
-               acc  [(com i.ps) acc]
-               ps   `(list plum)`t.ps
-             ==
-    ::
-    ++  lst  |=  ps=(list plum)
-             ^-  (list plum)
-             =/  acc=(list plum)  ~
-             |-
-             ?~  ps    (flop acc)
-             ?~  t.ps  (flop [(com i.ps) acc])
-             %=  $
-               acc  [i.ps acc]
-               ps   `(list plum)`t.ps
-             ==
-    ::
-    ::  Adds a comma at the end of a plum in both wide and tall modes.
-    ::
-    ++  com  |=  p=plum
-             ^-  plum
-             ?-  p
-               @          (cat 3 p ',')
-               [%sbrk *]  [%sbrk (com kid.p)]
-               [%para *]  p
-               [%tree *]
-                 ?.  ?&(?=(^ tall.fmt.p) ?|(=('  ' intro.u.tall.fmt.p) =('' intro.u.tall.fmt.p)))
-                   p(fmt (hak fmt.p))
-                 p(kids (lst kids.p))
-             ==
-    ::
-    ::  Nasty hack to add a trailing comma to an element in a sequence.
-    ::
-    ::  Everything that can appear in a sequence has a plum that is
-    ::  either a cord or has a `plumfmt` that contains a terminator
-    ::  character (possibly empty) in both wide and tall formats.
-    ::
-    ::  This routine fudges a `plumfmt` value so that a trailing comma
-    ::  will be inserted at the end
-    ::
-    ++  hak  |=  fmt=plumfmt
-             ^-  plumfmt
-             ::
-             %=  fmt
-               wide  ?~  wide.fmt            wide.fmt
-                     ?~  enclose.u.wide.fmt  wide.fmt
-                     =.  q.u.enclose.u.wide.fmt
-                       (cat 3 q.u.enclose.u.wide.fmt ',')
-                     wide.fmt
-               tall  ?~  tall.fmt          tall.fmt
-                     ?~  indef.u.tall.fmt  tall.fmt
-                     =.  final.u.indef.u.tall.fmt
-                       (cat 3 final.u.indef.u.tall.fmt ',')
-                     tall.fmt
-             ==
-    ::
-    --
-  ::
-  ++  mane-to-cord
-    |=  m=mane
-    ^-  cord
-    ?@  m  m
-    (cat 3 -:m (cat 3 ':' +:m))
-  ::
-  ++  manx-text
-    |=  [[=mane =mart] =marl]  ^-  (unit tape)
-    ?~  mart  ~
-    ?:  =('' n.i.mart)  `v.i.mart
-    $(mart t.mart)
-  ::
-  ++  manx-to-plum
-    |=  [[=mane attrs=mart] =marl]
-    ^-  plum
-    |^  result
-    ::
-    ++  result  `plum`[%sbrk [%tree outfmt toptag childs ~]]
-    ++  outfmt  ^-  plumfmt  :-  `['' `['' endtag]]  `['' [~ '' endtag]]
-    ::
-    ++  tagstr  (mane-to-cord mane)
-    ::
-    ++  toptag  =/  a  atribs
-                ?~  a  (cat 3 topstr '>')
-                [%sbrk [%tree topfmt a]]
-    ::
-    ++  txtstr  ^-  (unit plum)
-                =/  res  (manx-text [[mane attrs] marl])
-                ?~  res  res
-                `(crip u.res)
-                ::  `[%para '' ~[(crip u.res)]]
-    ::
-    ::  Note that `kidfmt` uses "the ace-ace rune" (scare quotes) to
-    ::  get indentation.
-    ::
-    ++  childs  ^-  plum
-                =/  body  txtstr
-                ?~  body  [%tree kidfmt (turn marl manx-to-plum)]
-                    [%tree kidfmt [u.body (turn marl manx-to-plum)]]
-    ++  kidfmt  ^-  plumfmt  :-  `['' `['' '']]  `['  ' `['' '']]
-    ::
-    ++  topfmt  =/  widetopstr  (cat 3 topstr ' ')
-                :-  wide=[~ ' ' [~ widetopstr '>']]
-                    tall=[~ topstr [~ '' '>']]
-    ++  topstr  (cat 3 '<' tagstr)
-    ++  atribs  (turn (drop-body attrs) attr-to-plum)
-    ::
-    ++  endtag  (cat 3 '</' (cat 3 tagstr '>'))
-    ++  endfmt  [[~ '' [~ '</' '>']] ~]
-    ::
-    ++  atrfmt  [[~ '="' [~ '' '"']] ~]                 ::  XX Escaping
-    ::
-    ::  All attributes except the bullshit '' attribute. (It indicates
-    ::  the tag body).
-    ::
-    ++  drop-body
-      |=  l=mart
-      ^-  mart
-      =/  acc=mart  ~
-      |-  ^-  mart
-      ?~  l  (flop acc)
-      ?:  =('' n.i.l)  $(l t.l)
-      $(l t.l, acc [i.l acc])
-    ::
-    ++  attr-to-plum
-      |=  [m=^mane t=tape]
-      ^-  plum
-      [%tree atrfmt (mane-to-cord m) (crip t) ~]
-    ::
-    --
-  ::
   ++  render-with-pattern
     |=  [p=pattern n=*]
     ^-  plum
@@ -1044,6 +832,12 @@
       [%tree *]  (render-tree item.p n)
       [%unit *]  (render-unit item.p n)
     ==
+  ::
+  ++  tape-to-plum
+    |=  =tape
+    ^-  plum
+    (simple-wide '"' '' '"' `(list plum)`tape)
+  ::
   --
 ::
 ++  type-to-plum-simple
@@ -1109,6 +903,197 @@
     ^-  plum
     =/  fmt  [[~ ' ' [~ '(' ')']] ~]
     [%sbrk [%tree fmt 'alias' term ?~(unit '~' (hoon-to-plum 999 u.unit)) ~]]
+  ::
+  --
+::
+++  json-to-plum
+  ::
+  ::  Note that `arrayfmt` and `objfmt` use core-like formatting in
+  ::  the tall case. This is kind-of a hack but works well!
+  ::
+  =/  arrfmt=plumfmt  :-  wide=`[' ' `['[' ']']]
+                          tall=`['[ ' `['' ']']]
+  ::
+  =/  objfmt=plumfmt  :-  wide=`[' ' `['{' '}']]
+                          tall=`['{ ' `['' '}']]
+  ::
+  ::  Note that `kidfmt` uses the magical "ace-ace" rune to get
+  ::  4-space indentation.
+  =/  kidfmt=plumfmt  [wide=`['' ~] tall=`['  ' `['' '']]]
+  ::
+  =/  colfmt=plumfmt  [wide=`[' ' ~] tall=`['' `['' '']]]
+  ::
+  |^  jsn
+  ::
+  ++  str  |=  t=@t
+           ^-  cord
+           (cat 3 '"' (cat 3 t '"'))                  ::  XX Escaping
+  ::
+  ++  key  |=  t=@t
+           ^-  cord
+           (cat 3 (str t) ':')
+  ::
+  ++  kid  |=  kids=(list plum)
+           ^-  plum
+           [%tree kidfmt kids]
+  ::
+  ++  jsn  |=  j=json
+           ^-  plum
+           ?-  j
+             ~       'null'
+             [%a *]  (arr p.j)
+             [%b *]  ?:(p.j 'true' 'false')
+             [%o *]  (obj p.j)
+             [%n *]  p.j
+             [%s *]  (str p.j)
+           ==
+  ::
+  ++  arr  |=  l=(list json)
+           ^-  plum
+           [%sbrk [%tree arrfmt (seq (turn l jsn))]]
+  ::
+  ++  obj  |=  m=(map @t json)
+           ^-  plum
+           [%sbrk [%tree objfmt (seq (turn ~(tap by m) col))]]
+  ::
+  ++  col  |=  [k=@t v=json]
+           ^-  plum
+           [%sbrk [%tree colfmt ~[(key k) (kid (jsn v) ~)]]]
+  ::
+  ::
+  ::  Adds a comma to the end of every plum but the last.
+  ::
+  ++  seq  |=  ps=(list plum)
+           ^-  (list plum)
+           =/  acc=(list plum)  ~
+           |-
+           ?~  ps    (flop acc)
+           ?~  t.ps  (flop [i.ps acc])
+           %=  $
+             acc  [(com i.ps) acc]
+             ps   `(list plum)`t.ps
+           ==
+  ::
+  ++  lst  |=  ps=(list plum)
+           ^-  (list plum)
+           =/  acc=(list plum)  ~
+           |-
+           ?~  ps    (flop acc)
+           ?~  t.ps  (flop [(com i.ps) acc])
+           %=  $
+             acc  [i.ps acc]
+             ps   `(list plum)`t.ps
+           ==
+  ::
+  ::  Adds a comma at the end of a plum in both wide and tall modes.
+  ::
+  ++  com  |=  p=plum
+           ^-  plum
+           ?-  p
+             @          (cat 3 p ',')
+             [%sbrk *]  [%sbrk (com kid.p)]
+             [%para *]  p
+             [%tree *]
+               ?.  ?&(?=(^ tall.fmt.p) ?|(=('  ' intro.u.tall.fmt.p) =('' intro.u.tall.fmt.p)))
+                 p(fmt (hak fmt.p))
+               p(kids (lst kids.p))
+           ==
+  ::
+  ::  Nasty hack to add a trailing comma to an element in a sequence.
+  ::
+  ::  Everything that can appear in a sequence has a plum that is
+  ::  either a cord or has a `plumfmt` that contains a terminator
+  ::  character (possibly empty) in both wide and tall formats.
+  ::
+  ::  This routine fudges a `plumfmt` value so that a trailing comma
+  ::  will be inserted at the end
+  ::
+  ++  hak  |=  fmt=plumfmt
+           ^-  plumfmt
+           ::
+           %=  fmt
+             wide  ?~  wide.fmt            wide.fmt
+                   ?~  enclose.u.wide.fmt  wide.fmt
+                   =.  q.u.enclose.u.wide.fmt
+                     (cat 3 q.u.enclose.u.wide.fmt ',')
+                   wide.fmt
+             tall  ?~  tall.fmt          tall.fmt
+                   ?~  indef.u.tall.fmt  tall.fmt
+                   =.  final.u.indef.u.tall.fmt
+                     (cat 3 final.u.indef.u.tall.fmt ',')
+                   tall.fmt
+           ==
+  ::
+  --
+::
+++  manx-to-plum
+  |=  [[tag-name=mane attrs=mart] kids=marl]
+  ^-  plum
+  |^  result
+  ::
+  ++  result  `plum`[%sbrk [%tree outfmt toptag childs ~]]
+  ++  outfmt  ^-  plumfmt  :-  `['' `['' endtag]]  `['' [~ '' endtag]]
+  ::
+  ++  tagstr  (mane-to-cord tag-name)
+  ::
+  ++  toptag  =/  a  atribs
+              ?~  a  (cat 3 topstr '>')
+              [%sbrk [%tree topfmt a]]
+  ::
+  ++  txtstr  ^-  (unit plum)
+              =/  res  (manx-text [[tag-name attrs] kids])
+              ?~  res  res
+              `(crip u.res)
+              ::  `[%para '' ~[(crip u.res)]]
+  ::
+  ::  Note that `kidfmt` uses "the ace-ace rune" (scare quotes) to
+  ::  get indentation.
+  ::
+  ++  childs  ^-  plum
+              =/  body  txtstr
+              ?~  body  [%tree kidfmt (turn kids manx-to-plum)]
+                  [%tree kidfmt [u.body (turn kids manx-to-plum)]]
+  ++  kidfmt  ^-  plumfmt  :-  `['' `['' '']]  `['  ' `['' '']]
+  ::
+  ++  topfmt  =/  widetopstr  (cat 3 topstr ' ')
+              :-  wide=[~ ' ' [~ widetopstr '>']]
+                  tall=[~ topstr [~ '' '>']]
+  ++  topstr  (cat 3 '<' tagstr)
+  ++  atribs  (turn (drop-body attrs) attr-to-plum)
+  ::
+  ++  endtag  (cat 3 '</' (cat 3 tagstr '>'))
+  ++  endfmt  [[~ '' [~ '</' '>']] ~]
+  ::
+  ++  atrfmt  [[~ '="' [~ '' '"']] ~]                 ::  XX Escaping
+  ::
+  ::  All attributes except the bullshit '' attribute. (It indicates
+  ::  the tag body).
+  ::
+  ++  drop-body
+    |=  l=mart
+    ^-  mart
+    =/  acc=mart  ~
+    |-  ^-  mart
+    ?~  l  (flop acc)
+    ?:  =('' n.i.l)  $(l t.l)
+    $(l t.l, acc [i.l acc])
+  ::
+  ++  manx-text
+    |=  [[=mane =mart] =marl]  ^-  (unit tape)
+    ?~  mart  ~
+    ?:  =('' n.i.mart)  `v.i.mart
+    $(mart t.mart)
+  ::
+  ++  attr-to-plum
+    |=  [m=mane t=tape]
+    ^-  plum
+    [%tree atrfmt (mane-to-cord m) (crip t) ~]
+  ::
+  ++  mane-to-cord
+    |=  m=mane
+    ^-  cord
+    ?@  m  m
+    (cat 3 -:m (cat 3 ':' +:m))
   ::
   --
 --

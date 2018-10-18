@@ -37,14 +37,13 @@
 ::
 |^  ^-  $:  ximage-to-spec=$-(=ximage =spec)
             xray-type=$-([@ type] ximage)
+            focus-on=$-([xtable key] xray)
         ==
-    [ximage-to-spec analyze-type-and-decorate]
+    [ximage-to-spec analyze-type-and-decorate focus-on]
 ::
 +|  %utils
 ::
 ::  Left-fold over a list.
-::
-++  bullshit  `@`3
 ::
 ++  fold
    |*  [state=mold elem=mold]

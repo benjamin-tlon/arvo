@@ -8,8 +8,6 @@
 ::
 +$  xtable  [next=key xrays=(map key xray) =type=(map type key)]
 ::
-+$  shape  ?(%void %noun %atom %cell %junc)
-::
 +$  xray
   $:  =key
       =type
@@ -22,6 +20,18 @@
       shape=(unit shape)
       loop=(unit ?)
   ==
+::
++$  data
+  $@  ?(%noun %void)
+  $%  [%atom =aura constant=(unit @)]
+      [%cell head=key tail=key]
+      [%core =garb xray=key batt=xbattery]
+      [%face face=$@(term tune) xray=key]
+      [%fork =(set key)]
+      [%pntr xray=key]
+  ==
+::
++$  shape  ?(%void %noun %atom %cell %junc)
 ::
 +$  role
   $@  $?  %atom  %cell  %noun  %void  %wide  ==
@@ -43,16 +53,6 @@
       [%list item=key]
       [%tree item=key]
       [%unit item=key]
-  ==
-::
-+$  data
-  $@  ?(%noun %void)
-  $%  [%atom =aura constant=(unit @)]
-      [%cell head=key tail=key]
-      [%core =garb xray=key batt=xbattery]
-      [%face face=$@(term tune) xray=key]
-      [%fork =(set key)]
-      [%pntr xray=key]
   ==
 ::
 +$  recipe
