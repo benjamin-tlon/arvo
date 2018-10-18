@@ -1,15 +1,12 @@
 /?  310
 ::
-/+  pprint
+/+  xray
 ::
 :-  %say
 !:
 ::
 =<  |=  {^ {{v=vase ~} ~}}
     :-  %txt
-    ^-  tank
-    :-  %plum
-    ^-  plum
     ::  v  !>(xray-the-kernel-example)
     ::  v  !>(test-example)
     ::  v  !>(xray-the-parser-example)
@@ -18,7 +15,7 @@
     ::  v  !>(test-example)
     ::  v  !>(demo-example)
     ~&  p.v
-    (vase-to-plum:pprint v)
+    (render-vase:xray v)
 ::
 |%
 ::
