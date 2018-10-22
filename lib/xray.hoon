@@ -1,4 +1,4 @@
-::  # Xray Types
+::  # Type Analysis
 ::
 ::  - XX Create patterns and printers for maps and sets.
 ::
@@ -21,15 +21,11 @@
 ::    claiming that they are nouns, but if another thing in the xray
 ::    actually needs it, it will think it's a noun too.
 ::
-::  - XX We shouldn't need `traverse-right`.
-::
 ::  - XX It should be possible to wrote a `traverse-battery` routine.
 ::
 ::  - XX Finish the logic for printing a noun given a fork.
 ::
 ::  - XX Find some way to test the shit out of the fork logic.
-::
-::  - XX Printing !>(**) blows up. Why?
 ::
 /?  310
 ::
@@ -81,17 +77,6 @@
    ?~  xs  [~ st]
    =^  r   st  (f i.xs st)
    =^  rs  st  $(xs t.xs, st st)
-   [[r rs] st]
-::
-::  Same as `traverse` but executes state updates in reverse order.
-::
-++  traverse-right
-   |*  [a=mold b=mold s=mold]
-   |=  [[xs=(list a) st=s] f=$-([a s] [b s])]
-   ^-  [(list b) s]
-   ?~  xs  [~ st]
-   =^  rs  st  $(xs t.xs, st st)
-   =^  r   st  (f i.xs st)
    [[r rs] st]
 ::
 ::
@@ -306,12 +291,12 @@
     ^-  [data state]
     =^  payload-key  st  (main payload-type st)
     =^  chapters=(list (chap key))  st
-      %+  (traverse-right (chap hoon) (chap key) state)
+      %+  (traverse (chap hoon) (chap key) state)
         [~(tap by q.r.coil) st]
       |=  [c=(chap hoon) st=state]
       =^  l=(list (arm key))  st
         ^-  [(list (arm key)) state]
-        %+  (traverse-right (arm hoon) (arm key) state)
+        %+  (traverse (arm hoon) (arm key) state)
           [~(tap by q.q.c) st]
         |=  [=(arm hoon) st=state]
         (xray-arm st payload-type coil arm)
@@ -635,7 +620,7 @@
     ^-  $-(xray (unit pattern))
     |=  x=xray
     ^-  (unit pattern)
-    =/  subtype  (~(nest ut type.x) | ty)
+    =/  subtype  (~(nest ut ty) | type.x)
     ?:(subtype `pat ~)
   ::
   ++  type-pattern  (simple-nest-pattern -:!>(*type) %type)
