@@ -1065,18 +1065,18 @@
   ::  Calculate the role of a %cell xray.
   ::
   ++  cell-role
-    |=  x=xray
+    |=  head=xray
     ^-  role
    ::
-    =/  =shape  (need shape.x)
-    =/  =data   (need data.x)
+    =/  =shape  (need shape.head)
+    =/  =data   (need data.head)
    ::
     =/  const  ?.  ?=([%atom *] data)  ~
                constant.data
     ::
     ?:  =(shape %cell)  %wide
     ?^  const           [%instance u.const]
-    %cell
+    %tall
   ::
   ::  Produces an xtable updated to have role information for the xray
   ::
@@ -1106,7 +1106,8 @@
         %void      :_  st  %void
         [%atom *]  :_  st  (atom-role constant.dat)
         [%cell *]  :_  st  (cell-role (focus-on st head.dat))
-        [%core *]  :_  st  %cell
+        [%core *]  :_  st  %wide  ::  The head of a core is a battery
+                                  ::  which is always a cell.
         [%face *]  (xray-role st xray.dat)
         [%pntr *]  !!
         [%fork *]  (fork-role st (xray-branches st key.x))
@@ -1345,9 +1346,9 @@
       ?:  |(?=(%noun this-role) ?=(%noun that-role))  %noun
       ?-  this-role
         %atom  [%junction this that]
-        %cell  ?:  ?=(%wide that-role)  %cell
+        %tall  ?:  ?=(%wide that-role)  %tall
                [%junction that this]
-        %wide  ?:  ?=(%cell that-role)  %cell
+        %wide  ?:  ?=(%tall that-role)  %tall
                [%junction that this]
       ==
     ::
@@ -1367,7 +1368,7 @@
                  %option       (joined st %atom)
                  %union        (junct st that this)
                ==
-        %cell  ?-  -.this-role
+        %tall  ?-  -.this-role
                  %conjunction  (misjunct st this that)  ::  Can't discriminate
                  %constant     (junct st this that)
                  %instance     (misjunct st this that)  ::  Can't discriminate

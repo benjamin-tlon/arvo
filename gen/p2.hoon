@@ -15,6 +15,7 @@
     ::  v  !>(xml-example)
     ::  v  !>(test-example)
     ::  v  !>(demo-example)
+    ::  v  !>(all-examples)
     ~&  p.v
     (render-vase:pprint v)
 ::
