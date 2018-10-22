@@ -1,6 +1,6 @@
-::  # Type Analysis
+::  # Todo
 ::
-::  - XX Create patterns and printers for maps and sets.
+::  - XX Create patterns and matchers %map %set
 ::
 ::  - XX The pattern matching code is basically brute-force.
 ::
@@ -21,11 +21,7 @@
 ::    claiming that they are nouns, but if another thing in the xray
 ::    actually needs it, it will think it's a noun too.
 ::
-::  - XX It should be possible to wrote a `traverse-battery` routine.
-::
-::  - XX Finish the logic for printing a noun given a fork.
-::
-::  - XX Find some way to test the shit out of the fork logic.
+::  - XX There are probably remaining bugs. Test the shit out of this.
 ::
 /?  310
 ::
@@ -49,8 +45,8 @@
    ?~  xs  st
    =.  st  (f st i.xs)
    $(xs t.xs, st st)
-
-+$  battery  (map term (pair what (map term hoon)))
+::
++$  battery  (batt-of hoon)
 ::
 ::  Given a battery expression (from a hoon expression), produce a list
 ::  of arm names.
@@ -71,13 +67,52 @@
 ::  execution. The list is processed from left to right.
 ::
 ++  traverse
-   |*  [a=mold b=mold s=mold]
-   |=  [[xs=(list a) st=s] f=$-([a s] [b s])]
-   ^-  [(list b) s]
-   ?~  xs  [~ st]
-   =^  r   st  (f i.xs st)
-   =^  rs  st  $(xs t.xs, st st)
-   [[r rs] st]
+  |*  [state=mold in=mold out=mold]
+  |=  [[st=state xs=(list in)] f=$-([state in] [out state])]
+  ^-  [(list out) state]
+  ?~  xs  [~ st]
+  =^  r   st  (f st i.xs)
+  =^  rs  st  $(xs t.xs, st st)
+  [[r rs] st]
+::
+++  traverse-map
+  |*  [state=mold key=mold in=mold out=mold]
+  |=  [[st=state dict=(map key in)] f=$-([state key in] [out state])]
+  ^-  [(map key out) state]
+  ::
+  =^  pairs=(list (pair key out))  st
+    %+  (traverse state (pair key in) (pair key out))
+      [st ~(tap by dict)]
+    |=  [st=state k=key x=in]
+    ^-  [(pair key out) state]
+    =^  v  st  (f st k x)
+    [[k v] st]
+  ::
+  :_  st
+  (~(gas by *(map key out)) pairs)
+::
++*  batt-of  [arm]
+  (map term (pair what (map term arm)))
+::
++*  chap-of  [arm]
+  [doc=what arms=(map term arm)]
+::
+++  traverse-chapter
+  |*  [state=mold in=mold out=mold]
+  |=  [[st=state chap=(chap-of in)] f=$-([state term in] [out state])]
+  ^-  [(chap-of out) state]
+  =^  arms  st  ((traverse-map state term in out) [st arms.chap] f)
+  [chap(arms arms) st]
+::
+++  traverse-battery
+  |*  [state=mold in=mold out=mold]
+  |=  [[st=state batt=(batt-of in)] f=$-([state term in] [out state])]
+  ^-  [(batt-of out) state]
+  %+  (traverse-map state term (chap-of in) (chap-of out))
+    [st batt]
+  |=  [st=state chapter-name=term chap=(chap-of in)]
+  ^-  [(chap-of out) state]
+  ((traverse-chapter state in out) [st chap] f)
 ::
 ::
 ::  Create an new xray and put it in the xray table. If there's already
@@ -273,38 +308,32 @@
   ::
   ++  xray-arm
     |=  [st=state =payload=type =coil x=(arm hoon)]
-    ^-  [(arm key) state]
+    ^-  [key state]
     ::  ~&  [depth.st (cat 3 'arm=' p.x)]
     =/  arm-name  ?:(=(p.x '') '$' p.x)
     =.  r.p.coil  %gold
-    =^  i=key  st
-      ?:  =(0 core-depth)  (noun-xray st)
-      =.  core-depth       (dec core-depth)
-      ?:  =(%wet q.p.coil)  (noun-xray st)
-      (main [%hold [%core payload-type coil] q.x] st)
-    [x(q i) st]
+    ?:  =(0 core-depth)  (noun-xray st)
+    =.  core-depth       (dec core-depth)
+    ?:  =(%wet q.p.coil)  (noun-xray st)
+    (main [%hold [%core payload-type coil] q.x] st)
   ::
   ::  Analyze a core.
   ::
   ++  xray-core
     |=  [[=payload=type =coil] st=state]
     ^-  [data state]
-    =^  payload-key  st  (main payload-type st)
-    =^  chapters=(list (chap key))  st
-      %+  (traverse (chap hoon) (chap key) state)
-        [~(tap by q.r.coil) st]
-      |=  [c=(chap hoon) st=state]
-      =^  l=(list (arm key))  st
-        ^-  [(list (arm key)) state]
-        %+  (traverse (arm hoon) (arm key) state)
-          [~(tap by q.q.c) st]
-        |=  [=(arm hoon) st=state]
-        (xray-arm st payload-type coil arm)
-      =/  r  `(chap key)`[p.c `what`p.q.c (~(gas by *(map term key)) l)]
-      [r st]
-    =/  chaps  (~(gas by *(batt key)) chapters)
-    =/  d=data  [%core p.coil payload-key chaps]
-    [d st]
+    ::
+    =^  payload-key  st
+      (main payload-type st)
+    ::
+    =^  chaps  st
+      %+  (traverse-battery state hoon key)
+        [st q.r.coil]
+      |=  [st=state nm=term h=hoon]
+      (xray-arm st payload-type coil nm h)
+    ::
+    :_  st
+    [%core p.coil payload-key chaps]
   ::
   ::  +fork: convert a %fork $type to an $xray
   ::
@@ -314,9 +343,9 @@
     |=  [types=(set type) st=state]
     ^-  [data state]
     =^  xrays  st
-      %+  (traverse type key state)
-        [~(tap in types) st]
-      |=  [ty=type st=state]
+      %+  (traverse state type key)
+        [st ~(tap in types)]
+      |=  [st=state ty=type]
       (main ty st)
     =/  d=data  [%fork (~(gas in *(set key)) xrays)]
     [d st]
