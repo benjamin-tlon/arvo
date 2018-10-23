@@ -1,3 +1,15 @@
+::  This code pretty-prints a variety of things using the `xray` and
+::  `plum` libraries:
+::
+::  - `render-noun`: Renders a noun given the xray of it's type.
+::  - `render-vase`: Renders the data in a vase.=$-(vase wain)
+::  - `render-hoon`: Pretty-prints a `hoon` AST as hoon code.
+::  - `render-type`: Pretty-prints a type as a hoon expression.
+::  - `render-type-simple`: Debug-print for the `type` structure.
+::
+::  There's a lot of logic here, but most of it is fairly
+::  straight-forward.
+::
 /?  310
 ::
 /-  *xray
@@ -684,7 +696,6 @@
   ++  render-atom
     |=  [=aura atom=@]
     ^-  plum
-    ::  ~&  ['render-atom' aura atom]
     (scot aura atom)
   ::
   ++  render-const
@@ -694,7 +705,7 @@
     (cat 3 '%' (scot aura atom))
   ::
   ++  untyped-noun  ::  XX Where is the existing code for doing this?
-    |=  [n=*]      ::  Can I just use it?
+    |=  [n=*]       ::  Can I just use that?
     ^-  plum
     ?@  n  (render-atom 'ud' n)
     (tuple-plum ~[(untyped-noun -:n) (untyped-noun +:n)])
@@ -708,8 +719,8 @@
     |-
     ^-  (list plum)
     ::
-    =/  x=xray             (focus-on img i)
-    =/  d=data             (need data.x)
+    =/  x=xray  (focus-on img i)
+    =/  d=data  (need data.x)
     ::
     ?^  pats.x           [(main i n) acc]
     ?.  ?=([%cell *] d)  [(main i n) acc]
@@ -722,7 +733,6 @@
   ++  render-with-data
     |=  [i=key d=data n=*]
     ^-  plum
-    ::  ~&  ['render-with-data' d n]
     ?-  d
       %void      '!!'
       %noun      (untyped-noun n)
@@ -809,7 +819,6 @@
   ++  render-with-pattern
     |=  [p=pattern n=*]
     ^-  plum
-    ::  ~&  ['render-with-pattern' p n]
     ?-  p
       %hoon      (hoon-to-plum 999 ((hard hoon) n))
       %json      (json-to-plum ((hard json) n))

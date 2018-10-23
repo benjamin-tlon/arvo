@@ -1,6 +1,52 @@
-::  # Todo
+::  # Type Analysis
 ::
-::  - XX Create patterns and matchers %map %set
+::  This does analysis on types to produce an `ximage` value, which can
+::  be used to print the type (with `ximage-to-spec`) or to print values
+::  of that type (using the `pprint` library).  Check out `sur/xray.hoon`
+::  before digging futher.
+::
+::  `xray-type` is the main gate of interest here. It's implemented as a
+::  series of passes:
+::
+::  - `analyze-type`: This takes a `type`, which is a lazily-evaluated,
+::     recursive data structure, and converts it into an explicit
+::     graph. It also collect the information from `%hint` types and
+::     decorates the graph nodes with that.
+::
+::  - `cleanup`: Removes `%pntr` nodes, replacing references to them
+::    with references to what they resolve to.
+::
+::  - `decorate-ximage-with-loops`: Determines which nodes reference
+::    themselves recursively.
+::
+::  - `decorate-ximage-with-patterns`: Adds printing heuristics to types:
+::    "Should this be printed as a list?"
+::
+::  - `decorate-ximage-with-shapes`: Determines the loose shape of each
+::    type. This overlaps with, and is used by, the next pass. Doing
+::    this as a separate pass removes a lot of difficult edge-cases when
+::    determining the `role` of cell-types.
+::
+::  - `decorate-ximage-with-roles`: Restructures forks to make them
+::    coherent. This is important both for printing types (we want to use
+::    `$@` `$%` `$%`, etc) and for printing data (we need an efficient
+::    way to determine which branch of a fork matches a value.
+::
+::  # Todos
+::
+::  - XX Create patterns and matchers %map %set.
+::
+::  - XX `cleanup` reverses a huge map repeatedly. Fix it!
+::
+::  - XX Create patterns and matchers for tuples. There's no need to
+::    recreate this structure in the printing code, and that's what we're
+::    doing now.
+::
+::  - XX The pattern of an xray could be computed on demand instead of
+::    up-front. Possibly a lot faster!
+::
+::  - XX The loop-detection of an xray could be done on demand instead
+::    of up-front. Possibly a lot faster!
 ::
 ::  - XX The pattern matching code is basically brute-force.
 ::
@@ -17,13 +63,16 @@
 ::  - XX Try to find a way to drop the `%pntr` constructor from
 ::    `%data`. The consumer of an `xray` does not care.
 ::
+::  - XX Actually, it would also be really nice to produce another
+::    version of this structure that doesn't have the (unit *) wrapper around
+::    everything interesting. This would make the on-demand computation
+::    of various things hard, though
+::
 ::  - XX Simply lying about the type of deep arms is not robust. I am just
 ::    claiming that they are nouns, but if another thing in the xray
 ::    actually needs it, it will think it's a noun too.
 ::
 ::  - XX There are probably remaining bugs. Test the shit out of this.
-::
-::  - XX Use `xray-branches` in shape detection.
 ::
 /?  310
 ::
@@ -33,7 +82,7 @@
             xray-type=$-([@ type] ximage)
             focus-on=$-([xtable key] xray)
         ==
-    [ximage-to-spec analyze-type-and-decorate focus-on]
+    [ximage-to-spec xray-type focus-on]
 ::
 +|  %utils
 ::
@@ -63,6 +112,8 @@
   =^  rs  st  $(xs t.xs, st st)
   [[r rs] st]
 ::
+::  `traverse` over a set.
+::
 ++  traverse-set
   |*  [state=mold input=mold out=mold]
   |=  [[st=state xs=(set input)] f=$-([state input] [out state])]
@@ -70,6 +121,8 @@
   ::
   =^  elems  st  ((traverse state input out) [st ~(tap in xs)] f)
   :_  st  (~(gas in *(set out)) elems)
+::
+::  `traverse` over a map, also passing the key to the folding function.
 ::
 ++  traverse-map
   |*  [state=mold key=mold in=mold out=mold]
@@ -92,12 +145,16 @@
 +*  batt-of  [arm]  (map term (pair what (map term arm)))
 +*  chap-of  [arm]  [doc=what arms=(map term arm)]
 ::
+::  Traverse over a chapter in a battery.
+::
 ++  traverse-chapter
   |*  [state=mold in=mold out=mold]
   |=  [[st=state chap=(chap-of in)] f=$-([state term in] [out state])]
   ^-  [(chap-of out) state]
   =^  arms  st  ((traverse-map state term in out) [st arms.chap] f)
   [chap(arms arms) st]
+::
+::  Traverse over a battery.
 ::
 ++  traverse-battery
   |*  [state=mold in=mold out=mold]
@@ -109,25 +166,38 @@
   ^-  [(chap-of out) state]
   ((traverse-chapter state in out) [st chap] f)
 ::
+::  Map a function over all the arms in a battery.
 ::
-::  Create an new xray and put it in the xray table. If there's already
-::  a stub xray under this type, replace it.  Otherwise, allocate a
-::  new index and put it there.
+++  turn-battery
+  |*  arm=mold
+  |=  [b=(batt-of arm) f=$-(arm arm)]
+  ^-  (batt-of arm)
+  %-  ~(run by b)
+  |=  [w=what chap=(map term arm)]
+  ^-  [what (map term arm)]
+  :-  w
+  %-  ~(run by chap)
+  |=  i=arm
+  ^-  arm
+  (f i)
+::
+::  Create a new xray with `data` set to `d`. If the xray is already in
+::  the table, do nothing.
 ::
 ++  post-xray
-  |=  [img=xtable ty=type d=(unit data)]
+  |=  [tbl=xtable ty=type d=(unit data)]
   ^-  [key xtable]
   ::
-  =/  old  (~(get by type-map.img) ty)
+  =/  old  (~(get by type-map.tbl) ty)
+  ?^  old  [u.old tbl]
   ::
-  =^  i=key  img  ?^  old  [u.old img]
-                    =/  newkey  next.img
-                    =.  next.img  +(next.img)
-                    [newkey img]
+  =/  i=key  next.tbl
   =/  x=xray  [i ty d ~ ~ ~ ~ ~ ~ ~]
-  =.  xrays.img     (~(put by xrays.img) i x)
-  =.  type-map.img  (~(put by type-map.img) ty i)
-  [i img]
+  ::
+  =.  next.tbl      +(next.tbl)
+  =.  xrays.tbl     (~(put by xrays.tbl) i x)
+  =.  type-map.tbl  (~(put by type-map.tbl) ty i)
+  [i tbl]
 ::
 ::  Create an new xray and put it in the xray table. If there's already
 ::  a stub xray under this type, replace it.  Otherwise, allocate a
@@ -146,13 +216,7 @@
   =/  x=xray  (focus-on img i)
   (replace-xray img x(data `d))
 ::
-::  Return an xtable modified to be focus on the %void type. If no
-::  void type exists, one will be created.
-::
-++  void-xray
-  |=  img=xtable
-  ^-  [key xtable]
-  (post-xray img %void `%void)
+::  Get an xray from an `xtable`, given it's `key`.
 ::
 ++  focus-on
   |=  [img=xtable i=key]
@@ -160,6 +224,9 @@
   =/  res=(unit xray)  (~(get by xrays.img) i)
   ?~  res  ~&  ['internal error: invalid xray reference' i]  !!
   u.res
+::
+::  Return a list of xrays referenced by an xrayed battery. (the context
+::  type and the type of each arm).
 ::
 ++  battery-refs
   |=  b=xbattery
@@ -170,6 +237,8 @@
   ^-  (list key)
   ~(val by map)
 ::
+::  Just for debugging: print an ximage and then return it.
+::
 ++  trace-ximage
   |=  img=ximage
   ^-  ximage
@@ -179,15 +248,59 @@
       (lth xi yi)
   img
 ::
+::  All non-fork xrays referenced by a fork xray. This will recurse
+::  into forks-of-forks (and so on) and can handle infinite forks.
+::
+::  Separating this out really simplifies things, without this handling
+::  infinite forks is quite error-prone.
+::
+++  xray-branches
+  |=  [img=xtable i=key]
+  ^-  (set key)
+  ::
+  =/  acc=(set key)  ~
+  =/  stk=(set key)  ~
+  ::
+  |-  ^-  (set key)
+  ::
+  ?:  (~(has in acc) i)  acc
+  ?:  (~(has in stk) i)  acc
+  ::
+  =.  stk  (~(put in stk) i)
+  ::
+  =/  x=xray  (focus-on img i)
+  =/  d=data  (need data.x)
+  ::
+  ?-  d
+    %noun      (~(put in acc) i)
+    %void      (~(put in acc) i)
+    [%atom *]  (~(put in acc) i)
+    [%cell *]  (~(put in acc) i)
+    [%core *]  (~(put in acc) i)
+    [%face *]  $(i xray.d)
+    [%pntr *]  $(i xray.d)
+    [%fork *]  %+  (fold (set key) key)
+                 [acc ~(tap in set.d)]
+               |=  [=(set key) =key]
+               ^$(acc set, i key)
+  ==
+::
 +|  %entry-point
 ::
-++  analyze-type-and-decorate
+::  The top-level routine: Takes a type, and xrays it to produce an
+::  ximage.
+::
+::  When we analyze a core, we also analyze it's context. `core-depth`
+::  controls how deeply we will dig into the context. With `core-depth`
+::  at 0, we just pretend that all cores have a context of type `*`.
+::
+++  xray-type
   |=  [core-depth=@ =type]
   ^-  ximage
   ~&  %analyze-type
   =/  =ximage  (analyze-type core-depth type)
-  ~&  %gc-ximage
-  =.  ximage  (gc-ximage ximage)
+  ~&  %cleanup
+  =.  ximage  (cleanup ximage)
   ~&  %decorate-ximage-with-loops
   =.  ximage  (decorate-ximage-with-loops ximage)
   ~&  %decorate-ximage-with-patterns
@@ -199,35 +312,35 @@
 ::
 +|  %analysis-passes
 ::
+::  The main analysis code.
+::
+::  For every type we encounter,
+::
+::  - First check if an xray for this has already been created. This
+::    could either be a recursive reference or just something we've
+::    already processed. At this point we don't care.
+::
+::  - Next, allocate a new xray for this type with empty data. If
+::    we encounter this type again recursively, that's fine, that will
+::    just produce a reference to this xray and it will eventually
+::    have data.
+::
+::  - Next, recurse into all referenced types and build out graph
+::    nodes for those.
+::
+::  - Finally, create `data` based on the above, and update the xray
+::    to have that data.
+::
+::  - The two edge-cases here are %hint and %hold. For those, we simply
+::    do everything in exactly the same way except that `data`
+::    will be set to `[%pntr *]`. We will resolve all of these
+::    references in the first analysis pass (`cleanup`).
+::
 ++  analyze-type
   |=  [core-depth=@ud =top=type]
   ^-  ximage
   ::
   |^  (main [0 ~ ~] top-type)
-  ::
-  ::  The main analysis code.
-  ::
-  ::  For every type we encounter,
-  ::
-  ::  - First check if an xray for this has already been created. This
-  ::    could either be a recursive reference or just something we've
-  ::    already processed. At this point we don't care.
-  ::
-  ::  - Next, allocate a new xray for this type with empty data. If
-  ::    we encounter this type again recursively, that's fine, that will
-  ::    just produce a reference to this xray and it will eventually
-  ::    have data.
-  ::
-  ::  - Next, recurse into all referenced types and build out graph
-  ::    nodes for those.
-  ::
-  ::  - Finally, create `data` based on the above, and update the xray
-  ::    to have that data.
-  ::
-  ::  - The two edge-cases here are %hint and %hold. For those, we simply
-  ::    do everything in exactly the same way except that `data`
-  ::    will be set to `[%pntr *]`. We will resolve all of these
-  ::    references in the first analysis pass (`gc-ximage`).
   ::
   ++  main
     |=  [st=xtable ty=type]
@@ -261,8 +374,8 @@
   ::
   ::  Analyze a %hint type.
   ::
-  ::  This updates the `helps`, `studs`, and `recipe` fields of the
-  ::  passed xray.
+  ::  This updates the `helps`, `studs`, and/or `recipe` fields of the
+  ::  given xray.
   ::
   ++  hint
     |=  [st=xtable [subject-of-note=type =note] x=xray]
@@ -290,11 +403,14 @@
   ::  ever hits zero, we substitute `%noun` for the type of the context.
   ::
   ::  The reason that we switch the varience to %gold is because the
-  ::  core we're creating isn't a real core, we're just using the arms
+  ::  core we're creating isn't an actual core, we're just using the arms
   ::  of this core as a namespace in which to evaluate each arm.
   ::
-  ::  Also, in general there's no way to determine the type of an arm of a
-  ::  wet  core, so we just assign all wet arms the type `%noun`.
+  ::  Also, in general, there's no way to determine the type of an arm
+  ::  of a wet core, so we just assign all wet arms the type `%noun`.
+  ::
+  ::  This seems to work in practice, but I don't think it's actually
+  ::  sound.
   ::
   ++  xray-core
     |=  [[=payload=type =coil] st=xtable]
@@ -317,13 +433,17 @@
   ::
   --
 ::
-::  1. Build a list of reachable, non-reference nodes.
-::  2. Build a table of references to what they reference.
-::  3. Map over the type-map, and replace every value using the table from #2.
-::  4. Rebuild the xrays map, only keeping xrays from set #1.
-::  5. Map over the xrays, and replace every reference using the table from #2.
+::  Remove `%pntr` nodes, replacing references to them with references
+::  to what they resolve to.
 ::
-++  gc-ximage
+::  1. Build a list of reachable, non-reference nodes.
+::  2. Build a table of references mapped to the node they resolve to.
+::  3. If the root node is a pointer, replace it with what it references.
+::  4. Map over `type-map`, and replace every value using the table from #2.
+::  5. Map over the xrays, drop pointer nodes, replace every reference
+::     using the table from #2.
+::
+++  cleanup
   |=  xt=ximage
   ^-  ximage
   ::
@@ -354,7 +474,7 @@
     (~(put in acc) k)
   ::
   ::  Given a node that may be a pointer, follow the chain of pointers
-  ::  to a non-pointer node.
+  ::  until we find a non-pointer node.
   ::
   ++  deref
     |=  [img=xtable i=key]
@@ -381,14 +501,12 @@
     ::
     ((fold table key) [tbl (xray-refs i)] build-table)
   ::
-  ++  gc-xrays
-    |=  [tbl=table xrays=(map key xray)]
-    ^-  _xrays
-    %+  (fold (map key xray) (pair key xray))
-      [*(map key xray) ~(tap by xrays)]
-    |=  [acc=(map key xray) [i=key x=xray]]
-    ?.  (~(has in live.tbl) i)  acc
-    (~(put by acc) i x)
+  ::  Rebuild `type-map`:
+  ::
+  ::  - If a type points to a pointer xray, update it to point to what
+  ::    that pointer resolves to
+  ::  - If the type isn't referenced from the root node, ignore it.
+  ::  - Otherwise, just copy it into the resulting table as-is.
   ::
   ++  fix-type-map
     |=  [tbl=table =(map type key)]
@@ -400,6 +518,14 @@
     ?^  dest  (~(put by acc) ty u.dest)
     ?.  (~(has in live.tbl))  acc
     (~(put in acc) ty i)
+  ::
+  ::  Rebuild the `xrays` table.
+  ::
+  ::  - If the xray isn't in the `live` set (it wont be there if it's
+  ::    a pointer node or if it's inaccessible from the root node),
+  ::    then ignore it.
+  ::  - Otherwise, copy the xray into the result map while updating
+  ::    all it's references.
   ::
   ++  fix-xrays
     |=  [tbl=table xrays=(map key xray)]
@@ -420,8 +546,9 @@
     ^-  (set key)
     ((reverse-lookup key key) refs.tbl i)
   ::
-  ::  There is hint data on the %pntr xrays. Find all of them and collect
-  ::  the hints into one place.
+  ::  There may be `%hint` data on the `%pntr` xrays. Find all pointer
+  ::  nodes that reference this one, and put all of their hint-data onto
+  ::  this xray.
   ::
   ++  collect-hints
     |=  [tbl=table target=xray]
@@ -441,7 +568,9 @@
     ::
     acc(helps helps, studs studs, recipes recipes)
   ::
-  ::  `roles` contains references too, but this runs before role annotation.
+  ::  Note that the `roles` and `pats` fields may contain references
+  ::  to other xrays as well. We don't bother to update those, because this
+  ::  pass runs before those fields are populated.
   ::
   ++  fix-xray
     |=  [tbl=table x=xray]
@@ -453,6 +582,8 @@
                %+  turn  ~(tap in recipes.x)
                |=  r=recipe  (fix-recipe tbl r)
     ==
+  ::
+  ::  Update all the references in the `data` field.
   ::
   ++  fix-data
     |=  [tbl=table d=data]
@@ -470,19 +601,6 @@
       [%fork *]  d(set (~(gas in *(set key)) (turn ~(tap in set.d) fix)))
       [%pntr *]  d(xray (fix xray.d))
     ==
-  ::
-  ++  turn-battery
-    |*  arm=mold
-    |=  [b=(batt-of arm) f=$-(arm arm)]
-    ^-  xbattery
-    %-  ~(run by b)
-    |=  [w=what chap=(map term arm)]
-    ^-  [what (map term arm)]
-    :-  w
-    %-  ~(run by chap)
-    |=  i=arm
-    ^-  arm
-    (f i)
   ::
   ++  fix-battery
     |=  [tbl=table b=xbattery]
@@ -560,7 +678,31 @@
 ::  that's in the stack, that's a loop. If we touch everything without
 ::  hitting a recursive reference, then it's not a loop.
 ::
-::  XX Is the short-circuiting sound? I'm not sure now.
+::  Is the short-circuiting sound? I'm not sure now.
+::
+::    - When could it go wrong?
+::    - This graph, for example:
+::
+::      ```
+::      x -> y
+::      y -> z
+::      y -> y
+::      z -> x
+::      ```
+::
+::    - Let's say we process this starting with y, we will see that `y`
+::      is a loop, and then when we go to process x, recursing into y will be
+::      short-circuited since it's `loop` field is already set.
+::
+::    - Well, maybe `x` will have been recognized as a loop during the
+::      processing of `x`? I think it depends on whether we continue
+::      to trace through all references from `y` even after we've found
+::      a loop, and I think we do.
+::
+::    - Put another way, this will recurse into everything referenced
+::      by a type, and only mark loops onces it's encountered them:
+::      After processing a type, every type that it references
+::      (transitive closure) will have been processed correctly.
 ::
 ++  decorate-ximage-with-loops
   |=  xt=ximage
@@ -587,29 +729,35 @@
     ::
     =.  trace  (~(put in trace) i)
     ::
-    =.  img  ?-  dat
-               %noun      img
-               %void      img
-               [%atom *]  img
-               [%cell *]  =.  img  $(i head.dat)
-                          $(i tail.dat)
-               [%core *]  =.  img  $(i xray.dat)
-                          %+  (fold xtable key)
-                            [img (battery-refs batt.dat)]
-                          |=  [img=xtable i=key]
-                          ^$(img img, i i)
-               [%face *]  $(i xray.dat)
-               [%pntr *]  !!                            ::  gc before this
-               [%fork *]  %+  (fold xtable key)
-                            [img ~(tap in set.dat)]
-                          |=  [img=xtable i=key]
-                          ^$(img img, i i)
-             ==
+    =.  img
+      ?-  dat
+        %noun      img
+        %void      img
+        [%atom *]  img
+        [%cell *]  =.  img  $(i head.dat)
+                   $(i tail.dat)
+        [%core *]  =.  img  $(i xray.dat)
+                   %+  (fold xtable key)
+                     [img (battery-refs batt.dat)]
+                   |=  [img=xtable i=key]
+                   ^$(img img, i i)
+        [%face *]  $(i xray.dat)
+        [%pntr *]  $(i xray.dat)
+        [%fork *]  %+  (fold xtable key)
+                     [img ~(tap in set.dat)]
+                   |=  [img=xtable i=key]
+                   ^$(img img, i i)
+        ==
     ::
     =.  x  (focus-on img i)                             ::  get updated xray
     ?^  loop.x  img                                     ::  loop found
     (replace-xray img x(loop `%.n))                     ::  no loop found
   --
+::
+::  Fills in the `patterns` fields in each xray (where possible).
+::
+::  This has a list of pattern "matchers", and, for each xray in the
+::  ximage, it tries each matcher until one of them succeeds.
 ::
 ++  decorate-ximage-with-patterns
   |=  xt=ximage
@@ -622,6 +770,60 @@
                  ^-  [key xray]
                  [i x(pats (xray-pats x))]
       xt(xrays.xtable (~(gas by *(map key xray)) pairs))
+  ::
+  ++  patterns
+    ^-  (list $-(xray (unit pattern)))
+    :~  tree-pattern
+        list-pattern
+        unit-pattern
+        core-pattern
+        spec-pattern
+        type-pattern
+        manx-pattern
+        vase-pattern
+        hoon-pattern
+        json-pattern
+        nock-pattern
+        plum-pattern
+        skin-pattern
+    ==
+  ::
+  ++  xray-pats
+    |=  x=xray
+    ^-  (unit pattern)
+    ::
+    =/  i=key   key.x
+    =/  t=type  type.x
+    =/  d=data  (need data.x)
+    ::
+    ::  Atom printing works just fine using the data field.
+    ?:  ?=([%atom *] d)  ~
+    ::
+    =/  match  patterns
+    ::
+    |-  ^-  (unit pattern)
+    ?~  match  ~
+    =/  pat  (i.match x)
+    ?^  pat  pat
+    $(match t.match)
+  ::
+  ++  simple-nest-pattern
+    |=  [ty=type pat=pattern]
+    ^-  $-(xray (unit pattern))
+    |=  x=xray
+    ^-  (unit pattern)
+    =/  subtype  (~(nest ut ty) | type.x)
+    ?:(subtype `pat ~)
+  ::
+  ++  type-pattern  (simple-nest-pattern -:!>(*type) %type)
+  ++  spec-pattern  (simple-nest-pattern -:!>(*spec) %spec)
+  ++  manx-pattern  (simple-nest-pattern -:!>(*manx) %manx)
+  ++  vase-pattern  (simple-nest-pattern -:!>(*vase) %vase)
+  ++  hoon-pattern  (simple-nest-pattern -:!>(*hoon) %hoon)
+  ++  json-pattern  (simple-nest-pattern -:!>(*json) %json)
+  ++  nock-pattern  (simple-nest-pattern -:!>(*nock) %nock)
+  ++  plum-pattern  (simple-nest-pattern -:!>(*plum) %plum)
+  ++  skin-pattern  (simple-nest-pattern -:!>(*skin) %skin)
   ::
   ++  focus
     |=  i=key
@@ -647,15 +849,7 @@
     ?:  ?=([%face *] data)  $(ref xray.data)
     %.n
   ::
-  ++  is-pair-of-refs-to
-    |=  [target=key cell=key]
-    ^-  ?
-    =/  =data  (need data:(focus cell))
-    ?:  ?=([%face *] data)  $(cell xray.data)
-    ?.  ?=([%cell *] data)  %.n
-    ?.  (is-ref-to target head.data)  %.n
-    ?.  (is-ref-to target tail.data)  %.n
-    %.y
+  ::  Is an xray an atom with the specified aura?
   ::
   ++  is-atom-with-aura
     |=  [c=cord i=key]
@@ -667,7 +861,7 @@
     ==
   ::
   ::  If the xray is a exactly two things, nil and a cell type, then
-  ::  return the xray for the cell type.
+  ::  yield the xray for the cell type.
   ::
   ++  fork-of-nil-and-cell
     |=  x=xray
@@ -690,6 +884,9 @@
     `node
   ::
   ::  Is this xray a unit? (the %unit pattern)
+  ::
+  ::  This matches strictly. For example `[~ %a]` doesn't match, but
+  ::  `^-((unit @) [~ %a])` does.
   ::
   ++  unit-pattern
     |^  |=  x=xray
@@ -719,30 +916,48 @@
   ::  Is this xray a tree? (the %tree pattern)
   ::
   ++  tree-pattern
-    |=  =input=xray
-    ^-  (unit pattern)
-    =/  input-key=key  key.input-xray
-    =/  indata=data    (need data.input-xray)
-    ?.  ?=([%fork *] indata)  ~
-    =/  branches  ~(tap in set.indata)
-    ?.  ?=([* * ~] branches)  ~
-    =/  nil   i.branches
-    =/  node  i.t.branches
-    |-
-    ?:  (is-nil node)  $(node nil, nil node)
-    ?.  (is-nil nil)  ~
-    =/  node-data=data  (need data:(focus node))
-    ?.  ?=([%cell *] node-data)  ~
-    ?.  (is-pair-of-refs-to input-key tail.node-data)
-      ~
-    =/  elem-data  (need data:(focus head.node-data))
-    ?.  ?=([%face *] elem-data)  ~
-    `[%tree xray.elem-data]
+    |^  |=  =input=xray
+        ^-  (unit pattern)
+        =/  input-key=key  key.input-xray
+        =/  indata=data    (need data.input-xray)
+        ?.  ?=([%fork *] indata)  ~
+        =/  branches  ~(tap in set.indata)
+        ?.  ?=([* * ~] branches)  ~
+        =/  nil   i.branches
+        =/  node  i.t.branches
+        |-
+        ?:  (is-nil node)  $(node nil, nil node)
+        ?.  (is-nil nil)  ~
+        =/  node-data=data  (need data:(focus node))
+        ?.  ?=([%cell *] node-data)  ~
+        ?.  (is-pair-of-refs-to input-key tail.node-data)
+          ~
+        =/  elem-data  (need data:(focus head.node-data))
+        ?.  ?=([%face *] elem-data)  ~
+        `[%tree xray.elem-data]
+    ::
+    ++  is-pair-of-refs-to
+      |=  [target=key cell=key]
+      ^-  ?
+      =/  =data  (need data:(focus cell))
+      ?:  ?=([%face *] data)  $(cell xray.data)
+      ?.  ?=([%cell *] data)  %.n
+      ?.  (is-ref-to target head.data)  %.n
+      ?.  (is-ref-to target tail.data)  %.n
+      %.y
+    --
+  ::
   ::
   ::  Is this xray a list? (a %list, %tape, %path, or %tour pattern)
   ::
+  ::  This handles the special case of path literals not having a
+  ::  list type:  `/a/b` is just a macro for `[%a %b ~]`, but doesn't
+  ::  accept this for other lists: We don't want ['a' %n ~] to be printed
+  ::  as `['a' ~[%n]]`. However, we WILL print ['a' ~['b' 'c']] as ~['a'
+  ::  'b' 'c']. And that's what `match-list` matches on.
+  ::
   ::  `match-list` checks is a type is informally a list: Is it a
-  ::  cell with (formal or informal) list in it's tail?
+  ::  cell with a (formal or informal) list in it's tail?
   ::
   ::  `match-list-type-strict` checks if a list literally has the shape
   ::  of a `list type`. It must be a loop reference and fork of two
@@ -752,7 +967,6 @@
   ++  list-pattern
     |^  |=  x=xray
         ^-  (unit pattern)
-        ::  ~&  ['list-pattern' key.x]
         =/  elem  (match-list x)
         ?~  elem  ~
         ?:  (is-atom-with-aura 'tD' u.elem)   [~ %tape]
@@ -846,113 +1060,35 @@
       `[%gate sample product]
     --
   ::
-  ++  simple-nest-pattern
-    |=  [ty=type pat=pattern]
-    ^-  $-(xray (unit pattern))
-    |=  x=xray
-    ^-  (unit pattern)
-    =/  subtype  (~(nest ut ty) | type.x)
-    ?:(subtype `pat ~)
-  ::
-  ++  type-pattern  (simple-nest-pattern -:!>(*type) %type)
-  ++  spec-pattern  (simple-nest-pattern -:!>(*spec) %spec)
-  ++  manx-pattern  (simple-nest-pattern -:!>(*manx) %manx)
-  ++  vase-pattern  (simple-nest-pattern -:!>(*vase) %vase)
-  ++  hoon-pattern  (simple-nest-pattern -:!>(*hoon) %hoon)
-  ++  json-pattern  (simple-nest-pattern -:!>(*json) %json)
-  ++  nock-pattern  (simple-nest-pattern -:!>(*nock) %nock)
-  ++  plum-pattern  (simple-nest-pattern -:!>(*plum) %plum)
-  ++  skin-pattern  (simple-nest-pattern -:!>(*skin) %skin)
-  ::
-  ++  patterns
-    ^-  (list $-(xray (unit pattern)))
-    :~  tree-pattern
-        list-pattern
-        unit-pattern
-        core-pattern
-        spec-pattern
-        type-pattern
-        manx-pattern
-        vase-pattern
-        hoon-pattern
-        json-pattern
-        nock-pattern
-        plum-pattern
-        skin-pattern
-    ==
-  ::
-  ++  xray-pats
-    |=  x=xray
-    ^-  (unit pattern)
-    ::
-    =/  i=key   key.x
-    =/  t=type  type.x
-    =/  d=data  (need data.x)
-    ::
-    ::  Atom printing works just fine using the data field.
-    ?:  ?=([%atom *] d)  ~
-    ::
-    =/  match  patterns
-    ::
-    |-  ^-  (unit pattern)
-    ?~  match  ~
-    =/  pat  (i.match x)
-    ?^  pat  pat
-    $(match t.match)
-    ::
   --
 ::
-++  xray-branches
-  |=  [img=xtable i=key]
-  ^-  (set key)
-  ::
-  :: ~&  ['ROOT' i]
-  =/  acc=(set key)  ~
-  =/  stk=(set key)  ~
-  ::
-  |-  ^-  (set key)
-  ::
-  ?:  (~(has in acc) i)  acc
-  ?:  (~(has in stk) i)  acc
-  ::
-  =.  stk  (~(put in stk) i)
-  ::
-  =/  x=xray  (focus-on img i)
-  =/  d=data  (need data.x)
-  ::
-  ?-  d
-    %noun      (~(put in acc) i)
-    %void      (~(put in acc) i)
-    [%atom *]  (~(put in acc) i)
-    [%cell *]  (~(put in acc) i)
-    [%core *]  (~(put in acc) i)
-    [%face *]  $(i xray.d)
-    [%pntr *]  $(i xray.d)
-    [%fork *]  %+  (fold (set key) key)
-                 [acc ~(tap in set.d)]
-               |=  [=(set key) =key]
-               ^$(acc set, i key)
-  ==
+::  Determines the loose shape of each node in an ximage.
+::
+::  This is trival for everything besides forks, and for forks, we just
+::  find all the non-fork branches with `xray-branches` and then calculate
+::  the union type with `combine`.
 ::
 ++  decorate-ximage-with-shapes
   |^  |=  xt=ximage
       ^-  ximage
       =/  keys  ~(tap in ~(key by xrays.xtable.xt))
       %=  xt  xtable
-        %+  (fold xtable key)  [xtable.xt keys]
+        %+  (fold xtable key)
+          [xtable.xt keys]
         |=  [st=xtable i=key]
-        xtable:(xray-shape st ~ i)
+        xtable:(xray-shape st i)
       ==
   ::
-  ::  The trace `tr` is used to prevent infinite forks.
+  ::  Calculate the xray
   ::
   ++  xray-shape
-    |=  [st=xtable tr=(set key) i=key]
+    |=  [st=xtable i=key]
     ^-  [shape =xtable]
     ::
     =/  x=xray  (focus-on st i)
     =/  dat  (need data.x)
-    ?^  shape.x  [u.shape.x st]
+    ::
+    ?^  shape.x  [u.shape.x st]                         ::  already processed
     ::
     =^  res=shape  st
       ?-  dat
@@ -961,28 +1097,32 @@
         [%atom *]  [%atom st]
         [%cell *]  [%cell st]
         [%core *]  [%cell st]
-        [%fork *]  =/  fork-trace  (~(put in tr) i)
-                   =.  set.dat  (~(dif in set.dat) tr)
-                   (fork-shape st fork-trace set.dat)
-        [%face *]  (xray-shape st tr xray.dat)
-        [%pntr *]  !!
+        [%fork *]  (fork-shape st (xray-branches st key.x))
+        [%face *]  (xray-shape st xray.dat)
+        [%pntr *]  !!                                   ::  run `cleanup` first
       ==
     ::
-    =/  y=xray    x                                     ::  Type system hack.
+    =/  y=xray    x                                     ::  type system hack
     =.  shape.y   `res
     =.  xrays.st  (~(put by xrays.st) key.y y)
     [res st]
   ::
+  ::  Because `branches` comes from `xray-branches`, none of the xrays
+  ::  we're folding over will be forks, therefore, we none of our calls
+  ::  to `xray-shape` will recurse: we wont get stuck in a loop.
+  ::
   ++  fork-shape
-    |=  [st=xtable tr=(set key) fork=(set key)]
+    |=  [st=xtable branches=(set key)]
     ^-  [shape xtable]
-    ::
     %+  (fold (pair shape xtable) key)
-      [[%void st] ~(tap in fork)]
+      [[%void st] ~(tap in branches)]
     |=  [acc=(pair shape xtable) i=key]
     ^-  [shape xtable]
-    =^  res  st  (xray-shape q.acc tr i)
+    =^  res  st  (xray-shape q.acc i)
     [(combine p.acc res) st]
+  ::
+  ::  If an xray is a fork of two two xrays with shapes `x` and `y`,
+  ::  what is the shape of the fork itself?
   ::
   ++  combine
     |=  [x=shape y=shape]
@@ -994,6 +1134,13 @@
     ?:  =(y %noun)  %noun
     %junc
   --
+::
+::  Determine the `role` of each xray node, restructuring forks to make
+::  them coherent.
+::
+::  This code is pretty complicated.
+::
+::  XX Document the shit out of this.
 ::
 ++  decorate-ximage-with-roles
   |^  |=  xt=ximage
@@ -1011,8 +1158,8 @@
   ::  Produce an xtable focused on the xray for a given type. If the
   ::  type isn't already in the xtable, create it first.
   ::
-  ::  These xrays are for fake types that we create to restructure forks,
-  ::  therefore they will never by loops.
+  ::  These xrays are for fake types that we create in order to
+  ::  restructure forks, therefore they will never be loops.
   ::
   ++  alloc-fork-xray
     |=  [st=xtable ty=type d=data]
@@ -1025,14 +1172,6 @@
     =.  xrays.st     (~(put by xrays.st) key.res res)
     =.  type-map.st  (~(put by type-map.st) type.res key.res)
     [key st]
-  ::
-  ::  Return an xtable modified to be focus on the %void type. If no
-  ::  void type exists, one will be created.
-  ::
-  ++  void-xray
-    |=  =xtable
-    ^-  ximage
-    (alloc-fork-xray xtable %void %void)
   ::
   ::  Determines the role of an atom xray.
   ::
@@ -1072,13 +1211,11 @@
     ?^  const           [%instance u.const]
     %tall
   ::
-  ::  Produces an xtable updated to have role information for the xray
+  ::  Produces an xtable updated to have role information for a certain
+  ::  node. For convenience, also return the role itself.
   ::
-  ::  Produces an xtable updated to have role information for the xray
-  ::  in focus.
-  ::
-  ::  The focused xray of the resulting xtable *will* be decorated with
-  ::  role information, the role is just return for convenience.
+  ::  Note that the role of a core is always %wide, since the head of
+  ::  a core is a battery, which is always a cell.
   ::
   ++  xray-role
     |=  [st=xtable i=key]
@@ -1087,8 +1224,6 @@
     ::
     =/  old  role.x
     ?^  old  [u.old st]                    ::  Don't repeat work.
-    ::
-    :: ~&  key.x  ::   shape.x (need data.x)]
     ::
     =/  dat=data  (need data.x)
     ::
@@ -1100,8 +1235,7 @@
         %void      :_  st  %void
         [%atom *]  :_  st  (atom-role constant.dat)
         [%cell *]  :_  st  (cell-role (focus-on st head.dat))
-        [%core *]  :_  st  %wide  ::  The head of a core is a battery
-                                  ::  which is always a cell.
+        [%core *]  :_  st  %wide
         [%face *]  (xray-role st xray.dat)
         [%pntr *]  !!
         [%fork *]  (fork-role st (xray-branches st key.x))
@@ -1116,7 +1250,7 @@
   ++  fork-xray
     |=  [st=xtable fork=(set key)]
     ^-  [key xtable]
-    =^  void  st  (void-xray st)
+    =^  void  st  (post-xray st %void `%void)
     %+  (fold ximage key)
       [[void st] ~(tap in fork)]
     |=  [xt=ximage branch=key]
@@ -1132,7 +1266,6 @@
   ++  merge
     |=  [st=xtable this=key that=key]
     ^-  [key xtable]
-    :: ~&  ['merge' x y]
     =/  this-xray=xray  (focus-on st this)
     =/  that-xray=xray  (focus-on st that)
     ?:  =(%void type.this-xray)  [that st]
@@ -1185,10 +1318,11 @@
   ++  collate-union
     |=  [st=xtable thick=(map atom key) thin=(map atom key)]
     ^-  [(map atom key) xtable]
-    :: ~&  'collate-union'
+    ::
     =/  list=(list (pair atom key))  ~(tap by thin)
-    |-
-    ^-  [(map atom key) xtable]
+    ::
+    |-  ^-  [(map atom key) xtable]
+    ::
     ?~  list  [thick st]
     =/  item=(unit key)  (~(get by thick) p.i.list)
     =^  merged=key  st  ?~  item  [q.i.list st]
@@ -1459,7 +1593,7 @@
     ==
   --
 ::
-::  -ximage-to-spec: convert to spec
+::  Convert an `ximage` to a spec for printing.
 ::
 ++  ximage-to-spec
   |=  [=top=key img=xtable]
@@ -1468,23 +1602,6 @@
   |^  (xray-to-spec ~ top-key)
   ::
   +$  trace  (set key)
-  ::
-  ++  recipe-to-spec
-    |=  [tr=trace r=recipe]
-    ^-  spec
-    ?-  -.r
-      %direct     [%like [term.r ~] ~]
-      %synthetic  =/  subs  %+  turn  list.r
-                            |=  =key  (xray-to-spec tr key)
-                  [%make [%limb term.r] subs]
-    ==
-  ::
-  ++  wrap-with-loop-binding
-    |=  [xr=xray sp=spec]
-    ^-  spec
-    ?.  (need loop.xr)  sp
-    =/  nm  (synthetic key.xr)
-    [%bsbs [%loop nm] [[nm sp] ~ ~]]
   ::
   ++  xray-to-spec
     |=  [tr=trace i=key]
@@ -1540,7 +1657,29 @@
              --
     ==
   ::
-  ::  =synthetic: Generate symbols to be used for loop references.
+  ::  If this xray references itself, generate a $$ binding in the output
+  ::  spec, and then we can just reference ourselves by name.
+  ::
+  ++  wrap-with-loop-binding
+    |=  [xr=xray sp=spec]
+    ^-  spec
+    ?.  (need loop.xr)  sp
+    =/  nm  (synthetic key.xr)
+    [%bsbs [%loop nm] [[nm sp] ~ ~]]
+  ::
+  ::  If we have a `recipe`, we can generate much nicer output.
+  ::
+  ++  recipe-to-spec
+    |=  [tr=trace r=recipe]
+    ^-  spec
+    ?-  -.r
+      %direct     [%like [term.r ~] ~]
+      %synthetic  =/  subs  %+  turn  list.r
+                            |=  =key  (xray-to-spec tr key)
+                  [%make [%limb term.r] subs]
+    ==
+  ::
+  ::  Generate symbols to be used for loop references.
   ::
   ::  given a small atom (:number), construct a coresponding symbol
   ::  using the Hebrew alphabet.
@@ -1556,9 +1695,9 @@
     ?:  (lth number 22)
       (snag number alf)
     (cat 3 (snag (mod number 22) alf) $(number (div number 22)))
-  --
   ::
-  ::  `spec` doesn't have chapters, so we need to flatten.
+  ::  Batterieds in a `spec` do not have chapters, so we just ignore
+  ::  the chapters and flatten the whole battery down to `(map term key)`.
   ::
   ++  flatten-battery
     |=  batt=(batt-of key)
@@ -1567,4 +1706,7 @@
     |-  ^-  (map term key)
     ?~  chapters  ~
     (~(uni by q.q.i.chapters) $(chapters t.chapters))
+  ::
+  --
+::
 --
