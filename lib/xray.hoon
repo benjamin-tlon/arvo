@@ -36,8 +36,6 @@
 ::
 ::  - XX Create patterns and matchers %map %set.
 ::
-::  - XX `cleanup` reverses a huge map repeatedly. Fix it!
-::
 ::  - XX Create patterns and matchers for tuples. There's no need to
 ::    recreate this structure in the printing code, and that's what we're
 ::    doing now.
@@ -142,6 +140,22 @@
   ::
   :_  st
   (~(gas by *(map key out)) pairs)
+::
+::  Given a map, return it's inverse: For each value, what are the set
+::  of associated keys?
+::
+++  reverse-map
+  |*  [key=mold val=mold]
+  |=  tbl=(map key val)
+  =/  init  *(map val (set key))
+  ^-  _init
+  %+  (fold _init (pair key val))
+    [init ~(tap by tbl)]
+  |=  [acc=_init k=key v=val]
+  ^-  _init
+  =/  mb-keys         (~(get by acc) v)
+  =/  keys=(set key)  ?~(mb-keys ~ u.mb-keys)
+  (~(put by acc) v (~(put in keys) k))
 ::
 +|  %helpers
 ::
@@ -260,7 +274,7 @@
 ::  Separating this out really simplifies things, without this handling
 ::  infinite forks is quite error-prone.
 ::
-::  XX Should we acquire faces instead of recursing into them (feels
+::  XX Should we collect face nodes instead of recursing into them (feels
 ::  like yes, but why did I do it the other way before)?
 ::
 ::  XX This is turning out to be useful. Should we add a field to cache
@@ -319,8 +333,12 @@
   =.  ximage  (decorate-ximage-with-patterns ximage)
   ~&  %decorate-ximage-with-shapes
   =.  ximage  (decorate-ximage-with-shapes ximage)
+  ::  ~&  %trace-ximage
+  ::  =.  ximage  (trace-ximage ximage)
   ~&  %decorate-ximage-with-roles
   (decorate-ximage-with-roles ximage)
+  ::  ~&  %trace-ximage
+  ::  (trace-ximage ximage)
 ::
 +|  %analysis-passes
 ::
@@ -462,56 +480,62 @@
   =/  img=xtable  xtable.xt
   ::
   |^  =/  =key          root.xt
-      =/  tbl           (build-table [~ ~] key)
+      ~&  %build-table
+      =/  tbl           (build-table key)
+      ~&  %fix-key
       =.  key           (fix-key tbl key)
+      ~&  %fix-type-map
       =.  type-map.img  (fix-type-map tbl type-map.img)
+      ~&  %fix-xrays
       =.  xrays.img     (fix-xrays tbl xrays.img)
-      ~&  [%gc-results ~(wyt by type-map.img) ~(wyt by xrays.img)]
+      ~&  :*  %gc-results
+              %before  ~(wyt by xrays.xtable.xt)
+              %after   ~(wyt by xrays.img)
+          ==
       [key img]
   ::
-  +$  table  [live=(set key) refs=(map key key)]
-  ::
-  ::  Get all the keys in a map the correspond to a value.
-  ::
-  ::  XX Expensive. Don't do this.
-  ::
-  ++  reverse-lookup
-    |*  [key=mold val=mold]
-    |=  [tbl=(map key val) match=val]
-    ^-  (set key)
-    %+  (fold (set key) (pair key val))
-      [~ ~(tap by tbl)]
-    |=  [acc=(set key) k=key v=val]
-    ?.  =(match v)  acc
-    (~(put in acc) k)
+  +$  table  [live=(set key) refs=(map key key) refs-to=(map key (set key))]
   ::
   ::  Given a node that may be a pointer, follow the chain of pointers
   ::  until we find a non-pointer node.
   ::
   ++  deref
-    |=  [img=xtable i=key]
+    |=  [img=xtable k=key]
     ^-  key
     |-
-    =/  x=xray  (focus-on img i)
+    =/  x=xray  (focus-on img k)
     =/  d=data  (need data.x)
     ?.  ?=([%pntr *] d)  key.x
-    $(i xray.d)
+    $(k xray.d)
+  ::
+  ::  Walks the graph starting at the root, everything that's a %pntr
+  ::  node becomes a key in the `refs` table and one of the values in the
+  ::  `refs-to` table.
   ::
   ++  build-table
-    |=  [tbl=table i=key]
-    ^-  table
+    |^  |=  k=key
+        ^-  table
+        =/  t=table    [~ ~ ~]
+        =.  t          (recur t k)
+        =.  refs-to.t  ((reverse-map key key) refs.t)
+        t
     ::
-    ?:  (~(has in live.tbl) i)  tbl                     ::  already processed
-    ?:  (~(has by refs.tbl) i)  tbl                     ::  already processed
-    ::
-    =/  x=xray  (focus-on img i)
-    =/  d=data  (need data.x)
-    ::
-    =.  tbl  ?.  ?=([%pntr *] d)
-               tbl(live (~(put in live.tbl) i))
-             tbl(refs (~(put by refs.tbl) i (deref img i)))
-    ::
-    ((fold table key) [tbl (xray-refs i)] build-table)
+    ++  recur
+      |=  [acc=table k=key]
+      ^-  table
+      ::
+      ?:  (~(has in live.acc) k)  acc                     ::  already processed
+      ?:  (~(has by refs.acc) k)  acc                     ::  already processed
+      ::
+      =/  x=xray  (focus-on img k)
+      =/  d=data  (need data.x)
+      ::
+      =.  acc  ?.  ?=([%pntr *] d)
+                 acc(live (~(put in live.acc) k))
+               acc(refs (~(put by refs.acc) k (deref img k)))
+      ::
+      ((fold table key) [acc (xray-refs k)] recur)
+    --
   ::
   ::  Rebuild `type-map`:
   ::
@@ -525,11 +549,11 @@
     ^-  _map
     %+  (fold _map (pair type key))
       [*_map ~(tap by map)]
-    |=  [acc=_map [ty=type i=key]]
-    =/  dest  (~(get by refs.tbl) i)
+    |=  [acc=_map [ty=type k=key]]
+    =/  dest  (~(get by refs.tbl) k)
     ?^  dest  (~(put by acc) ty u.dest)
     ?.  (~(has in live.tbl))  acc
-    (~(put in acc) ty i)
+    (~(put in acc) ty k)
   ::
   ::  Rebuild the `xrays` table.
   ::
@@ -550,13 +574,11 @@
   ::
   ::  All the xrays which are simply references to `i`.
   ::
-  ::  XX Just reverse the `refs.tbl` map first and store it in `tbl`
-  ::  as another field.  This is probably too slow.
-  ::
-  ++  points-to
+  ++  all-refs-to
     |=  [tbl=table i=key]
     ^-  (set key)
-    ((reverse-lookup key key) refs.tbl i)
+    =/  res  (~(get by refs-to.tbl) i)
+    ?~(res ~ u.res)
   ::
   ::  There may be `%hint` data on the `%pntr` xrays. Find all pointer
   ::  nodes that reference this one, and put all of their hint-data onto
@@ -566,7 +588,7 @@
     |=  [tbl=table target=xray]
     ^-  xray
     %+  (fold xray key)
-      [target ~(tap in (points-to tbl key.target))]
+      [target ~(tap in (all-refs-to tbl key.target))]
     |=  [acc=xray ref=key]
     =/  ref-xray=xray  (focus-on img ref)
     =/  helps    ^-  (set help)    (~(uni in helps.acc) helps.ref-xray)
@@ -1321,6 +1343,9 @@
   ::      the union of `[* @] + [@ @]` should be a misjunction, which isn't
   ::      what's happening now.
   ::
+  ::  XX Also! A cell with a junction in it's head should be a
+  ::  conjunction, right?
+  ::
   ++  cell-role-by-head
     |=  head=xray
     ^-  role
@@ -1550,16 +1575,30 @@
       ?^  that-role  $(this that, that this)
       %+  joined  st
       ^-  role
-      ?:  =(this-role that-role)                      this-role
-      ?:  ?=(%void this-role)                         that-role
-      ?:  ?=(%void that-role)                         this-role
-      ?:  |(?=(%noun this-role) ?=(%noun that-role))  %noun
+      ?:  =(this-role that-role)  this-role
+      ?:  ?=(%void this-role)     that-role
+      ?:  ?=(%void that-role)     this-role
+      ?:  ?=(%noun this-role)     %noun
+      ?:  ?=(%noun that-role)     %noun
       ?-  this-role
-        %atom  [%junction this that]
-        %tall  ?:  ?=(%wide that-role)  %tall
-               [%junction that this]
-        %wide  ?:  ?=(%tall that-role)  %tall
-               [%junction that this]
+        %atom
+          ?-  that-role
+            %atom  !!                                   ::  XX %union
+            %tall  [%junction this that]
+            %wide  [%junction this that]
+          ==
+        %tall
+          ?-  that-role
+            %atom  [%junction that this]
+            %tall  [%misjunction this that]
+            %wide  [%conjunction that this]
+          ==
+        %wide
+          ?-  that-role
+            %atom  [%junction that this]
+            %tall  [%conjunction this that]
+            %wide  [%misjunction this that]
+          ==
       ==
     ::
     ::  At this point `this-role` is a constant, instance, option, union,
@@ -1672,6 +1711,183 @@
       ?+  -.that-role  $(this that, that this)
         %conjunction  (conjunct-conjunct st [wide tall]:this-role [wide tall]:that-role)
       ==
+    ==
+  ::
+  ++  combine-rewrite
+    |=  [st=xtable this=key that=key]
+    ^-  [key xtable]
+    ::
+    ?:  =(this that)  [this st]
+    ::
+    =^  this-role=role  st  (xray-role st this)
+    =^  that-role=role  st  (xray-role st that)
+    ::
+    ::  Create the join of two xrays with the specified `role`.
+    ::
+    =/  join-with-role
+      |=  [st=xtable x=key y=key =role]
+      ^-  ximage
+      ::
+      =/  xx  (focus-on st x)
+      =/  yy  (focus-on st y)
+      ::
+      =^  joined=key  st  (join st x y)
+      =/  j=xray          (focus-on st joined)
+      =.  st              (replace-xray st j(role `role))
+      [joined st]
+    ::
+    =/  atom-atom      |=  x=*  !!
+    =/  atom-cell      |=  x=*  !!
+    =/  atom-junct     |=  x=*  !!
+    =/  atom-option    |=  x=*  !!
+    =/  cell-junct     |=  x=*  !!
+    =/  conjunction    |=  x=*  !!
+    =/  misjunction    |=  x=*  !!
+    =/  tall-conjunct  |=  x=*  !!
+    ::
+    ::  Produce a joined node with the specified `role`.
+    ::
+    =/  joined
+      |=  [st=xtable =role]
+      ^-  ximage
+      (join-with-role st this that role)
+    ::
+    ?:  ?=(%void this-role)  [that st]
+    ?:  ?=(%void that-role)  [this st]
+    ?:  ?=(%noun this-role)  (misjunction st this that)
+    ?:  ?=(%noun that-role)  (misjunction st this that)
+    ::
+    ?-  that-role
+      %atom
+        ?-  this-role
+          %atom             (atom-atom that this)
+          %tall             (atom-cell that this)
+          %wide             (atom-cell that this)
+          [%constant *]     (atom-atom that this)
+          [%instance *]     (atom-cell that this)
+          [%option *]       (atom-option that this)
+          [%union *]        (atom-cell that this)
+          [%junction *]     (atom-junct that this)
+          [%conjunction *]  (atom-cell that this)
+          [%misjunction *]  (misjunction that this)
+        ==
+      %tall
+        ?-  this-role
+          %atom             (atom-cell this that)
+          %tall             (misjunction this that)
+          %wide             (conjunction wide=this tall=that)
+          [%constant *]     (atom-cell this that)
+          [%instance *]     (misjunction this that)
+          [%option *]       (atom-cell this that)
+          [%union *]        (misjunction this that)
+          [%junction *]     (cell-junct that this)
+          [%conjunction *]  (tall-conjunct that this)
+          [%misjunction *]  (misjunction this that)
+        ==
+      %wide
+        ?-  this-role
+          %atom             (atom-cell this that)
+          %tall             (conjunction wide=that tall=this)
+          %wide             (misjunction this that)
+          [%constant *]     !!
+          [%instance *]     !!
+          [%option *]       !!
+          [%union *]        !!
+          [%junction *]     !!
+          [%conjunction *]  !!
+          [%misjunction *]  !!
+        ==
+      [%constant *]
+        ?-  this-role
+          %atom             !!
+          %tall             !!
+          %wide             !!
+          [%constant *]     !!
+          [%instance *]     !!
+          [%option *]       !!
+          [%union *]        !!
+          [%junction *]     !!
+          [%conjunction *]  !!
+          [%misjunction *]  !!
+        ==
+      [%instance *]
+        ?-  this-role
+          %atom             !!
+          %tall             !!
+          %wide             !!
+          [%constant *]     !!
+          [%instance *]     !!
+          [%option *]       !!
+          [%union *]        !!
+          [%junction *]     !!
+          [%conjunction *]  !!
+          [%misjunction *]  !!
+        ==
+      [%option *]
+        ?-  this-role
+          %atom             !!
+          %tall             !!
+          %wide             !!
+          [%constant *]     !!
+          [%instance *]     !!
+          [%option *]       !!
+          [%union *]        !!
+          [%junction *]     !!
+          [%conjunction *]  !!
+          [%misjunction *]  !!
+        ==
+      [%union *]
+        ?-  this-role
+          %atom             !!
+          %tall             !!
+          %wide             !!
+          [%constant *]     !!
+          [%instance *]     !!
+          [%option *]       !!
+          [%union *]        !!
+          [%junction *]     !!
+          [%conjunction *]  !!
+          [%misjunction *]  !!
+        ==
+      [%junction *]
+        ?-  this-role
+          %atom             !!
+          %tall             !!
+          %wide             !!
+          [%constant *]     !!
+          [%instance *]     !!
+          [%option *]       !!
+          [%union *]        !!
+          [%junction *]     !!
+          [%conjunction *]  !!
+          [%misjunction *]  !!
+        ==
+      [%conjunction *]
+        ?-  this-role
+          %atom             !!
+          %tall             !!
+          %wide             !!
+          [%constant *]     !!
+          [%instance *]     !!
+          [%option *]       !!
+          [%union *]        !!
+          [%junction *]     !!
+          [%conjunction *]  !!
+          [%misjunction *]  !!
+        ==
+      [%misjunction *]
+        ?-  this-role
+          %atom             !!
+          %tall             !!
+          %wide             !!
+          [%constant *]     !!
+          [%instance *]     !!
+          [%option *]       !!
+          [%union *]        !!
+          [%junction *]     !!
+          [%conjunction *]  !!
+          [%misjunction *]  !!
+        ==
     ==
   --
 ::

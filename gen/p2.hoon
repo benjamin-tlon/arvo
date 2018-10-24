@@ -21,13 +21,34 @@
 ::
 |%
 ::
++$  option  $?(%a %b %c)
+::
++$  junct  $@(@ {@ cord})
+::
++$  union  $%([%list (list ~)] [%unit (unit ~)])
+::
++$  conjunct  $^  [[@ @] cord]
+              [@ cord]
+::
++$  misjunct  $^([~ @] [cord @])
+::
+++  forks-example
+  :*  :-  %junct     ^-  (list junct)     ~[3 [4 '5']]
+      :-  %conjunct  ^-  (list conjunct)  ~[[3 '4'] [[5 6] '7']]
+      :-  %union     ^-  (list union)     ~[[%list [~ ~]] [%unit [~ ~]]]
+      :-  %option    ^-  (list option)    ~[%a %a %b %c]
+      :-  %misjunct  ^-  (list misjunct)  ~[[~ 3] [~ 4]]
+      %nice
+  ==
+::
 ++  all-examples
   :*
-    :-  %demo   demo-example
     :-  %type   type-example
     :-  %cores  core-example
     :-  %add    ..add
     :-  zuse-example
+    :-  %demo   demo-example
+    :-  %forks  forks-example
     %eof
   ==
 ::

@@ -10,6 +10,8 @@
 ::  There's a lot of logic here, but most of it is fairly
 ::  straight-forward.
 ::
+::  XX Output for cords is ugly. Why ~~a instead of 'a'?
+::
 /?  310
 ::
 /-  *xray
@@ -754,17 +756,43 @@
     ?~  role.x  ~&  x  '%evil-fork'
     =/  r=role  u.role.x
     ::
-    ?+  r  '%bad-fork'
-      [%union *]        '%union'                        ::  XX TODO
-      [%option *]
+    ?-  r
+      %void          !!
+      %noun          !!
+      %atom          !!
+      %tall          !!
+      %wide          !!
+      [%constant *]  !!
+      [%instance *]  !!
+      [%union *]
+        ~&  %render-union
+        ?>  ?=(^ n)
+        =/  hd=*  -:n
+        ?>  ?=(@ hd)
+        ::
         =/  pairs=(list (pair atom key))  ~(tap by map.r)
         |-
-        ?~  pairs  '%invalid-option'
+        ?~  pairs  '%bad-union-fork'
+        ?.  =(p.i.pairs hd)  $(pairs t.pairs)
+        (main q.i.pairs n)
+      [%option *]
+        ~&  %render-option
+        =/  pairs=(list (pair atom key))  ~(tap by map.r)
+        |-
+        ?~  pairs  '%bad-option-fork'
         ?.  =(p.i.pairs n)  $(pairs t.pairs)
         (main q.i.pairs n)
-      [%junction *]     '%junction'                     ::  XX TODO
-      [%conjunction *]  '%conjunction'                  ::  XX TODO
-      [%misjunction *]  '%misjunction'                  ::  XX TODO
+      [%junction *]
+        ~&  %render-junction
+        (main ?@(n flat.r deep.r) n)
+      [%conjunction *]
+        ~&  %render-conjunction
+        ?>  ?=(^ n)
+        =/  hd=*  -:n
+        (main ?@(hd tall.r wide.r) n)
+      [%misjunction *]
+        ~&  %render-misjunction
+        '%misjunction'
     ==
   ::
   ++  render-gate
