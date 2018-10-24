@@ -74,6 +74,9 @@
 ::
 ::  - XX There are probably remaining bugs. Test the shit out of this.
 ::
+::  - XX What should the `role` of a cell with a %noun head be? I
+::    think the current design can't handle this case coherently.
+::
 /?  310
 ::
 /-  *xray
@@ -251,8 +254,17 @@
 ::  All non-fork xrays referenced by a fork xray. This will recurse
 ::  into forks-of-forks (and so on) and can handle infinite forks.
 ::
+::  If this is called on a non-fork node, it will return a set with just
+::  that one node in it.
+::
 ::  Separating this out really simplifies things, without this handling
 ::  infinite forks is quite error-prone.
+::
+::  XX Should we acquire faces instead of recursing into them (feels
+::  like yes, but why did I do it the other way before)?
+::
+::  XX This is turning out to be useful. Should we add a field to cache
+::  the result of this?
 ::
 ++  xray-branches
   |=  [img=xtable i=key]
@@ -1068,6 +1080,32 @@
 ::  find all the non-fork branches with `xray-branches` and then calculate
 ::  the union type with `combine`.
 ::
+::  Here's some pseudocode for the essence of the logic that we're
+::  trying to implement here:
+::
+::      data Data = Noun | Void
+::                | Atom | Cnst
+::                | Cell Data Data
+::                | Fork Data Data
+::
+::      data Shape = Noun | Void | Atom | Cnst | Cell | Junc
+::
+::      shape :: Data -> Shape
+::      shape Noun       = Noun
+::      shape Void       = Void
+::      shape Atom       = Atom
+::      shape Cnst       = Atom
+::      shape (Cell a b) = Cell
+::      shape (Fork x y) = forkShape (shape x) (shape y)
+::
+::      forkShape :: Shape -> Shape -> Shape
+::      forkShape Void x           = x
+::      forkShape Noun _           = Noun
+::      forkShape Junc _           = Junc
+::      forkShape Atom Cell        = Junc
+::      forkShape x    y    | x==y = x
+::      forkShape x    y           = forkShape y x
+::
 ++  decorate-ximage-with-shapes
   |^  |=  xt=ximage
       ^-  ximage
@@ -1121,8 +1159,7 @@
     =^  res  st  (xray-shape q.acc i)
     [(combine p.acc res) st]
   ::
-  ::  If an xray is a fork of two two xrays with shapes `x` and `y`,
-  ::  what is the shape of the fork itself?
+  ::  Given the shapes of two types, determine the shape of their union.
   ::
   ++  combine
     |=  [x=shape y=shape]
@@ -1138,9 +1175,68 @@
 ::  Determine the `role` of each xray node, restructuring forks to make
 ::  them coherent.
 ::
-::  This code is pretty complicated.
+::  This is fairly simple for non-role types, and we handle forks the
+::  same way we do with `shape` detection. The basic move is to get all
+::  of the non-fork branches using `xray-branches`, make a list of them,
+::  and fold a function over that. However, the function we're folding with
+::  is MUCH more complicated.
 ::
-::  XX Document the shit out of this.
+::  One of the big source of complexity is that we need to restructure
+::  the shape of forks, so we will be creating a bunch of new graph
+::  nodes, and rearranging them. For example, if we want to merge a
+::  junction (a fork of an atom and a cell) with an atom type, we create
+::  a new junction xray that is a fork of the old cell type and the
+::  union of the two cell types. The function we fold with is `merge`,
+::  but the bulk of the logic lives in `combine`.
+::
+::  Here's some pseudocode for the essence of the logic that we're
+::  trying to implement here. Note that the code is actually shaped
+::  quite differently than this and is much more detailed. So, try
+::  to wrap your head around WHY this makes sense instead of just trying to use
+::  this a map for the actual code.
+::
+::      data Data = Noun | Void
+::                | Atom | Cnst
+::                | Cell Data Data
+::                | Fork Data Data
+::
+::      data Shape = Noun | Void | Atom | Cnst | Cell | Junc
+::
+::      data Role = Void | Noun
+::                | Atom | Cnst
+::                | Tall | Wide | Instance
+::                | Option | Union | Conjunc | Junc
+::                | Misjunc
+::
+::      role :: Data -> Unit Role
+::      role Noun        = ~
+::      role Void        = ~
+::      role Atom        = ~
+::      role Cnst        = ~
+::      role (Cell hd _) = `(cellRoleByHead (shape hd))
+::      role (Fork x y)  = `(forkRole (shape x, role x) (shape y, role y))
+::
+::      cellRoleByHead :: Shape -> Unit Role
+::      cellRoleByHead Cell = `Wide
+::      cellRoleByHead Cnst = `Instance
+::      cellRoleByHead Atom = `Tall
+::      cellRoleByHead _    = ~
+::
+::      forkRole :: (Shape,Role) + (Shape,Role) -> Role
+::      forkRole
+::          Option  <- option + option
+::          Union   <- union  + union
+::          Conjunc <- tall   + wide
+::          Junc    <- atom   + cell
+::          Misjunc <- otherwise
+::        where
+::          option = role==Option || role==Instance
+::          union  = shape==Cnst  || role==Union
+::          atom   = shape==Atom  || shape==Cnst
+::          cell   = shape==Cell
+::          tall   = role==Tall
+::          wide   = role==Wide
+::          cell   = shape==Cell
 ::
 ++  decorate-ximage-with-roles
   |^  |=  xt=ximage
@@ -1155,10 +1251,10 @@
         xtable:(xray-role st i)
       ==
   ::
-  ::  Produce an xtable focused on the xray for a given type. If the
-  ::  type isn't already in the xtable, create it first.
+  ::  Given a type and data, either find the xray corresponding to that
+  ::  type, or create a new one.
   ::
-  ::  These xrays are for fake types that we create in order to
+  ::  These xrays are for internal types that we create in order to
   ::  restructure forks, therefore they will never be loops.
   ::
   ++  alloc-fork-xray
@@ -1173,31 +1269,59 @@
     =.  type-map.st  (~(put by type-map.st) type.res key.res)
     [key st]
   ::
+  ::  Produces an xtable updated to have role information for a certain
+  ::  node. For convenience, it also return the role itself.
+  ::
+  ::  Note that the role of a core is always %wide, since the head of
+  ::  a core is a battery, which is always a cell.
+  ::
+  ++  xray-role
+    |=  [st=xtable i=key]
+    ^-  [=role =xtable]
+    =/  x=xray  (focus-on st i)
+    ::
+    =/  old  role.x
+    ?^  old  [u.old st]
+    ::
+    =/  dat=data  (need data.x)
+    ::
+    =^  res=role  st
+      ?:  ?=([~ %void] shape.x)  [%void st]             ::  optimization
+      ?:  ?=([~ %noun] shape.x)  [%noun st]             ::  optimization
+      ?-  dat
+        %noun      :_  st  %noun
+        %void      :_  st  %void
+        [%atom *]  :_  st  (atom-role dat)
+        [%cell *]  :_  st  (cell-role-by-head (focus-on st head.dat))
+        [%core *]  :_  st  %wide
+        [%face *]  (xray-role st xray.dat)
+        [%pntr *]  !!                                   ::  Run `cleanup` first.
+        [%fork *]  (fork-role st (xray-branches st key.x))
+      ==
+    ::
+    =.  xrays.st  (~(put by xrays.st) key.x x(role `res))
+    [res st]
+  ::
   ::  Determines the role of an atom xray.
   ::
   ++  atom-role
-    |=  =constant=(unit @)
+    |=  [%atom =aura =constant=(unit @)]
     ^-  role
     ?~  constant-unit  %atom
     [%constant u.constant-unit]
   ::
-  ::  Determine the role of %fork type.
-  ::
-  ::  First, find (or create) an xray for the union type, then call back
-  ::  into `role-xray` to get it's type.
-  ::
-  ::  The focused xray of the resulting xtable *will* be decorated with
-  ::  role information, the role is just returned for convenience.
-  ::
-  ++  fork-role
-    |=  [st=xtable fork=(set key)]
-    ^-  [role xtable]
-    =^  i=key  st  (fork-xray st fork)
-    (xray-role st i)
-  ::
   ::  Calculate the role of a %cell xray.
   ::
-  ++  cell-role
+  ::  XX I'm not sure this is correct. Should a cell with a noun head
+  ::  be %tall? How about a %void head?
+  ::
+  ::    - A %void head should probably be %void.
+  ::    - A %noun head should probably just be %cell, a role separate from
+  ::      (%wide and %tall) to make the ambiguity explicit. For example,
+  ::      the union of `[* @] + [@ @]` should be a misjunction, which isn't
+  ::      what's happening now.
+  ::
+  ++  cell-role-by-head
     |=  head=xray
     ^-  role
    ::
@@ -1211,57 +1335,35 @@
     ?^  const           [%instance u.const]
     %tall
   ::
-  ::  Produces an xtable updated to have role information for a certain
-  ::  node. For convenience, also return the role itself.
+  ::  Determine the role of %fork type.
   ::
-  ::  Note that the role of a core is always %wide, since the head of
-  ::  a core is a battery, which is always a cell.
+  ::  Fold over all the branches off a fork using the `merge` function,
+  ::  and then grab it's `role` using `xray-role`.
   ::
-  ++  xray-role
-    |=  [st=xtable i=key]
-    ^-  [=role =xtable]
-    =/  x=xray  (focus-on st i)
-    ::
-    =/  old  role.x
-    ?^  old  [u.old st]                    ::  Don't repeat work.
-    ::
-    =/  dat=data  (need data.x)
-    ::
-    =^  res=role  st
-      ?:  ?=([~ %void] shape.x)  [%void st]
-      ?:  ?=([~ %noun] shape.x)  [%noun st]
-      ?-  dat
-        %noun      :_  st  %noun
-        %void      :_  st  %void
-        [%atom *]  :_  st  (atom-role constant.dat)
-        [%cell *]  :_  st  (cell-role (focus-on st head.dat))
-        [%core *]  :_  st  %wide
-        [%face *]  (xray-role st xray.dat)
-        [%pntr *]  !!
-        [%fork *]  (fork-role st (xray-branches st key.x))
-      ==
-    ::
-    =.  xrays.st  (~(put by xrays.st) key.x x(role `res))
-    [res st]
+  ::  In any non-trivial cases, the xray returned from `merge` will
+  ::  already have it's `role` set, so recursing into `xray-role`
+  ::  shouldn't be dangerous.
   ::
-  ::  Create a new xray from a union type.  Returns an xtable focused
-  ::  on the result.
+  ::  XX This is probably an important part of the control-flow, and it
+  ::  might be helpful to make this invariant more prominent.
   ::
-  ++  fork-xray
+  ++  fork-role
     |=  [st=xtable fork=(set key)]
-    ^-  [key xtable]
+    ^-  [role xtable]
+    ::
     =^  void  st  (post-xray st %void `%void)
-    %+  (fold ximage key)
-      [[void st] ~(tap in fork)]
-    |=  [xt=ximage branch=key]
-    (merge xtable.xt root.xt branch)
+    ::
+    =^  i=key  st
+      ^-  [key xtable]
+      %+  (fold {key xtable} key)
+        [[void st] ~(tap in fork)]
+      |=  [[k=key tbl=xtable] branch=key]
+      ^-  [key xtable]
+      (merge tbl k branch)
+    ::
+    (xray-role st i)
   ::
-  ::  Combine two xrays in an xtable (the one in focus and the one
-  ::  referenced by `i`, producing a new xtable focused on the resulting
-  ::  union.
-  ::
-  ::  First, we compute the role of both xrays, and then we `combine`
-  ::  them.
+  ::  Return an xray of the union of two xrays.
   ::
   ++  merge
     |=  [st=xtable this=key that=key]
@@ -1272,46 +1374,26 @@
     ?:  =(%void type.that-xray)  [this st]
     (combine st this that)
   ::
-  ::  `combine` is complicated. Let's introduce it's helper-functions first:
-  ::
-  ::  -simple-forks: produce a simple fork set if any.
-  ::
-  ++  simple-forks
-    |=  [img=xtable i=key]
-    ^-  (unit (set key))
-    =/  x=xray  (focus-on img i)
-    =/  d=data  (need data.x)
-    ?.  ?=([%fork *] d)  ~
-    `set.d
-  ::
-  ::  Given two xrays, construct their union type and return it's xray.
-  ::
-  ::  Returns an `xtable` focused on the resulting xray.
-  ::
-  ::  Using the `fork` primitive to construct a new type, get the xray
-  ::  for that type. If we already have an xray for that, just return
-  ::  it. Otherwise we need to create one. The `data` field for the new
-  ::  xray will be (basically) the result of doing a set-merge on the
-  ::  trivial-forks of both xrays.
+  ::  This guy ACTUALLY constructs the union of two types using `fork`
+  ::  from `hoon.hoon`. To populate the `data` field, we just call
+  ::  `xray-branches` on both of the input xrays and union the result.
   ::
   ++  join
     |=  [st=xtable this=key that=key]
     ^-  ximage
+    ::
     ?:  =(this that)  [this st]
     ::
     =/  this-xray=xray  (focus-on st this)
     =/  that-xray=xray  (focus-on st that)
     ::
-    =/  ty=type    (fork `(list type)`~[type.this-xray type.that-xray])
-    =/  dat=data   :-  %fork
-                   ^-  (set key)
-                   =/  these  (simple-forks st this)
-                   =/  those  (simple-forks st that)
-                   ?~  these  ?~  those  (sy this that ~)
-                              (~(put in u.those) this)
-                   ?~  those  (~(put in u.these) that)
-                   (~(uni in u.these) u.those)
-    (alloc-fork-xray st ty dat)
+    =/  union-type=type  (fork ~[type.this-xray type.that-xray])
+    ::
+    =/  this-fork  (xray-branches st this)
+    =/  that-fork  (xray-branches st that)
+    =/  branches   (~(uni in this-fork) that-fork)
+    ::
+    (alloc-fork-xray st union-type [%fork branches])
   ::
   ::  =collate-union: merge union maps
   ::
