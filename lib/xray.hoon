@@ -34,6 +34,18 @@
 ::
 ::  # Todos
 ::
+::  - XX It seems (have'nt verified this) that there's a lot of things
+::    that are forks that, once void types have been factored out,
+::    only actually refer to one thing. It would be nice to discover
+::    things of this kind and replace such fork node with the thing the
+::    actualy resolve to.
+::
+::    The reason I think this is what's happening is that I see lots
+::    of %unexpected-fork-role messages when converting the kernel type
+::    to a spec, and those roles have things like %tall and %atom.
+::    However! The `combine` function never produces anything with
+::    those roles.
+::
 ::  - XX Create patterns and matchers %map %set.
 ::
 ::  - XX Create patterns and matchers for tuples. There's no need to
@@ -1399,43 +1411,63 @@
     ?:  =(%void type.that-xray)  [this st]
     (combine st this that)
   ::
-  ::  This guy ACTUALLY constructs the union of two types using `fork`
-  ::  from `hoon.hoon`. To populate the `data` field, we just call
-  ::  `xray-branches` on both of the input xrays and union the result.
-  ::
-  ++  join
-    |=  [st=xtable this=key that=key]
-    ^-  ximage
-    ::
-    ?:  =(this that)  [this st]
-    ::
-    =/  this-xray=xray  (focus-on st this)
-    =/  that-xray=xray  (focus-on st that)
-    ::
-    =/  union-type=type  (fork ~[type.this-xray type.that-xray])
-    ::
-    =/  this-fork  (xray-branches st this)
-    =/  that-fork  (xray-branches st that)
-    =/  branches   (~(uni in this-fork) that-fork)
-    ::
-    (alloc-fork-xray st union-type [%fork branches])
-  ::
   ::  =collate-union: merge union maps
   ::
   ++  collate-union
-    |=  [st=xtable thick=(map atom key) thin=(map atom key)]
-    ^-  [(map atom key) xtable]
+    |^  |=  [st=xtable thick=(map atom key) thin=(map atom key)]
+        ^-  [(map atom key) xtable]
+        ::
+        =/  list=(list (pair atom key))  ~(tap by thin)
+        ::
+        |-  ^-  [(map atom key) xtable]
+        ::
+        ?~  list  [thick st]
+        =/  item=(unit key)  (~(get by thick) p.i.list)
+        =^  merged=key  st  ?~  item  [q.i.list st]
+                            (merge-instances st p.i.list u.item q.i.list)
+        =/  new-thick  (~(put by thick) p.i.list merged)
+        $(list t.list, thick new-thick)
     ::
-    =/  list=(list (pair atom key))  ~(tap by thin)
+    ::  We want to merge two cell-types that have the same head; gross.
     ::
-    |-  ^-  [(map atom key) xtable]
+    ::  First, get both tail types, merge them, produce a new cell type
+    ::  with the merged tail.
     ::
-    ?~  list  [thick st]
-    =/  item=(unit key)  (~(get by thick) p.i.list)
-    =^  merged=key  st  ?~  item  [q.i.list st]
-                        (merge-instances st p.i.list u.item q.i.list)
-    =/  new-thick  (~(put by thick) p.i.list merged)
-    $(list t.list, thick new-thick)
+    ++  merge-instances
+      |=  [st=xtable =atom =x=key =y=key]
+      ^-  [key xtable]
+      ::
+      =/  x-xray=xray    (focus-on st x-key)
+      =/  x-data=data    (need data.x-xray)
+      |-  ^-  [key xtable]
+      ::
+      ?:  ?=([%face *] x-data)  $(x-data (need data:(focus-on st xray.x-data)))
+      ?>  ?=([%cell *] x-data)
+      =/  x-tail=key      tail.x-data
+      =/  head-xray=xray  (focus-on st head.x-data)
+      ::
+      =/  y-xray=xray     (focus-on st y-key)
+      =/  y-data=data     (need data.y-xray)
+      |-  ^-  [key xtable]
+      ::
+      ?:  ?=([%face *] y-data)  $(y-data (need data:(focus-on st xray.y-data)))
+      ?>  ?=([%cell *] y-data)
+      =/  y-tail=key      tail.y-data
+      ::
+      =^  merged-tail  st  (merge st x-tail y-tail)
+      =/  tail-xray=xray   (focus-on st merged-tail)
+      ::
+      =/  res-ty=type    [%cell type.head-xray type.tail-xray]
+      =/  res-data=data  [%cell key.head-xray key.tail-xray]
+      =^  res-key  st    (alloc-fork-xray st res-ty res-data)
+      ::
+      =/  res-xray=xray   (focus-on st res-key)
+      =.  shape.res-xray  `%cell
+      =.  role.res-xray   `[%instance atom]
+      =.  xrays.st        (~(put by xrays.st) res-key res-xray)
+      ::
+      [key.res-xray st]
+    --
   ::
   ::  =collate-option: merge option maps
   ::
@@ -1452,443 +1484,313 @@
     =/  new-thick  (~(put by thick) p.i.list merged)
     $(list t.list, thick new-thick)
   ::
-  ::  We want to merge two cell-types that have the same head; gross.
+  ::  Create a new xray that is the union of two xrays, but with a
+  ::  coherent `role` (where possible, otherwise a %misjunction).
   ::
-  ::  First, get both tail types, merge them, produce a new cell type
-  ::  with the merged tail.
+  ::  This often needs to restructure things. For example, if we are
+  ::  combining `{{~ ~} {%a ~}}` and `{{~ ~} {%b ~}}`, we should produce
+  ::  `{{~ ~} ?%({%a ~} {%b ~})}`.
   ::
-  ++  merge-instances
-    |=  [st=xtable =atom =x=key =y=key]
-    ^-  [key xtable]
-    ::
-    =/  x-xray=xray    (focus-on st x-key)
-    =/  x-data=data    (need data.x-xray)
-    |-  ^-  [key xtable]
-    ::
-    ?:  ?=([%face *] x-data)  $(x-data (need data:(focus-on st xray.x-data)))
-    ?>  ?=([%cell *] x-data)
-    =/  x-tail=key      tail.x-data
-    =/  head-xray=xray  (focus-on st head.x-data)
-    ::
-    =/  y-xray=xray     (focus-on st y-key)
-    =/  y-data=data     (need data.y-xray)
-    |-  ^-  [key xtable]
-    ::
-    ?:  ?=([%face *] y-data)  $(y-data (need data:(focus-on st xray.y-data)))
-    ?>  ?=([%cell *] y-data)
-    =/  y-tail=key      tail.y-data
-    ::
-    =^  merged-tail  st  (merge st x-tail y-tail)
-    =/  tail-xray=xray   (focus-on st merged-tail)
-    ::
-    =/  res-ty=type    [%cell type.head-xray type.tail-xray]
-    =/  res-data=data  [%cell key.head-xray key.tail-xray]
-    =^  res-key  st    (alloc-fork-xray st res-ty res-data)
-    ::
-    =/  res-xray=xray   (focus-on st res-key)
-    =.  shape.res-xray  `%cell
-    =.  role.res-xray   `[%instance atom]
-    =.  xrays.st        (~(put by xrays.st) res-key res-xray)
-    ::
-    [key.res-xray st]
+  ::  This is a massive switch on the roles of the two arguments. This
+  ::  is *very* easy to get wrong, so I structured things this in a
+  ::  verbose and explicit way, so that you should be able to easily go
+  ::  through each case and verify that it's doing the right thing.
   ::
   ++  combine
-    |=  [st=xtable this=key that=key]
-    ^-  ximage
+    |^  |=  [st=xtable =this=key =that=key]
+        ^-  [key xtable]
+        ::
+        ?:  =(this-key that-key)  [this-key st]
+        ::
+        =^  this-role=role  st  (xray-role st this-key)
+        =^  that-role=role  st  (xray-role st that-key)
+        ::
+        =/  this=[=key =role]  [this-key this-role]
+        =/  that=[=key =role]  [that-key that-role]
+        ::
+        ?:  ?=(%void role.this)             [that-key st]
+        ?:  ?=(%void role.that)             [this-key st]
+        ?:  ?=(%noun role.this)             (noun-noun st this that)
+        ?:  ?=(%noun role.that)             (noun-noun st that this)
+        ?:  ?=([%misjunction *] role.this)  (misjunkin st this that)
+        ?:  ?=([%misjunction *] role.that)  (misjunkin st this that)
+        ::
+        ?-  role.that
+          %atom
+            ?-  role.this
+              %atom             (atom-atom st that this)
+              %tall             (atom-cell st that this)
+              %wide             (atom-cell st that this)
+              [%constant *]     (atom-atom st that this)
+              [%instance *]     (atom-cell st that this)
+              [%option *]       (atom-optn st that this)
+              [%union *]        (atom-cell st that this)
+              [%junction *]     (atom-junc st that this)
+              [%conjunction *]  (atom-cell st that this)
+            ==
+          %tall
+            ?-  role.this
+              %atom             (atom-cell st this that)
+              %tall             (tall-tall st this that)
+              %wide             (wide-tall st this that)
+              [%constant *]     (atom-cell st this that)
+              [%instance *]     (tall-tall st this that)
+              [%option *]       (atom-cell st this that)
+              [%union *]        (tall-tall st this that)
+              [%junction *]     (cell-junc st that this)
+              [%conjunction *]  (tall-conj st that this)
+            ==
+          %wide
+            ?-  role.this
+              %atom             (atom-cell st this that)
+              %tall             (wide-tall st that this)
+              %wide             (wide-wide st this that)
+              [%constant *]     (atom-cell st this that)
+              [%instance *]     (wide-tall st this that)
+              [%option *]       (atom-cell st this that)
+              [%union *]        (wide-tall st that this)
+              [%junction *]     (cell-junc st that this)
+              [%conjunction *]  (wide-conj st that this)
+            ==
+          [%constant *]
+            ?-  role.this
+              %atom             (atom-atom st that this)
+              %tall             (atom-cell st that this)
+              %wide             (atom-cell st that this)
+              [%constant *]     (cnst-cnst st that this)
+              [%instance *]     (atom-cell st that this)
+              [%option *]       (cnst-optn st that this)
+              [%union *]        (atom-cell st that this)
+              [%junction *]     (atom-junc st that this)
+              [%conjunction *]  (atom-cell st that this)
+            ==
+          [%instance *]
+            ?-  role.this
+              %atom             (atom-cell st this that)
+              %tall             (tall-tall st this that)
+              %wide             (wide-tall st this that)
+              [%constant *]     (atom-cell st this that)
+              [%instance *]     (inst-inst st this that)
+              [%option *]       (atom-cell st this that)
+              [%union *]        (inst-unin st that this)
+              [%junction *]     (cell-junc st that this)
+              [%conjunction *]  (tall-conj st that this)
+            ==
+          [%option *]
+            ?-  role.this
+              %atom             (atom-optn st this that)
+              %tall             (atom-cell st that this)
+              %wide             (atom-cell st that this)
+              [%constant *]     (cnst-optn st this that)
+              [%instance *]     (atom-cell st that this)
+              [%option *]       (optn-optn st this that)
+              [%union *]        (atom-cell st that this)
+              [%junction *]     (atom-junc st that this)
+              [%conjunction *]  (atom-cell st that this)
+            ==
+          [%union *]
+            ?-  role.this
+              %atom             (atom-cell st this that)
+              %tall             (tall-tall st this that)
+              %wide             (wide-tall st this that)
+              [%constant *]     (atom-cell st this that)
+              [%instance *]     (inst-unin st this that)
+              [%option *]       (atom-cell st this that)
+              [%union *]        (unin-unin st this that)
+              [%junction *]     (cell-junc st that this)
+              [%conjunction *]  (tall-conj st that this)
+            ==
+          [%junction *]
+            ?-  role.this
+              %atom             (atom-junc st this that)
+              %tall             (cell-junc st this that)
+              %wide             (cell-junc st this that)
+              [%constant *]     (atom-junc st this that)
+              [%instance *]     (cell-junc st this that)
+              [%option *]       (atom-junc st this that)
+              [%union *]        (cell-junc st this that)
+              [%junction *]     (junc-junc st this that)
+              [%conjunction *]  (cell-junc st this that)
+            ==
+          [%conjunction *]
+            ?-  role.this
+              %atom             (atom-cell st this that)
+              %tall             (tall-conj st this that)
+              %wide             (wide-conj st this that)
+              [%constant *]     (atom-cell st this that)
+              [%instance *]     (tall-conj st this that)
+              [%option *]       (atom-cell st this that)
+              [%union *]        (tall-conj st this that)
+              [%junction *]     (cell-junc st that this)
+              [%conjunction *]  (conj-conj st this that)
+            ==
+        ==
     ::
-    |-  ^-  ximage
+    ::  This guy ACTUALLY constructs the union type by calling `fork`
+    ::  from `hoon.hoon`. To populate the `data` field, we just call
+    ::  `xray-branches` on both of the input xrays and union the result.
     ::
-    ?:  =(this that)  [this st]
+    ::  Node that `xray-branches` produces a singleton set when called on
+    ::  a node that isn't a fork, so this works correctly both for
+    ::  joining fork node and non-fork nodes.
     ::
-    =^  this-role=role  st  (xray-role st this)
-    =^  that-role=role  st  (xray-role st that)
+    ++  join
+      |=  [st=xtable this=key that=key]
+      ^-  [key xtable]
+      ::
+      ?:  =(this that)  [this st]
+      ::
+      =/  this-xray=xray  (focus-on st this)
+      =/  that-xray=xray  (focus-on st that)
+      ::
+      =/  union-type=type  (fork ~[type.this-xray type.that-xray])
+      ::
+      =/  this-fork  (xray-branches st this)
+      =/  that-fork  (xray-branches st that)
+      =/  branches   (~(uni in this-fork) that-fork)
+      ::
+      (alloc-fork-xray st union-type [%fork branches])
     ::
     ::  Create the join of two xrays with the specified `role`.
     ::
-    =/  join-with-role
+    ++  joint
       |=  [st=xtable x=key y=key =role]
-      ^-  ximage
-      ::
-      =/  xx  (focus-on st x)
-      =/  yy  (focus-on st y)
+      ^-  [key xtable]
       ::
       =^  joined=key  st  (join st x y)
-      =/  j=xray          (focus-on st joined)
-      =.  st              (replace-xray st j(role `role))
-      [joined st]
+      =/  jray            (focus-on st joined)
+      =.  st              (replace-xray st jray(role `role))
+      [key.jray st]
     ::
-    ::  Produce a joined node with the specified `role`.
+    ++  atom-atom                                       ::  Can't discriminate
+      |=  [st=xtable [x=key role] [y=key role]]
+      (joint st x y [%misjunction x y])
     ::
-    =/  joined
-      |=  [st=xtable =role]
-      ^-  ximage
-      (join-with-role st this that role)
+    ++  atom-cell
+      |=  [st=xtable [a=key role] [c=key role]]
+      (joint st a c [%junction a c])
     ::
-    ::  Convenience functions for creating junctions
+    ++  wide-tall
+      |=  [st=xtable [w=key role] [t=key role]]
+      (joint st w t [%conjunction w t])
     ::
-    =/  misjunct  |=  [st=xtable x=key y=key]
-                  =/  xx=xray  (focus-on st x)
-                  =/  yy=xray  (focus-on st y)
-                  (join-with-role st x y [%misjunction x y])
+    ++  noun-noun                                       ::  Can't discriminate
+      |=  [st=xtable [x=key role] [y=key role]]
+      (joint st x y [%misjunction x y])
     ::
-    =/  conjunct  |=  [st=xtable wide=key tall=key]
-                  (join-with-role st wide tall [%conjunction wide tall])
+    ++  misjunkin
+      |=  [st=xtable [x=key role] [y=key role]]
+      (joint st x y [%misjunction x y])
     ::
-    =/  junct     |=  [st=xtable flat=key deep=key]
-                  (join-with-role st flat deep [%junction flat deep])
+    ++  atom-optn                                       ::  Can't discriminate
+      |=  [st=xtable [x=key role] [y=key [%option *]]]
+      (joint st x y [%misjunction x y])
     ::
-    ::  Join a cell with a junction.
+    ++  cnst-optn
+      |=  $:  st=xtable
+              [x=key [%constant xv=atom]]
+              [y=key [%option ym=(map atom key)]]
+          ==
+      =^  res  st  (collate-option st [[xv x] ~ ~] ym)
+      (joint st x y [%option res])
     ::
-    =/  cell-junct
-      |=  [st=xtable cell=key [flat=key deep=key]]
-      ^-  ximage
-      =^  deep-merged  st  (merge st cell deep)
-      (junct st flat deep-merged)
+    ::  XX If the have the same key, produce a new instance who's tail
+    ::  is the union of both tails.
     ::
-    ::  Join an atom with a junction.
+    ++  inst-inst
+      |=  [st=xtable [x=key [%instance xv=atom]] [y=key [%instance yv=atom]]]
+      =^  res  st  (collate-union st [[xv x] ~ ~] [[yv y] ~ ~])
+      (joint st x y [%union res])
     ::
-    =/  atom-junct
-      |=  [st=xtable atom=key [flat=key deep=key]]
-      ^-  [key xtable]
-      =^  flat-merged  st  (merge st atom flat)
-      (junct st flat-merged deep)
+    ++  inst-unin
+      |=  $:  st=xtable
+              [x=key [%instance xv=atom]]
+              [y=key [%union ym=(map atom key)]]
+          ==
+      =^  res  st   (collate-union st [[xv x] ~ ~] ym)
+      (joint st x y [%union res])
     ::
-    =/  tall-conjunct
-      |=  [st=xtable out-tall=key [wide=key in-tall=key]]
-      ^-  [key xtable]
-      =^  new-tall  st  (merge st out-tall in-tall)
-      (conjunct st wide new-tall)
+    ++  junc-junc
+      |=  $:  st=xtable
+              [x=key [%junction xflat=key xdeep=key]]
+              [y=key [%junction yflat=key ydeep=key]]
+          ==
+      =^  flat  st  (merge st xflat yflat)
+      =^  deep  st  (merge st xdeep ydeep)
+      (joint st x y [%junction flat deep])
     ::
-    =/  conjunct-conjunct
-      |=  [st=xtable [xwide=key xtall=key] [ywide=key ytall=key]]
-      ^-  [key xtable]
+    ::  XX Justify why this is always a misjunction. What if they have
+    ::  the same head? Wouldn't producing a wide with that head and the
+    ::  union of the two tails be coherent?
+    ::
+    ::  I *can* get the head and the tail of both and merge them,
+    ::  why would this never make sense?
+    ::
+    ++  tall-tall
+      |=  [st=xtable [x=key role] [y=key role]]
+      (joint st x y [%misjunction x y])
+    ::
+    ++  unin-unin
+      |=  [st=xtable [x=key [%union xm=(map atom key)]] [y=key [%union ym=(map atom key)]]]
+      =^  res  st  (collate-union st xm ym)
+      (joint st x y [%union res])
+    ::
+    ::  XX  Can this ever produce a coherent result? If it can't, should
+    ::  the result be a misjunction, or should the misjunction instead
+    ::  exist in the wide part of the resulting conjunction (what this
+    ::  code will do)?
+    ::
+    ++  wide-conj
+      |=  [st=xtable [x=key role] [y=key [%conjunction ywide=key ytall=key]]]
+      =^  new-wide  st  (merge st x ywide)
+      (joint st x y [%conjunction new-wide ytall])
+    ::
+    ::  XX Justify why this is always a misjunction. What if they have
+    ::  the same head? Wouldn't producing a wide with that head and the
+    ::  union of the two tails be coherent?
+    ::
+    ::  I *can* get the head and the tail and merge
+    ::  them, why would this never make sense?
+    ::
+    ++  wide-wide
+      |=  [st=xtable [x=key role] [y=key role]]
+      (joint st x y [%misjunction x y])
+    ::
+    ++  cnst-cnst
+      |=  [st=xtable [x=key [%constant xv=atom]] [y=key [%constant yv=atom]]]
+      =^  res  st  (collate-option st [[xv x] ~ ~] [[yv y] ~ ~])
+      (joint st x y [%option res])
+    ::
+    ++  optn-optn
+      |=  [st=xtable [x=key [%option xm=(map atom key)]] [y=key [%option ym=(map atom key)]]]
+      =^  res  st  (collate-option st xm ym)
+      (joint st x y [%option res])
+    ::
+    ++  tall-conj
+      |=  [st=xtable [x=key role] [y=key [%conjunction ywide=key ytall=key]]]
+      =^  new-tall  st  (merge st x ytall)
+      (joint st ywide new-tall [%conjunction ywide new-tall])
+    ::
+    ++  atom-junc
+      |=  [st=xtable [x=key role] [y=key [%junction yflat=key ydeep=key]]]
+      =^  flat-merged  st  (merge st x yflat)
+      (joint st flat-merged ydeep [%junction flat-merged ydeep])
+    ::
+    ++  cell-junc
+      |=  [st=xtable [x=key role] [y=key [%junction yflat=key ydeep=key]]]
+      =^  deep-merged  st  (merge st x ydeep)
+      (joint st yflat deep-merged [%junction yflat deep-merged])
+    ::
+    ++  conj-conj
+      |=  $:  st=xtable
+              [x=key [%conjunction xwide=key xtall=key]]
+              [y=key [%conjunction ywide=key ytall=key]]
+          ==
       =^  new-wide  st  (merge st xwide ywide)
       =^  new-tall  st  (merge st xtall ytall)
-      ::
-      :: XX Merging the talls or the wides might produce a misjunction! In
-      :: either case, the result should also be a misjunction, not a
-      :: conjunction. This is wrong.
-      ::
-      (conjunct st new-wide new-tall)
+      (joint st new-wide new-tall [%conjunction new-wide new-tall])
     ::
-    ?@  this-role
-      ?^  that-role  $(this that, that this)
-      %+  joined  st
-      ^-  role
-      ?:  =(this-role that-role)  this-role
-      ?:  ?=(%void this-role)     that-role
-      ?:  ?=(%void that-role)     this-role
-      ?:  ?=(%noun this-role)     %noun
-      ?:  ?=(%noun that-role)     %noun
-      ?-  this-role
-        %atom
-          ?-  that-role
-            %atom  !!                                   ::  XX %union
-            %tall  [%junction this that]
-            %wide  [%junction this that]
-          ==
-        %tall
-          ?-  that-role
-            %atom  [%junction that this]
-            %tall  [%misjunction this that]
-            %wide  [%conjunction that this]
-          ==
-        %wide
-          ?-  that-role
-            %atom  [%junction that this]
-            %tall  [%conjunction this that]
-            %wide  [%misjunction this that]
-          ==
-      ==
-    ::
-    ::  At this point `this-role` is a constant, instance, option, union,
-    ::  junction, conjunction, or a misjunction.
-    ::
-    ?@  that-role
-      ?-  that-role
-        %noun  (joined st this-role)
-        %void  (joined st this-role)
-        %atom  ?-  -.this-role
-                 %conjunction  (junct st that this)
-                 %constant     (joined st %atom)
-                 %instance     (junct st that this)
-                 %junction     (atom-junct st that [flat deep]:this-role)
-                 %misjunction  (misjunct st that this)
-                 %option       (joined st %atom)
-                 %union        (junct st that this)
-               ==
-        %tall  ?-  -.this-role
-                 %conjunction  (misjunct st this that)  ::  Can't discriminate
-                 %constant     (junct st this that)
-                 %instance     (misjunct st this that)  ::  Can't discriminate
-                 %junction     (cell-junct st that [flat deep]:this-role)
-                 %misjunction  (misjunct st this that)
-                 %option       (junct st this that)
-                 %union        (misjunct st this that)  ::  Invalid union
-               ==
-        %wide  ?-  -.this-role
-                 %conjunction  (misjunct st this that)  ::  Can't discriminated
-                 %constant     (junct st this that)
-                 %instance     (conjunct st that this)
-                 %junction     (cell-junct st that [flat deep]:this-role)
-                 %misjunction  (misjunct st this that)
-                 %option       (junct st this that)
-                 %union        (conjunct st that this)
-               ==
-      ==
-    ::
-    ::  At this point both `this-role` and `that-role` are either a
-    ::  constant, instance, option, union, junction, conjunction, or
-    ::  a misjunction.
-    ::
-    ?:  |(?=(%misjunction -.this-role) ?=(%misjunction -.that-role))
-      (misjunct st this that)
-    ::
-    ::  Now we know that neither role is a misjunction.
-    ::
-    ?-    -.this-role
-        %constant
-      ?-  -.that-role
-        %constant     =/  this-arg=(map atom key)  [[atom.this-role this] ~ ~]
-                      =/  that-arg=(map atom key)  [[atom.that-role that] ~ ~]
-                      =^  res  st  (collate-option st this-arg that-arg)
-                      (joined st [%option res])
-        %instance     (junct st this that)
-        %option       =/  that-arg=(map atom key)  map.that-role
-                      =/  this-arg=(map atom key)  [[atom.this-role this] ~ ~]
-                      =^  res  st  (collate-option st this-arg that-arg)
-                      (joined st [%option res])
-        %union        (junct st this that)
-        %junction     =^  merged  st  (merge st this flat.that-role)
-                      (junct st merged deep.that-role)
-        %conjunction  (junct st this that)
-      ==
-    ::
-        %instance
-      ?+  -.that-role  $(this that, that this)
-        %instance     =/  this-arg=(map atom key)  [[atom.this-role this] ~ ~]
-                      =/  that-arg=(map atom key)  [[atom.that-role that] ~ ~]
-                      =^  res  st  (collate-union st this-arg that-arg)
-                      (joined st [%union res])
-        %option       (junct st this that)
-        %union        =/  this-arg  [[atom.this-role this] ~ ~]
-                      =^  res  st   (collate-union st map.that-role this-arg)
-                      (joined st [%union res])
-        %junction     =^  merged  st  (merge st this deep.that-role)
-                      (junct st flat.that-role merged)
-        %conjunction  (tall-conjunct st this [wide tall]:that-role)
-      ==
-    ::
-        %option
-      ?+  -.that-role  $(this that, that this)
-        %option       =^  res  st  (collate-option st map.this-role map.that-role)
-                      (joined st [%option res])
-        %union        (junct st this that)
-        %junction     =^  merged  st  (merge st this flat.that-role)
-                      (junct st merged deep.that-role)
-        %conjunction  (junct st this that)
-      ==
-    ::
-        %union
-      ?+  -.that-role  $(this that, that this)
-        %union        =^  res  st  (collate-union st map.this-role map.that-role)
-                      (joined st [%union res])
-        %junction     =^  merged  st  (merge st this deep.that-role)
-                      (junct st flat.that-role merged)
-        %conjunction  (tall-conjunct st this [tall wide]:that-role)
-      ==
-    ::
-        %junction
-      ?+  -.that-role  $(this that, that this)
-        %junction     =^  flat  st  (merge st flat.this-role flat.that-role)
-                      =^  deep  st  (merge st deep.this-role deep.that-role)
-                      (junct st flat deep)
-        %conjunction  =^  merged  st  (merge st deep.this-role that)
-                      (junct st flat.this-role merged)
-      ==
-    ::
-        %conjunction
-      ?+  -.that-role  $(this that, that this)
-        %conjunction  (conjunct-conjunct st [wide tall]:this-role [wide tall]:that-role)
-      ==
-    ==
-  ::
-  ++  combine-rewrite
-    |=  [st=xtable this=key that=key]
-    ^-  [key xtable]
-    ::
-    ?:  =(this that)  [this st]
-    ::
-    =^  this-role=role  st  (xray-role st this)
-    =^  that-role=role  st  (xray-role st that)
-    ::
-    ::  Create the join of two xrays with the specified `role`.
-    ::
-    =/  join-with-role
-      |=  [st=xtable x=key y=key =role]
-      ^-  ximage
-      ::
-      =/  xx  (focus-on st x)
-      =/  yy  (focus-on st y)
-      ::
-      =^  joined=key  st  (join st x y)
-      =/  j=xray          (focus-on st joined)
-      =.  st              (replace-xray st j(role `role))
-      [joined st]
-    ::
-    =/  atom-atom      |=  x=*  !!
-    =/  atom-cell      |=  x=*  !!
-    =/  atom-junct     |=  x=*  !!
-    =/  atom-option    |=  x=*  !!
-    =/  cell-junct     |=  x=*  !!
-    =/  conjunction    |=  x=*  !!
-    =/  misjunction    |=  x=*  !!
-    =/  tall-conjunct  |=  x=*  !!
-    ::
-    ::  Produce a joined node with the specified `role`.
-    ::
-    =/  joined
-      |=  [st=xtable =role]
-      ^-  ximage
-      (join-with-role st this that role)
-    ::
-    ?:  ?=(%void this-role)  [that st]
-    ?:  ?=(%void that-role)  [this st]
-    ?:  ?=(%noun this-role)  (misjunction st this that)
-    ?:  ?=(%noun that-role)  (misjunction st this that)
-    ::
-    ?-  that-role
-      %atom
-        ?-  this-role
-          %atom             (atom-atom that this)
-          %tall             (atom-cell that this)
-          %wide             (atom-cell that this)
-          [%constant *]     (atom-atom that this)
-          [%instance *]     (atom-cell that this)
-          [%option *]       (atom-option that this)
-          [%union *]        (atom-cell that this)
-          [%junction *]     (atom-junct that this)
-          [%conjunction *]  (atom-cell that this)
-          [%misjunction *]  (misjunction that this)
-        ==
-      %tall
-        ?-  this-role
-          %atom             (atom-cell this that)
-          %tall             (misjunction this that)
-          %wide             (conjunction wide=this tall=that)
-          [%constant *]     (atom-cell this that)
-          [%instance *]     (misjunction this that)
-          [%option *]       (atom-cell this that)
-          [%union *]        (misjunction this that)
-          [%junction *]     (cell-junct that this)
-          [%conjunction *]  (tall-conjunct that this)
-          [%misjunction *]  (misjunction this that)
-        ==
-      %wide
-        ?-  this-role
-          %atom             (atom-cell this that)
-          %tall             (conjunction wide=that tall=this)
-          %wide             (misjunction this that)
-          [%constant *]     !!
-          [%instance *]     !!
-          [%option *]       !!
-          [%union *]        !!
-          [%junction *]     !!
-          [%conjunction *]  !!
-          [%misjunction *]  !!
-        ==
-      [%constant *]
-        ?-  this-role
-          %atom             !!
-          %tall             !!
-          %wide             !!
-          [%constant *]     !!
-          [%instance *]     !!
-          [%option *]       !!
-          [%union *]        !!
-          [%junction *]     !!
-          [%conjunction *]  !!
-          [%misjunction *]  !!
-        ==
-      [%instance *]
-        ?-  this-role
-          %atom             !!
-          %tall             !!
-          %wide             !!
-          [%constant *]     !!
-          [%instance *]     !!
-          [%option *]       !!
-          [%union *]        !!
-          [%junction *]     !!
-          [%conjunction *]  !!
-          [%misjunction *]  !!
-        ==
-      [%option *]
-        ?-  this-role
-          %atom             !!
-          %tall             !!
-          %wide             !!
-          [%constant *]     !!
-          [%instance *]     !!
-          [%option *]       !!
-          [%union *]        !!
-          [%junction *]     !!
-          [%conjunction *]  !!
-          [%misjunction *]  !!
-        ==
-      [%union *]
-        ?-  this-role
-          %atom             !!
-          %tall             !!
-          %wide             !!
-          [%constant *]     !!
-          [%instance *]     !!
-          [%option *]       !!
-          [%union *]        !!
-          [%junction *]     !!
-          [%conjunction *]  !!
-          [%misjunction *]  !!
-        ==
-      [%junction *]
-        ?-  this-role
-          %atom             !!
-          %tall             !!
-          %wide             !!
-          [%constant *]     !!
-          [%instance *]     !!
-          [%option *]       !!
-          [%union *]        !!
-          [%junction *]     !!
-          [%conjunction *]  !!
-          [%misjunction *]  !!
-        ==
-      [%conjunction *]
-        ?-  this-role
-          %atom             !!
-          %tall             !!
-          %wide             !!
-          [%constant *]     !!
-          [%instance *]     !!
-          [%option *]       !!
-          [%union *]        !!
-          [%junction *]     !!
-          [%conjunction *]  !!
-          [%misjunction *]  !!
-        ==
-      [%misjunction *]
-        ?-  this-role
-          %atom             !!
-          %tall             !!
-          %wide             !!
-          [%constant *]     !!
-          [%instance *]     !!
-          [%option *]       !!
-          [%union *]        !!
-          [%junction *]     !!
-          [%conjunction *]  !!
-          [%misjunction *]  !!
-        ==
-    ==
+    --
   --
 ::
 ::  Convert an `ximage` to a spec for printing.
