@@ -6,20 +6,34 @@
 ::
 :-  %say
 ::
-=<  |=  {^ {{v=vase ~} ~}}
+=<  |=  {^ {{=arg ~} ~}}
+    ^-  [%txt wain]
+    ::
+    =/  v=vase
+      ?-  target.arg
+        ^        target.arg
+        %all     !>(all-examples)
+        %demo    !>(demo-example)
+        %test    !>(test-example)
+        %type    !>(type-example)
+        %xml     !>(xml-example)
+        %kernel  !>(xray-the-kernel-example)
+        %parser  !>(xray-the-parser-example)
+      ==
+    ::
     :-  %txt
-    ::  v  !>(xray-the-kernel-example)
-    ::  v  !>(test-example)
-    ::  v  !>(xray-the-parser-example)
-    ::  v  !>(type-example)
-    ::  v  !>(xml-example)
-    ::  v  !>(test-example)
-    ::  v  !>(demo-example)
-    ~&  p.v
-    ::  v  !>(all-examples)
-    (render-vase:pprint v)
+    ?-  print.arg
+      %type  (render-type:pprint p.v)
+      %val   (render-vase:pprint v)
+      %both  (render-vase-with-type:pprint v)
+    ==
 ::
 |%
+::
++$  arg
+  $:  print=?(%type %val %both)
+      target=$@(?(%all %demo %test %type %xml %kernel %parser) vase)
+  ==
 ::
 +$  option  $?(%a %b %c)
 ::

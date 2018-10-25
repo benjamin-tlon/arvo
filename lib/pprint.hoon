@@ -1,11 +1,11 @@
 ::  This code pretty-prints a variety of things using the `xray` and
 ::  `plum` libraries:
 ::
-::  - `render-noun`: Renders a noun given the xray of it's type.
 ::  - `render-vase`: Renders the data in a vase.=$-(vase wain)
 ::  - `render-hoon`: Pretty-prints a `hoon` AST as hoon code.
 ::  - `render-type`: Pretty-prints a type as a hoon expression.
 ::  - `render-type-simple`: Debug-print for the `type` structure.
+::  - `render-vase-with-type`: Pretty print a vase: both value and type.
 ::
 ::  There's a lot of logic here, but most of it is fairly
 ::  straight-forward.
@@ -17,19 +17,42 @@
 /-  *xray
 /+  *xray, *plum
 ::
-|^  ^-  $:  render-noun=$-([=ximage =noun] =plum)
-            render-vase=$-(vase wain)
+|^  ^-  $:  render-vase=$-(vase wain)
             render-hoon=$-(hoon wain)
             render-type=$-(type wain)
             render-type-simple=$-(type wain)
+            render-vase-with-type=$-(vase wain)
         ==
-    [render-noun render-vase render-hoon render-type render-type-simple]
+    :*  render-vase
+        render-hoon
+        render-type
+        render-type-simple
+        render-vase-with-type
+    ==
 ::
 +|  %utils
 ::
 +$  battery  (map term (pair what (map term hoon)))
 ::
 +|  %render
+::
+++  render-vase-with-type
+  |=  =vase
+  ^-  wain
+  ::
+  =/  =ximage  (xray-type 99 p.vase)
+  ::
+  ~&  %noun-to-plum
+  =/  val=plum  (noun-to-plum ximage q.vase)
+  ::
+  ~&  %type-to-plum
+  =/  typ=plum  (spec-to-plum (ximage-to-spec ximage))
+  ::
+  =/  result=plum
+    (sexp 'vase' (sexp 'type' typ ~) (sexp 'val' val ~) ~)
+  ::
+  ~&  %convert-to-wain
+  ~(tall plume result)
 ::
 ++  render-vase
   |=  =vase
@@ -63,7 +86,8 @@
 ::  and then renders the result.
 ::
 ++  render-all-hoons-inside-of-type
-  |=  =type  ^-  wain
+  |=  =type
+  ^-  wain
   ?.  ?=([%core *] type)  [%zpzp ~]
   =*  tomes=(list tome)  ~(val by q.r.q.type)
   =*  hoons=(list hoon)  (turn tomes |=(t=tome [%cltr ~(val by q.t)]))
@@ -74,14 +98,16 @@
 ::  Pretty-print a vase.
 ::
 ++  vase-to-plum
-  |=  v=vase  ^-  plum
-  (render-noun (xray-type 1 p.v) q.v)
+  |=  v=vase
+  ^-  plum
+  (noun-to-plum (xray-type 99 p.v) q.v)
 ::
 ::  Pretty-print a type.
 ::
 ++  type-to-plum
-  |=  t=type  ^-  plum
-  (spec-to-plum (ximage-to-spec (xray-type 1 t)))
+  |=  t=type
+  ^-  plum
+  (spec-to-plum (ximage-to-spec (xray-type 99 t)))
 ::
 ::  Render an `axis`.
 ::
@@ -635,7 +661,7 @@
     [`[' ' `[(cat 3 intro '(') ')']] `[intro `['' final]]]
   --
 ::
-++  render-noun
+++  noun-to-plum
   |=  [xt=ximage =top=noun]
   ^-  plum
   ::
