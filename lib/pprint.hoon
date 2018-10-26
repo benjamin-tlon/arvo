@@ -628,7 +628,7 @@
         %bscb  (hoon-to-plum 999 p.spec)
         %bscl  :-  %sbrk
                :+  %tree
-                 [`[' ' `['[' ']']] `['$:' `['' '--']]]
+                 [`[' ' `['[' ']']] `['$:' `['' '==']]]
                (turn `(list ^spec)`+.spec ..$)
         %bscn  (subtree (varying '$%' '==') (turn `(list ^spec)`+.spec ..$))
         %bsdt  (core-spec-to-plum '$.' p.spec q.spec)
